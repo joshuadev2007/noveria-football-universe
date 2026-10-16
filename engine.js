@@ -92,7 +92,7 @@ export function simulateMatch(s,match,options={}){
   return match;
 }
 export function finalizeLeagueRound(s,round){if(s.leagueRound>=round)return false;const games=s.fixtures.filter(f=>f.round===round&&['LSV','LPV'].includes(f.competition));if(!games.length||games.some(f=>!played(f)))return false;s.leagueRound=round;reviewCoaches(s,round);
-  if(round===18){setupPostseason(s);if(ensureMarket(s).market.status!=='open')openMarket(s,`Mercado tras ${cycleName(s)}`);if(cycleIsAnnualFinal(s)&&!s.honours.some(h=>h.title==='Escudo de Oro de Veltrania'&&Number(h.season)===s.season)){const annual=standings(s,'annual');s.honours.push({title:'Escudo de Oro de Veltrania',winner:annual[0].name,season:String(s.season),edition:cyclePhase(s)});s.teams[annual[0].name].trophies.push(`Escudo de Oro · ${s.season}`);addNews(s,'Campeonato',`${annual[0].name} conquista el Escudo de Oro ${s.season}`,`Lidera la tabla anual acumulada de ${s.season}.`);}}
+  if(round===18){setupPostseason(s);if(ensureMarket(s).market.status!=='open')openMarket(s,s.season===2026?`Mercado de verano · tras el Apertura 2026`:`Mercado · tras ${cycleName(s)}`);if(cycleIsAnnualFinal(s)&&!s.honours.some(h=>h.title==='Escudo de Oro de Veltrania'&&Number(h.season)===s.season)){const annual=standings(s,'annual');s.honours.push({title:'Escudo de Oro de Veltrania',winner:annual[0].name,season:String(s.season),edition:cyclePhase(s)});s.teams[annual[0].name].trophies.push(`Escudo de Oro · ${s.season}`);addNews(s,'Campeonato',`${annual[0].name} conquista el Escudo de Oro ${s.season}`,`Lidera la tabla anual acumulada de ${s.season}.`);}}
   return true;}
 export function simulateLeagueRound(s){const round=getLeagueNextRound(s);if(round>18)throw Error('El campeonato ya completó sus 18 jornadas');const matches=s.fixtures.filter(f=>f.round===round&&['LSV','LPV'].includes(f.competition));const newly=matches.filter(f=>!played(f));for(const m of newly)simulateMatch(s,m);finalizeLeagueRound(s,round);
   return {round,matches:newly};}
@@ -387,7 +387,7 @@ export function recruitAcademyPlayer(s,name){
 // NUEVAS TEMPORADAS: calendario renovado, ascensos/descensos e historia intacta.
 export function startNextSeason(s){
  ensureMarket(s);if(s.postseason?.stage!=='finalizada')throw Error('Terminá la final y la Recopa antes de cambiar de torneo');
- if(s.market.status==='open')throw Error('Cerrá el mercado de pases antes del siguiente torneo');
+ if(s.market.status==='open')throw Error('Primero cerrá el mercado de pases antes del siguiente torneo');
  const complete=cycleIsAnnualFinal(s),old=s.season,next=cycleNext(s),newKey=next.season+'-'+next.edition;
  const fallenA=complete?standings(s,'A').at(-1).name:null,fallenB=complete?standings(s,'B').at(-1).name:null,
  promoted=complete?standings(s,'S').slice(0,2).map(r=>r.name):[];
