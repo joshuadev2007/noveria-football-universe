@@ -403,6 +403,7 @@ function playMasterDate(){
  try{
   if(e.kind==='league'){
    if(getLeagueNextRound(s)===e.ordinal)matches.push(...simulateLeagueRound(s).matches);
+   else if(s.leagueRound<e.ordinal)finalizeLeagueRound(s,e.ordinal); // Fecha terminada íntegramente en Live 2D.
    catchUpCountries(s,e.ordinal);
    for(const c of FOREIGN_COUNTRIES)matches.push(...(s.world?.[c]?.fixtures||[]).filter(m=>m.round===e.ordinal&&played(m)));
    // La cantera sigue el mismo fin de semana que la primera división.
