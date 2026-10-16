@@ -4,7 +4,7 @@
 
 > Este proyecto es independiente de Reino Rojinegro; no modifica ni necesita sus archivos.
 
-## Qué incluye esta edición 2.0 jugable
+## Qué incluye esta edición 3.0 jugable
 
 - **60 clubes**, nueve países de Arcalis, 18 clubes de Primera (zonas A/B), 10 de Segunda y 32 internacionales.
 - Historia **real del juego** importada: partidos y tablas de las jornadas 1 a 6, sin modificar sus marcadores.
@@ -16,12 +16,25 @@
 - Cada club tiene escudo gráfico provisional, entrenador, presidente, director deportivo, estadio, afición, tácticas, moral, confianza y presupuesto.
 - **1320 futbolistas generados** (22 por cada uno de los 60 clubes), con OVR, potencial, edad, posición, dorsal, nacionalidad, valor, rendimiento, partidos, goles, asistencias y tarjetas.
 - **Editor de los tres uniformes** de cada club: colores, rayas, aros, mitades, banda, liso y patrocinador ficticio.
-- Gestión de DT: **destituir y nombrar entrenador**, cambios de alineación/táctica, **traspasos de jugadores** y noticias del mercado. Algunas directivas pueden despedir al DT tras rachas de cuatro derrotas.
+- Gestión de DT: **destituir y nombrar entrenador**, cambios de alineación/táctica, **mercado negociado**, ojeadores, ofertas y contraofertas. Algunas directivas pueden despedir al DT tras rachas de cuatro derrotas.
 - **Copa de las Provincias**: 7 grupos de 4, avanzan 14 primeros y segundos más 2 mejores terceros; octavos, cuartos, semifinal y final.
 - **Constructor avanzado de competiciones**: 5 formatos: liga una vuelta, liga ida/vuelta, copa eliminatoria (con pases libres automáticos), Recopa/final neutral a partido único, y copa por grupos de cuatro con fase eliminatoria. De 2 a 32 clubes según el formato.
 - **Resultados automáticos después de simular**: panel inmediato de la jornada con cada marcador, estadísticas disponibles, goleadores e hipervínculo a **El Heraldo de Noveria** para cada partido. También se pueden abrir jornadas históricas.
 - **Ambiente de fútbol**: aficiones y estadios en portadas, páginas de clubes, centro de resultados, sección de copas y periódicos. Las fotografías reales opcionales solo ilustran el ambiente, no representan a los clubes ficticios. Se incluye fondo gráfico local para funcionar sin internet.
 - **Palmarés**, noticias, seguimiento editorial de **Unión Popular Aurena sin favoritismo**, vista móvil, soporte de aplicación instalable (PWA) y copia de seguridad JSON.
+
+## Nuevo mercado automático — edición 3.0
+
+- **Modo DT:** gestioná solo tu club y negociá con otros clubes; **modo presidente:** podés elegir cualquier club y su presupuesto.
+- **Ventanas de 12 días:** abrí mercado, avanzá un día con fichajes autónomos o simulá todos los días hasta el cierre. El **último día** tiene más negociaciones. Al acabar Jornada 18 se abre automáticamente la primera ventana post-Apertura.
+- **Mesa de negociaciones:** oferta al club vendedor (millones VLR), salario mensual (miles VLR), duración de 1–5 años. El vendedor acepta, rechaza o pide una contraoferta; podés aceptarla o declinarla.
+- **Finanzas reales dentro del juego:** la compra reduce el presupuesto disponible del comprador y aumenta el del vendedor. El motor impide compras sin saldo, venta de plantillas de 17 o menos y plantillas receptoras de más de 30.
+- **Ojeadores:** buscador internacional con filtros de posición, potencial, valoración y precio, más lista de seguimiento personal.
+- **Cantera y entrenamiento:** podés promover juveniles con potencial o mejorar tres promesas por ventana, a cambio de recursos del club. Los futbolistas jóvenes también pueden mejorar espontáneamente al cierre de una ventana.
+- **Lesiones con duración:** las nuevas lesiones causan bajas durante próximos partidos; los DT ajustan automáticamente sus alineaciones. Las crónicas capturan la alineación y el entrenador en la fecha en que se jugó, no la plantilla actual.
+- **Crónicas del mercado:** cada fichaje aparece en el periódico, con clubes, precio y contrato. Se conserva el historial y el resumen de cada ventana.
+- **Temporadas sucesivas:** una vez concluidas final, Recopa y ventana de pases, podés empezar el siguiente Apertura. Se intercambian dos equipos ascendidos y dos descendidos, renueva el calendario de 18 jornadas, crecen edades y presupuestos y las temporadas anteriores quedan archivadas con sus partidos.
+- **Migración sin borrar:** el guardado anterior `noveria-universe-save-v1` sigue siendo compatible; se añaden los nuevos campos al cargar. **Exportá un JSON ANTES de actualizar por seguridad.**
 
 ## Limitaciones actuales (importante)
 
@@ -31,7 +44,8 @@
 - La Copa de Campeones de Arcalis y la Copa Horizonte figuran con sus criterios de clasificación veltranos; sus **formatos internacionales oficiales aún deben definirse**, por eso todavía no están automatizados. El constructor permite organizar torneos personalizados con clubes extranjeros.
 - Los escudos son **provisionales generados mediante colores/iniciales**; más adelante se pueden reemplazar por diseños exclusivos.
 - Plantillas iniciales ficticias; no se imputan estadísticas individuales pasadas.
-- El modo DT permite decidir estrategias de equipos; sus reglas de contratos y carreras pueden ampliarse.
+- El modo DT ya permite negociaciones y contratos de fichajes; los contratos existentes no vencen todavía ni hay sistema de préstamos o agentes libres.
+- **Las nuevas temporadas ya avanzan con dos ascensos y dos descensos** cuando terminan Recopa y mercado. La edición 3.0 no simula todavía clasificatorias internacionales oficiales ni segunda división de otros países.
 
 ## Abrir en un clic sin instalar nada
 
@@ -61,6 +75,8 @@ Pruebas del motor si tenés Node.js:
 ```bash
 node tests.mjs
 node tests-upgrade.mjs
+node tests-market.mjs
+node tests-seasons.mjs
 ```
 
 Las pruebas revisan: 60 clubes, historial importado, 252 encuentros de ligas, localías, jornadas dobles, clásicos, simulación hasta jornada 18, fase final, Recopa, Copa Nacional, fichajes y competiciones personalizadas.
@@ -77,6 +93,8 @@ Las pruebas revisan: 60 clubes, historial importado, 252 encuentros de ligas, lo
 | `assets/icon.svg` | Icono de aplicación |
 | `assets/aficion-noveria.webp` | Imagen gráfica local de ambiente futbolero |
 | `tests-upgrade.mjs` | Pruebas de los cinco formatos adicionales |
+| `tests-market.mjs` | Pruebas de negociaciones, finanzas, IA del mercado, cantera y compatibilidad |
+| `tests-seasons.mjs` | Pruebas de temporada 2027, ascensos, descensos y calendario |
 | `service-worker.js`, `manifest.webmanifest` | Instalable/offline en hosting compatible |
 | `NOVERIA-ABRIR.html` | App autónoma para probar sin instalación |
 | `tests.mjs` | Pruebas automáticas |

@@ -28,3 +28,20 @@
 @media(max-width:1100px){.resultgrid{grid-template-columns:1fr}}
 @media(max-width:770px){.hero.stadium-photo{min-height:280px}.latest-results,.union-focus{flex-direction:column;align-items:stretch}.resultgrid{grid-template-columns:1fr}.report-hero{min-height:210px;padding:24px}.result-main{gap:4px}.result-score strong{font-size:34px}.resultcard{padding:12px}.result-team strong{font-size:12px}.result-head .tag{font-size:8px}.trophywall{grid-template-columns:repeat(2,minmax(0,1fr))}.stadium-band{padding:18px}.result-bottom{flex-wrap:wrap}.result-bottom>span{max-width:100%}}
 @media print{.resultcard{break-inside:avoid}.paper-atmosphere{print-color-adjust:exact}}
+
+/* NOVERIA 3 — mercado de fichajes y carrera de entrenador */
+.market-cover{position:relative;min-height:270px;display:flex;align-items:end;padding:30px 34px;border:1px solid #ad894e;border-radius:19px;box-shadow:0 20px 54px #0004;overflow:hidden}
+.market-cover h2{font:900 clamp(38px,6vw,66px)/.98 Georgia,serif;letter-spacing:-.045em;margin:10px 0 12px;max-width:650px;text-shadow:0 4px 20px #0009}
+.market-cover p{font-size:14px;line-height:1.6;color:#d3dee6;max-width:550px}
+.market-hub{background:linear-gradient(126deg,#192939,#262c35 58%,#182735);border-color:#6d654f}
+.market-hub>.between{gap:18px;align-items:flex-start;flex-wrap:wrap}
+.deadline-track{height:10px;overflow:hidden;border:1px solid #485666;background:#101e2d;border-radius:9px;margin:20px 0}
+.deadline-track>div{height:100%;background:linear-gradient(90deg,#dbb36b,#f0d8a7);box-shadow:0 0 17px #dfb66d70;transition:width .35s}
+.market-event{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #40506166;font-size:12px}
+.market-event>.controls{flex-shrink:0}.market-event .tag{margin-top:5px}
+.market-filters{display:grid;grid-template-columns:minmax(180px,2fr) minmax(95px,.8fr) minmax(140px,1fr) auto;gap:12px;align-items:end;margin:20px 0}
+.market-filters .btn{height:43px}.market-negotiation{display:flex;justify-content:space-between;align-items:center;border-radius:13px;border:1px solid #625537;background:linear-gradient(125deg,#1f3144,#2b2c31);padding:21px}
+.market-negotiation h2{font-size:26px;margin:5px 0}.market-negotiation p{font-size:12px;color:#bccbd8}
+.market-ovr{font-size:42px;font-weight:900;color:#e7c37e;border:2px solid #ab8750;border-radius:14px;padding:8px 13px}
+@media(max-width:870px){.market-filters{grid-template-columns:1fr 1fr}.market-filters>.field:first-child{grid-column:1/-1}.market-filters .btn{align-self:end}}
+@media(max-width:580px){.market-cover{min-height:225px;padding:22px}.market-cover h2{font-size:38px}.market-filters{grid-template-columns:1fr}.market-filters>.field:first-child{grid-column:auto}.market-event{flex-wrap:wrap}.market-event .controls{width:100%}.market-event .btn{flex:1}.market-cover p{font-size:12px}}
