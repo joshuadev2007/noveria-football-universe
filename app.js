@@ -3,6 +3,7 @@ import {seriesAggregate,globalLabel,registerChampions} from './season-experience
 import {FOREIGN_COUNTRIES} from './data.js';
 import {transferStudio,signingAdvice} from './mercado-tv.js';
 import {matchEditorial} from './match-editorial.js';
+import {roundTablesHTML} from './round-standings-ui.js';
 import {cyclePhase,cycleKey,cycleName,cycleNext,cycleNextName,cycleIsAnnualFinal} from './season-cycle.js';
 import {ensureCalendar,calendarCurrent,calendarUpcoming,calendarDate,calendarReady,calendarRegisterCustom,calendarCustomDue,calendarRecord,calendarSeasonComplete} from './calendar.js';
 import {fixtureSources,findBroadcastFixture,matchIsAvailable,startBroadcast,finishBroadcast,displayedMinute,runningScore,coachTactic,coachSubstitution,managerSide} from './live2d.js';
@@ -210,7 +211,7 @@ function reportItem(m){
  const streak=goals.length?goals.map(ev=>`<span>${ev.min}' ⚽ ${E(ev.p1Name||'Gol registrado')} · ${ev.side==='home'?E(m.home):E(m.away)}</span>`).join(''):m.legacy?'<span>Archivo histórico · Autores no registrados</span>':'<span>Sin goles individuales registrados</span>';
  return `<div class="resultcard" style="--homecolor:${E(h.primary)};--awaycolor:${E(a.primary)}"><div class="result-head"><div class="small muted">${E(h.stadium)} · ${E(h.city)}</div><span class="tag">${m.competition==='LPV'?'LIGA DE PLATA':m.competition==='LSV'?'LIGA SUPREMA':m.competition==='CUP'?'COPA DE PROVINCIAS':m.competition==='POST'?'FASE FINAL':'COPA ESPECIAL'} · ${E(m.group)}</span></div><div class="result-main"><div class="result-team">${crest(m.home,'large')}<strong>${E(m.home)}</strong><span class="muted tiny">LOCAL</span></div><div class="result-score"><strong>${known?`${m.scoreH}<span>:</span>${m.scoreA}`:'VS'}</strong><small>${known?'FINALIZADO':'PENDIENTE'}</small></div><div class="result-team">${crest(m.away,'large')}<strong>${E(m.away)}</strong><span class="muted tiny">VISITANTE</span></div></div><div class="result-goals">${streak}</div>${aggregateBadge(m)}<div class="result-bottom"><span class="small">${known?E(editorial.headline):'Encuentro pendiente'}</span>${button('📰 Leer el periódico','match',`data-id="${E(m.id)}"`,'btn sm')}</div></div>`;
 }
-function reportResults(round,comp='league',ids=null){ui.report={round,comp,ids};ui.reportCountry=['Todos',...COUNTRIES].includes(s.settings?.resultsCountry)?s.settings.resultsCountry:'Todos';ui.reportLimit=24;nav('resultados');}
+function reportResults(round,comp='league',ids=null,event=null){ui.report={round,comp,ids,event:event?{kind:event.kind,id:event.id,ordinal:event.ordinal,date:event.date}:null};ui.reportCountry=['Todos',...COUNTRIES].includes(s.settings?.resultsCountry)?s.settings.resultsCountry:'Todos';ui.reportLimit=24;nav('resultados');}
 function resultsPage(){
  const rr=ui.report;let matches=[],label='',sub='';
  if(Array.isArray(rr?.ids)){matches=rr.ids.map(lookupMatch).filter(Boolean);label=rr.comp||'Fecha disputada';sub='La fecha que acabás de simular: todos los resultados y un periódico diferente para cada partido.';}
@@ -230,6 +231,7 @@ function resultsPage(){
  ${wrap(league,'⚽ Ligas nacionales')}${wrap(cup,'🏆 Copas, Arcalis y fases finales')}
  ${visible.length<relevant.length?button('➕ Mostrar más partidos ('+(relevant.length-visible.length)+' pendientes)','report-more','','btn primary'):''}
  ${relevant.length===0?'<div class="notice">Todavía no hay encuentros disputados para este filtro.</div>':''}
+ ${roundTablesHTML(s,done,rr?.event,selected)}
  <div class="card"><div class="between"><div><h2 class="h2">📰 El periódico de Noveria</h2><p class="muted small">Cada encuentro tiene su propia crónica: goles registrados, contexto del resultado y estadísticas.</p></div>${button('Ir a la hemeroteca','nav','data-target="noticias"','btn sm')}</div></div>
  </div>`;
 }
@@ -576,7 +578,7 @@ function playMasterDate({batch=false}={}){
     related:m.id,date:calendarDate(e),featured:!!m.penalties});
   }
   if(s.news.length>240)s.news.length=240;
-  if(!batch){save();const title=e.title+' · '+calendarDate(e);reportResults(null,title,published.map(m=>m.id));toast('📰 ¡Fecha disputada! '+matches.length+' encuentros · '+(next?'Próxima: '+calendarDate(next):'Fin de temporada'));}
+  if(!batch){save();const title=e.title+' · '+calendarDate(e);reportResults(null,title,published.map(m=>m.id),e);toast('📰 ¡Fecha disputada! '+matches.length+' encuentros · '+(next?'Próxima: '+calendarDate(next):'Fin de temporada'));}
   return matches.length;
  }catch(err){if(batch)throw err;save();toast('⚠ Error de calendario: '+err.message);}
 }
