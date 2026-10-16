@@ -196,7 +196,7 @@ function reportItem(m){const h=club(m.home),a=club(m.away),known=played(m);
 function reportResults(round,comp='league',ids=null){ui.report={round,comp,ids};ui.reportCountry='Veltrania';ui.reportLimit=24;nav('resultados');}
 function resultsPage(){
  const rr=ui.report;let matches=[],label='',sub='';
- if(rr?.ids?.length){matches=rr.ids.map(lookupMatch).filter(Boolean);label=rr.comp||'Fecha disputada';sub='La fecha que acabás de simular: todos los resultados y un periódico diferente para cada partido.';}
+ if(Array.isArray(rr?.ids)){matches=rr.ids.map(lookupMatch).filter(Boolean);label=rr.comp||'Fecha disputada';sub='La fecha que acabás de simular: todos los resultados y un periódico diferente para cada partido.';}
  else{const round=rr?.round||leagueSummary(s).round||6;matches=s.fixtures.filter(m=>m.round===round&&['LSV','LPV'].includes(m.competition));label=rndLabel(round);sub='Abrí cada marcador para leer la crónica del encuentro.';}
  const done=matches.filter(played),goals=done.reduce((sum,m)=>sum+m.scoreH+m.scoreA,0);
  const countryOf=m=>s.teams[m.home]?.country||'Veltrania';
@@ -364,7 +364,7 @@ function careerPage(){ensureEcosystem(s);const c=s.career,offers=c.offers||[];re
 <div class="hero stadium-photo"><div class="hero-copy"><span class="tag goldtag">MODO CARRERA</span><h2>LA PRÓXIMA LEYENDA<br><span class="gold">SOS VOS.</span></h2><p>Tu carrera no se limita a un club. Podés empezar en Segunda y terminar compitiendo por Arcalis.</p></div></div><div class="grid three">${stat('Club actual',E(s.managedClub),'Modo '+E(s.mode))}${stat('Reputación',c.reputation+'/99','Prestigio')}${stat('Equipos dirigidos',c.history.length+1,'Trayectoria')}</div><div class="card"><h2 class="h2">💼 Despacho personal</h2><form id="careerForm" class="form"><label class="field"><span>Tu nombre de entrenador</span><input class="input" name="coachName" value="${E(c.name)}" maxlength="60"></label><button class="btn primary" type="submit">Guardar perfil del DT</button></form><div class="controls" style="margin-top:18px">${button('Buscar ofertas de empleo','career-offers','','btn gold')}${button('Ver mi club','go-office',`data-name="${E(s.managedClub)}"`,'btn')}</div></div><div class="card"><h2 class="h2">📨 Ofertas de otros clubes</h2><div class="grid two">${offers.length?offers.map(x=>`<div class="mini-country"><div class="eyebrow">OFERTA · ${E(x.country)}</div><h3 class="h3">${E(x.club)}</h3><p class="small muted">Contrato ofrecido · ${x.salary} M VLR por año</p>${button('Aceptar cargo','career-job',`data-club="${E(x.club)}"`,'btn primary')}</div>`).join(''):'<p class="muted">Buscá ofertas para conocer los clubes interesados.</p>'}</div></div><div class="card"><h2 class="h2">📖 Trayectoria</h2>${c.history.map(h=>`<div class="market-event"><b>${E(h.from)} → ${E(h.to)}</b><span>${h.season}</span></div>`).join('')||'<p class="muted">Toda gran carrera tiene un principio.</p>'}</div></div>`;}
 
 function newsPage(){return `<div class="stack">${head('Periódico de Noveria','Goles, sorpresas, mercados, despidos y cada crónica que nace del simulador.')}
-<div class="grid two"><div class="card"><div class="eyebrow">EL HERALDO DE NOVERIA</div><h2 class="h2">Archivo periodístico</h2><p class="muted small">Cada partido simulado desde la próxima jornada genera su propia edición: resumen, minuto a minuto, goleadores, tarjetas, estadísticas y alineaciones.</p></div>${unionPanel()}</div><section class="card"><div class="between"><div><strong>🗞️ Elegí una redacción</strong><p class="muted small">Titulares, campeones, fichajes, prensa y torneos internacionales.</p></div><select id="newsCategory">${['Todas','Campeones','Prensa','Internacional','Mercado','Arcalis','Copa'].map(c=>`<option ${ui.newsCategory===c?'selected':''}>${c}</option>`).join('')}</select></div></section>
+<div class="grid two"><div class="card"><div class="eyebrow">EL HERALDO DE NOVERIA</div><h2 class="h2">Archivo periodístico</h2><p class="muted small">Cada partido simulado desde la próxima jornada genera su propia edición: resumen, minuto a minuto, goleadores, tarjetas, estadísticas y alineaciones.</p></div>${unionPanel()}</div><section class="card"><div class="between"><div><strong>🗞️ Elegí una redacción</strong><p class="muted small">Titulares, campeones, fichajes, prensa y torneos internacionales.</p></div><select id="newsCategory">${['Todas','Partidos','Campeones','Prensa','Internacional','Mercado','Arcalis','Copa'].map(c=>`<option ${ui.newsCategory===c?'selected':''}>${c}</option>`).join('')}</select></div></section>
 ${championSpotlight()}
 <div class="articles">${s.news.filter(n=>ui.newsCategory==='Todas'||n.category===ui.newsCategory||(ui.newsCategory==='Campeones'&&n.featured)).slice(0,ui.newsLimit).map(newsCard).join('')}</div>
 ${s.news.filter(n=>ui.newsCategory==='Todas'||n.category===ui.newsCategory||(ui.newsCategory==='Campeones'&&n.featured)).length>ui.newsLimit?button('➕ Cargar 24 noticias más','more-news','','btn primary'):''}</div>`;}
@@ -486,9 +486,23 @@ function playMasterDate(){
   }
   calendarRecord(s,e,matches);
   const next=calendarCurrent(s);
+  const archiveIds=new Set(fixtureSources(s).map(x=>String(x.m.id)));
+  const published=matches.filter(m=>m?.id&&played(m)&&archiveIds.has(String(m.id)));
+  // El periódico de la fecha destaca grandes actuaciones, nunca inventa resultados.
+  const newsworthy=[...published].sort((a,b)=>
+    Number([b.home,b.away].includes('Unión Popular Aurena'))-Number([a.home,a.away].includes('Unión Popular Aurena'))
+    ||(b.scoreH+b.scoreA)-(a.scoreH+a.scoreA)||String(a.id).localeCompare(String(b.id))).slice(0,6);
+  for(const m of newsworthy){
+   if(s.news.some(n=>n.related===m.id))continue;
+   const edit=matchEditorial(m);
+   s.news.unshift({id:'hemeroteca-'+m.id,category:'Partidos',title:edit.headline,description:edit.lead,
+    related:m.id,date:calendarDate(e),featured:!!m.penalties});
+  }
+  if(s.news.length>240)s.news.length=240;
   save();
-  ui.page='calendario';render();
-  toast('📅 Fecha disputada: '+matches.length+' partidos. '+(next?'Próxima: '+calendarDate(next):'¡Fin de la temporada!'));
+  const title=e.title+' · '+calendarDate(e);
+  reportResults(null,title,published.map(m=>m.id));
+  toast('📰 ¡Fecha disputada! '+matches.length+' encuentros · '+(next?'Próxima: '+calendarDate(next):'Fin de temporada'));
  }catch(err){save();toast('⚠ Error de calendario: '+err.message);}
 }
 function onAction(el){let action=el.dataset.action;if(!action)return;
