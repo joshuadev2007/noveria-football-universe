@@ -1,3 +1,40 @@
+# Noveria 5.15 · Modo carrera avanzado: rendimiento, OVR y cantera viva ⚽🌱
+
+### 1. Simulador que tiene en cuenta la calidad del equipo
+
+El resultado de cada partido sigue teniendo incertidumbre (las sorpresas siguen siendo posibles), pero **el motor de goles esperados toma un 90 % de la calidad de la alineación titular ajustada por posiciones y un 10 % de la profundidad/calidad actual de la plantilla**, más una ventaja local moderada, moral y estilo de juego. La diferencia de medias influye de forma notable en las probabilidades: fichar, desarrollar juveniles, elegir la formación y armar un buen once aporta ventaja real. El campo `match.qualityAtKickoff` registra la valoración usada antes de jugar. Las medias de la pantalla de Clubes y Alineación ahora se calculan desde el plantel actual, no se basan en una cifra fija del nacimiento del club.
+
+### 2. Crecimiento constante de OVR y potencial
+
+**Todos los jugadores profesionales** (no solo los graduados de la cantera) acumulan datos de desarrollo después de cada partido oficial. Su calificación por partido considera goles, asistencias, diferencia de goles, portería a cero para defensores/porteros y una variación pequeña controlada. La forma se calcula con una ventana de hasta **ocho encuentros**, para evitar saltos abruptos. La experiencia real se transforma en subidas de OVR graduales y permanentes, hasta el potencial. Los jóvenes suelen desarrollarse más rápido; los veteranos más despacio. **Seis actuaciones positivas sostenidas** pueden aumentar también el potencial del jugador, con un máximo de dos mejoras por edición. Un jugador mayor con una racha muy larga de actuaciones bajas puede perder un punto. No se regalan puntos de OVR solo por cumplir años.
+
+Los juveniles Sub-20 desarrollan OVR mediante sus partidos, goles, asistencias y entrenamientos. Las rachas de al menos **cinco buenas calificaciones juveniles** pueden aumentar su potencial. Si ascienden, sus minutos de Primera siguen contando. Desde **Alineación y banca** elegís titulares, suplentes y capitán; **Dar titularidad** en Cantera respeta esa alineación, aunque tengas un once personalizado.
+
+### 3. Ofertas de ojeadores con fecha límite
+
+Cuando un ojeador vuelve de otro país, presenta un **informe disponible** que incluye OVR, potencial, edad, posición y precio. Los plazos se cuentan por **partidos oficiales jugados por el club**, no por partidos de otros equipos, días reales, recargas ni partidos juveniles:
+
+1. **Primer partido:** el informe continúa disponible para fichar.
+2. **Segundo partido:** llega una **propuesta final** con botones «Fichar» y «Rechazar».
+3. **Tercer partido:** la propuesta final continúa disponible.
+4. **Cuarto partido:** los jugadores pendientes se retiran automáticamente; **no se ficha a nadie sin tu aprobación**.
+
+Si fichás uno antes del plazo, se conserva y se descuenta el costo una sola vez. Rechazar otro no cuesta nada. Un informe vencido queda reflejado como caducado, y sus futbolistas ya no pueden incorporarse a través de esa misión.
+
+### 4. Seguimiento integral de Sub-20
+
+En **Cantera Sub-20** encontrarás clasificación juvenil de tu país (18 clubes, 17 jornadas), posición, próxima fecha, últimos resultados y mejores actuaciones guardadas; estadísticas de PJ, goles, asistencias, forma, OVR, potencial y progreso XP de cada promesa; fichajes internacionales, alertas de ofertas y juveniles promovidos. Los datos quedan en el mismo guardado, local o con Joshua Cloud. No hay tablas adicionales que configurar.
+
+### 5. Seguridad, actualizaciones y pruebas
+
+- Los campeones, calendarios, resultados históricos y guardados previos permanecen.
+- Los nuevos campos se crean al usarse, sin migración destructiva.
+- Copas, Liga, Arcalis y partidos en Live 2D siguen usando el mismo motor oficial de resultado; no se modifica una ficha ya disputada.
+- Antes de actualizar en otro dispositivo o realizar fichajes, **exportá el guardado JSON** desde Palmarés y partida.
+- Prueba añadida: `node tests-career-515.mjs` (ofertas 2+2, crecimiento OVR/potencial, XI, 180 simulaciones comparadas y 78 resultados históricos preservados).
+
+---
+
 # Noveria 5.14 · Cuartos con clasificación global 1.º–8.º 🏆⚽
 
 **Reforma oficial del torneo de liga en las nueve federaciones de Arcalis.**
