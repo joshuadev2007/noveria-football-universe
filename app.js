@@ -405,6 +405,12 @@ function playMasterDate(){
    if(getLeagueNextRound(s)===e.ordinal)matches.push(...simulateLeagueRound(s).matches);
    catchUpCountries(s,e.ordinal);
    for(const c of FOREIGN_COUNTRIES)matches.push(...(s.world?.[c]?.fixtures||[]).filter(m=>m.round===e.ordinal&&played(m)));
+   // La cantera sigue el mismo fin de semana que la primera división.
+   const youthDate=e.ordinal-(s.season===2026?7:1)+1;
+   if(youthDate>=1&&youthDate<=5)for(const c of COUNTRIES){
+    const youth=createYouthLeague(s,c);
+    while(youth.round<youthDate&&youth.round<5)matches.push(...simulateYouthLeagueRound(s,c));
+   }
    if(e.ordinal===18)for(const c of COUNTRIES)registerAwards(s,c,countryRows(c,'annual').map(r=>r.name));
    ui.round=e.ordinal;
   }else if(e.kind==='cup'){
@@ -440,7 +446,7 @@ function playMasterDate(){
 }
 function onAction(el){let action=el.dataset.action;if(!action)return;
  if(action==='calendar-play'){playMasterDate();return;}
- const scheduled={'simulate-league':'league','sim-country':'league','simulate-cup':'cup','sim-country-cup':'cup','sim-intl':'international','simulate-post':'postseason','sim-country-final':'postseason','simulate-custom':'custom'};
+ const scheduled={'simulate-league':'league','sim-country':'league','simulate-cup':'cup','sim-country-cup':'cup','sim-intl':'international','simulate-post':'postseason','sim-country-final':'postseason','simulate-custom':'custom','youth-league':'league'};
  if(Object.prototype.hasOwnProperty.call(scheduled,action)){
   if(calendarReady(s,scheduled[action]))playMasterDate();
   else{const next=calendarCurrent(s);toast('📅 No corresponde jugar ese torneo todavía. '+(next?'Toca: '+calendarDate(next)+' · '+next.title:'Temporada finalizada'));nav('calendario');}
