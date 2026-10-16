@@ -1,3 +1,17 @@
+# Noveria 5.8.1 · Elegí los países para ver resultados y periódicos 🌍📰
+
+**Antes de simular:** entrá a **Calendario maestro** y buscá la tarjeta «¿De qué país querés ver los marcadores?». Elegí **TODOS LOS PAÍSES** o cualquiera de las nueve federaciones de Arcalis, y pulsá **Jugar fecha del calendario**.
+
+**Después de simular:** en «Resultados y periódicos», el selector de países aparece **arriba de los marcadores**. Podés elegir otro país o volver a **TODOS** sin simular de nuevo. Los conteos de partidos y goles se ajustan al filtro. «Mostrar más partidos» funciona también con la vista global.
+
+**Copas continentales:** si seleccionás Veltrania y su club juega de visitante en Soleria, el partido también aparece; se comprueba el país de **ambos** clubes. En fechas sin partidos de ese país se mostrará un mensaje de cero resultados, sin cambiar tu elección.
+
+Tu preferencia se conserva en `state.settings.resultsCountry`, dentro del guardado existente, y puede sincronizarse con Joshua Cloud sin crear tablas nuevas. Las partidas antiguas que aún no tengan esa preferencia comienzan con la opción **TODOS**, sin perder campeones ni estadísticas. La simulación sigue avanzando las nueve federaciones de manera global, independientemente del filtro.
+
+Prueba específica: `node tests-results-country.mjs`.
+
+---
+
 # Noveria 5.8 · Calendario futbolístico continuo: Clausura y Apertura 🏆📅
 
 **Actualización directa del repositorio.** Conserva la partida guardada, no reinicia el universo y no modifica la base de datos de Joshua Cloud.
