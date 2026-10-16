@@ -103,3 +103,13 @@ El universo, los clubes y sus nombres son ficticios. Esta es una simulación dep
 5. Crear una cuenta de Noveria con correo/contraseña, entrar, y tocar **Subir mi partida actual** (o **Usar partida de la nube** si ya existe). Después ingresar con la misma cuenta en el celular. Exportar JSON antes de elegir.
 
 Si el servidor devuelve error de función inexistente, ejecutá el SQL o recargá el esquema de la API en Supabase. No publicar las claves secretas ni las contraseñas en GitHub.
+
+
+## NOVERIA 4.2 — Correo sin contraseña y configuración global
+
+- Login passwordless: Supabase envía OTP por correo o un enlace mágico. Si llega código, se verifica dentro del juego; si llega enlace y está permitido en Auth → Redirect URLs, Noveria recupera la sesión al abrirlo.
+- **Configurar una sola vez por web:** editar `cloud-config.js` en el repositorio con Project URL y la *publishable/anon key pública* de Joshua Cloud. Esto elimina la necesidad de pegar claves por dispositivo. Nunca usar claves secret/service_role.
+- La sesión sobrevive normalmente al cierre del navegador mientras el refresh token siga vigente. El correo se verifica al iniciar sesión en un dispositivo nuevo.
+- Conservar el template de otras aplicaciones: no reemplazar la plantilla de Magic Link; añadir a Redirect URLs la URL de Noveria. Si se desea OTP numérico, agregar `{{ .Token }}` al template existente sin borrar `{{ .ConfirmationURL }}`.
+- No hay cambios al esquema `noveria_saves`, ni a los campeonatos o los resultados.
+- Instrucciones completas en `CONFIGURAR_NUBE.md`.

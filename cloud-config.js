@@ -1,8 +1,9 @@
 /**
- * NOVERIA — configuración PÚBLICA del proyecto Supabase.
- * URL y anon/publishable key pueden distribuirse en GitHub Pages con RLS.
- * NUNCA coloques aquí la service_role, secret key o contraseñas.
- * También se pueden introducir ambos valores desde "Nube y sincronización".
+ * Configuración global de Joshua Cloud para Noveria (una sola vez en GitHub).
+ * Pegá únicamente Project URL y tu clave PUBLICABLE/ANON de Supabase.
+ * NO publiques service_role / sb_secret_ / contraseña / token de sesión.
+ * Si no lo configurás aquí, sigue el formulario local por dispositivo.
+ * Guía: CONFIGURAR_NUBE.md
  */
 export const SUPABASE_URL = '';
 export const SUPABASE_ANON_KEY = '';

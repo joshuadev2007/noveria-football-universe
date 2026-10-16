@@ -54,6 +54,38 @@ async function ensureSession(){
 }
 export async function cloudInitialize(){if(!cloudConfigured())return null;try{return await ensureSession()}catch(error){if(error.status===400||error.status===401||error.status===403){session=null;localStorage.removeItem(SESSION_KEY)}return null}}
 export function cloudUser(){return session?.user||null}
+/** Ingreso sin contraseña: GoTrue manda un código OTP al correo. */
+export async function cloudSendEmailCode(email){
+ const clean=String(email||'').trim().toLowerCase();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean))throw Error('Escribí un correo válido.');
+ const redirectTo=(typeof location!=='undefined'&&/^https?:$/.test(location.protocol))?location.origin+location.pathname:'';
+ const endpoint='/auth/v1/otp'+(redirectTo?'?redirect_to='+encodeURIComponent(redirectTo):'');
+ await request(endpoint,{method:'POST',body:{email:clean,create_user:true}});
+ return clean;
+}
+/** Verificación del código recibido: devuelve la misma cuenta Auth usada por las otras apps. */
+export async function cloudVerifyEmailCode(email,token){
+ const clean=String(email||'').trim().toLowerCase();
+ const code=String(token||'').trim();
+ if(!/^[0-9]{6,8}$/.test(code))throw Error('Ingresá el código numérico recibido en el correo.');
+ const data=await request('/auth/v1/verify',{method:'POST',body:{email:clean,token:code,type:'email'}});
+ return rememberAuth(data);
+}
+/** Abre también correos que traen enlace mágico, sin modificar las plantillas de Joshua Cloud.
+ * Para que funcione: agregar la URL de Noveria a Auth -> URL Configuration -> Redirect URLs. */
+export async function cloudFinishEmailLink(){
+ if(typeof location==='undefined'||!location.hash||!location.hash.includes('access_token='))return null;
+ const values=new URLSearchParams(location.hash.replace(/^#/,''));
+ const access_token=values.get('access_token'),refresh_token=values.get('refresh_token');
+ if(!access_token||!refresh_token)return null;
+ const c=activeConfig();
+ const response=await fetch(c.url+'/auth/v1/user',{headers:{apikey:c.anonKey,Authorization:'Bearer '+access_token},cache:'no-store'});
+ if(!response.ok)throw Error('El enlace de acceso venció. Pedí uno nuevo.');
+ const user=await response.json();
+ const account=rememberAuth({access_token,refresh_token,expires_in:Number(values.get('expires_in')||3600),user});
+ if(typeof history!=='undefined'&&typeof history.replaceState==='function')history.replaceState(null,'',location.pathname+location.search+'#nube');
+ return account;
+}
 export async function cloudSignIn(email,password){const data=await request('/auth/v1/token?grant_type=password',{method:'POST',body:{email:String(email).trim(),password}});return rememberAuth(data)}
 export async function cloudSignUp(email,password){const data=await request('/auth/v1/signup',{method:'POST',body:{email:String(email).trim(),password}});if(data?.access_token&&data?.refresh_token)return {user:rememberAuth(data),confirm:false};return {user:data?.user||null,confirm:true}}
 export async function cloudSignOut(){if(session){try{await request('/auth/v1/logout',{method:'POST',auth:true})}catch{}}session=null;localStorage.removeItem(SESSION_KEY);localStorage.removeItem(BASELINE_KEY)}

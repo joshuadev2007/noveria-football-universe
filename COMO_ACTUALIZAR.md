@@ -1,15 +1,10 @@
-# ACTUALIZAR DE NOVERIA 3.1 A NOVERIA 4.0
+# Actualizar Noveria a 4.2 — acceso solo por correo
 
-**Antes de actualizar:** abrí tu web actual y elegí `Palmarés y partida → Descargar copia JSON`. Guardá ese archivo en tu computadora.
+1. En tu Noveria actual, descargá un respaldo JSON de la partida.
+2. Descomprimí `Noveria_V4_2_SOLO_MODIFICADOS.zip` y subí su contenido a la **raíz** del repositorio de Noveria en GitHub, reemplazando los archivos viejos.
+3. En GitHub editá **una vez** `cloud-config.js`, introduciendo **Project URL** y **publishable/anon key pública** de Joshua Cloud. Commit. Nunca uses secret/service_role.
+4. En Supabase → Joshua Cloud → Authentication → URL Configuration, **añadí** `https://joshuadev2007.github.io/noveria-football-universe/` a **Redirect URLs** (no modifiques Site URL ni borres las existentes).
+5. Abrí Noveria → ☁ Nube y sincronización → correo electrónico → Enviar código. Usá el enlace recibido en tu correo. Si preferís código numérico, añadí `{{ .Token }}` a la plantilla existente de Magic Link / OTP, sin borrar su enlace.
+6. En el dispositivo que ya tiene la partida, subí su respaldo a la nube. En el segundo dispositivo entrá con el mismo email y recuperá la partida.
 
-1. Descargá `Noveria_V4_SOLO_ARCHIVOS_MODIFICADOS.zip`.
-2. Extraé su contenido. No hace falta crear otro repositorio.
-3. Entrá a `https://github.com/joshuadev2007/noveria-football-universe` y subí los archivos nuevos y modificados al directorio raíz de `main`. Si GitHub solicita confirmación, reemplazá los archivos existentes. Si preferís PowerShell, sobrescribí los archivos dentro de tu copia local y ejecutá `git add .`, `git commit -m "Noveria 4.0 - Arcalis"`, `git push origin main`.
-4. Cuando Pages publique, entrá al **mismo enlace anterior**. Si continúa la versión vieja, recargá con Ctrl+F5 o cerrá/reabrí la app instalada.
-5. Revisá `Palmarés y partida` y verificá que tu partida esté conservada. Si no aparece, importá la copia JSON que guardaste.
-
-**No debes subir:** los ZIP cerrados, directorios de scripts de desarrollo ni la carpeta exterior que contiene los archivos. Subí su contenido.
-
-**NUEVO:** `continent.js`, `international.js`, `ecosystem.js`, `market-extra.js`. Se requiere mantener `data.js`, `save-system.js` y `assets` existentes.
-
-**El guardado es local:** GitHub Pages no almacena automáticamente tu progreso remoto. IndexedDB proporciona más capacidad, pero cambiar de navegador requiere exportar/importar JSON. Los 78 resultados históricos y la Jornada 7 pendiente están incorporados en la partida base. No se inventan goleadores individuales de esas seis primeras jornadas.
+**NO hace falta volver a ejecutar SQL** si ya ejecutaste `SUPABASE_SETUP.sql` con éxito. Para más detalles: `CONFIGURAR_NUBE.md`.
