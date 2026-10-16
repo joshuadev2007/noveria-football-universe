@@ -4,7 +4,7 @@ import {cycleName,cycleNextName} from './season-cycle.js';
 const s=freshState();
 const original=Object.values(s.teams).filter(t=>t.country==='Veltrania'&&t.division==='LSV').map(t=>t.name).sort();
 const legacy=s.fixtures.filter(m=>m.legacy&&m.round<=6).map(m=>[m.id,m.scoreH,m.scoreA]);
-function finish(){while(getLeagueNextRound(s)<=18)simulateLeagueRound(s);for(let i=0;i<5;i++)simulatePostseasonRound(s);assert.equal(s.postseason.stage,'finalizada');}
+function finish(){while(getLeagueNextRound(s)<=18)simulateLeagueRound(s);for(let i=0;i<7;i++)simulatePostseasonRound(s);assert.equal(s.postseason.stage,'finalizada');}
 function advance(){if(s.market.status==='open')finishMarket(s);const before=s.honours.length,r=startNextSeason(s);assert.equal(s.honours.length,before);assert.equal(s.leagueRound,0);assert.equal(getLeagueNextRound(s),1);assert.equal(s.fixtures.length,252);assert.equal(s.fixtures.filter(played).length,0);return r;}
 const top=()=>Object.values(s.teams).filter(t=>t.country==='Veltrania'&&t.division==='LSV').map(t=>t.name).sort();
 assert.equal(cycleName(s),'Apertura 2026');
