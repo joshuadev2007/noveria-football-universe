@@ -95,26 +95,73 @@ export function youthMatchDevelopment(s,fixture,homeSquad,awaySquad,{friendly=fa
  fixture.youthRatings=results;
  return results;
 }
+/**
+ * Progresión de todos los jugadores del primer equipo, no solo los canteranos.
+ * El crecimiento es estable: combina rachas, calificación individual, minutos
+ * y edad; nunca altera el marcador ni regala OVR al cumplir años.
+ */
 export function seniorYouthDevelopment(s,match){
- if(!match?.played||!match.lineups)return [];
+ if(!match?.played||!match.lineups||!match.id)return [];
  const evolved=[];
  for(const side of ['home','away']){
-  const clubName=match[side],t=s.teams[clubName];
-  if(!t)continue;
-  for(const id of match.lineups[side]||[]){
-   const p=t.players.find(p=>String(p.id)===String(id));if(!p?.academyGraduate)continue;
-   p.academyClub??=clubName;
-   const goals=(match.events||[]).filter(e=>e.type==='goal'&&String(e.p1)===String(p.id)).length;
-   const assists=(match.events||[]).filter(e=>e.type==='goal'&&String(e.p2)===String(p.id)).length;
-   const result=(side==='home'?match.scoreH-match.scoreA:match.scoreA-match.scoreH);
-   const rating=Number(p.form||6.5);
-   const amount=clamp(Math.round(3+Math.max(-1,rating-6)*2+goals*3+assists*2+(result>0?1:0)),1,17);
-   const old=p.ovr,gained=gainXP(s,p,amount,'Primer equipo',match.id+':senior:'+p.id);
-   if(gained)evolved.push({name:p.name,old,ovr:p.ovr});
+  const clubName=match[side],t=s.teams[clubName];if(!t)continue;
+  const ids=[...(match.lineups[side]||[]),...(match.events||[]).filter(e=>e.type==='sub'&&e.side===side).map(e=>e.p2)].filter(Boolean);
+  const seen=new Set();
+  for(const id of ids){
+   const p=t.players.find(x=>String(x.id)===String(id));
+   if(!p||seen.has(String(id)))continue;seen.add(String(id));
+   const key=match.id+':senior:'+p.id;
+   const development=p.development??={games:0,form:6.5,strong:0,poor:0,recent:[],lastMatch:null,potentialGains:{}};
+   if(development.lastMatch===key)continue;
+   const goals=(match.events||[]).filter(e=>e.type==='goal'&&e.side===side&&String(e.p1)===String(p.id)).length;
+   const assists=(match.events||[]).filter(e=>e.type==='goal'&&e.side===side&&String(e.p2)===String(p.id)).length;
+   const gd=side==='home'?Number(match.scoreH)-Number(match.scoreA):Number(match.scoreA)-Number(match.scoreH);
+   const starters=(match.lineups[side]||[]).some(v=>String(v)===String(id));
+   const defending=['POR','DFC','LD','LI','MCD'].includes(p.pos);
+   const base=6.45+(gd>0?.36:gd<0?-.28:.04)+(gd>1?.13:0)+(defending&&gd>=0?.2:0);
+   const performance=base+goals*.74+assists*.41+(defending&&((side==='home'?match.scoreA:match.scoreH)===0)?.5:0)+(hash(key)%17-8)*.055;
+   const rating=+clamp(performance,4.5,9.8).toFixed(2);
+   development.games++;
+   development.recent.push(rating);
+   if(development.recent.length>8)development.recent.shift();
+   development.form=+(development.recent.reduce((sum,n)=>sum+n,0)/development.recent.length).toFixed(2);
+   development.strong=rating>=7.2?development.strong+1:Math.max(0,development.strong-1);
+   development.poor=rating<5.8?development.poor+1:Math.max(0,development.poor-1);
+   development.lastMatch=key;
+   p.form=development.form;
+   const cap=Math.max(Number(p.ovr)||50,Number(p.pot)||50);
+   p.pot=cap;
+   const age=Number(p.age||23),modifier=age<=22?1.2:age<=27?1:age<=30?.7:.42;
+   const bonus=goals*4+assists*3+(defending&&gd>=0?1:0);
+   const xp=Math.max(1,Math.round((starters?4:2)+(rating-6.3)*3+bonus))*modifier;
+   const old=p.ovr;
+   gainXP(s,p,Math.round(xp),p.academyGraduate?'Primer equipo · cantera':'Primer equipo',key);
+   const edition=s.season+'-'+(s.edition||'Apertura');
+   if(rating>=7.2&&development.strong>=6&&age<=28&&p.pot<99){
+    const before=Number(development.potentialGains[edition]||0);
+    if(before<2){p.pot=Math.min(99,p.pot+1);development.potentialGains[edition]=before+1;development.strong=0;}
+   }
+   // Una mala racha prolongada limita la progresión, sin provocar caídas arbitrarias por partido.
+   if(development.poor>=10&&age>=31&&p.ovr>48){p.ovr--;development.poor=0;}
+   if(p.ovr!==old)evolved.push({club:clubName,name:p.name,old,ovr:p.ovr,potential:p.pot});
   }
+  // Una contratación o crecimiento se refleja inmediatamente en el nivel del equipo.
+  t.currentOverall=teamOverall(s,t);
  }
  return evolved;
 }
+/** Calidad actual de once titular y recambios, nunca la media fija del club. */
+export function teamOverall(s,t){
+ const players=t?.players||[];if(!players.length)return Number(t?.rating||50);
+ // Importación dinámica no necesaria: alineación definida por IDs en t.lineup.
+ const ids=(t.lineup?.starters||[]).map(String);
+ const preferred=ids.map(id=>players.find(p=>String(p.id)===id)).filter(Boolean);
+ const starters=[...preferred,...players.filter(p=>!ids.includes(String(p.id))).sort((a,b)=>b.ovr-a.ovr)].slice(0,11);
+ const median=starters.reduce((n,p)=>n+Number(p.ovr||50),0)/Math.max(1,starters.length);
+ const depth=players.slice().sort((a,b)=>b.ovr-a.ovr).slice(0,18).reduce((n,p)=>n+Number(p.ovr||50),0)/Math.max(1,Math.min(18,players.length));
+ return +(.88*median+.12*depth).toFixed(1);
+}
+
 function youthReport(s,mission){
  const t=s.teams[mission.club],level=Number(t?.facility?.scouting||1);
  return Array.from({length:3+Math.min(3,level)},(_,i)=>{
@@ -151,20 +198,61 @@ export function advanceYouthScouting(s,eventId){
   if(mission.status!=='travel')continue;
   mission.stepsRemaining=Math.max(0,mission.stepsRemaining-1);
   if(!mission.stepsRemaining){
-   mission.status='ready';mission.candidates=youthReport(s,mission);mission.finished=cycle(s);
+   mission.status='ready';mission.candidates=youthReport(s,mission);mission.finished=cycle(s);mission.matchesAfterReport=0;mission.offerStage='report';
    completed.push(mission);s.news??=[];s.news.unshift({id:'youth-scout-'+mission.id,category:'Cantera',title:'🌍 Informe de juveniles desde '+mission.country,description:'El ojeador de '+mission.club+' encontró '+mission.candidates.length+' talentos. Revisá el informe de cantera.',date:cycle(s),relatedClub:mission.club});
   }
  }
  scouting.seenEvents.push(key);if(scouting.seenEvents.length>210)scouting.seenEvents.splice(0,scouting.seenEvents.length-210);
  return completed;
 }
+/**
+ * Se cuentan partidos oficiales del club, no recargas, fechas vacías ni
+ * otros equipos. Tras 2: propuesta final; tras 2 más: libre y retirada.
+ */
+export function advanceYouthOffers(s,match){
+ if(!match?.played||!match.id)return [];
+ const store=ensureYouthScouting(s),announcements=[];
+ for(const club of [match.home,match.away]){
+  for(const mission of store.missions){
+   if(mission.club!==club||mission.status!=='ready')continue;
+   mission.offerMatches??=[];
+   if(mission.offerMatches.includes(String(match.id)))continue;
+   mission.offerMatches.push(String(match.id));
+   if(mission.offerMatches.length>8)mission.offerMatches.splice(0,mission.offerMatches.length-8);
+   mission.matchesAfterReport=(mission.matchesAfterReport||0)+1;
+   const n=mission.matchesAfterReport;
+   if(n===2){
+    mission.offerStage='final';
+    let open=0;for(const p of mission.candidates)if(p.status==='available'){p.status='offered';open++;}
+    if(open){announcements.push({club,mission,kind:'offer',count:open});
+     s.news??=[];s.news.unshift({id:'scout-final-'+mission.id,category:'Cantera',title:'⏳ Última oferta de talentos para '+club,description:'El ojeador de '+mission.country+' presentó '+open+' propuestas. Tenés dos partidos oficiales para aceptar o rechazar.',date:cycle(s),relatedClub:club});}
+   }else if(n>=4&&mission.offerStage!=='expired'){
+    mission.offerStage='expired';mission.status='expired';
+    let expired=0;for(const p of mission.candidates)if(p.status==='available'||p.status==='offered'){p.status='expired';expired++;}
+    if(expired){announcements.push({club,mission,kind:'expired',count:expired});
+      s.news??=[];s.news.unshift({id:'scout-expire-'+mission.id,category:'Cantera',title:'🚪 Promesas internacionales dejan el mercado',description:expired+' juveniles de '+mission.country+' quedaron libres sin fichar por '+club+'.',date:cycle(s),relatedClub:club});}
+   }
+  }
+ }
+ if(s.news?.length>240)s.news.length=240;
+ return announcements;
+}
+/** Rechazar individualmente sin fichar ni cobrar dinero. */
+export function rejectYouthCandidate(s,club,id){
+ const mission=scoutingMissions(s,club).find(m=>m.candidates?.some(p=>String(p.id)===String(id)));
+ const p=mission?.candidates.find(x=>String(x.id)===String(id));
+ if(!p||!['available','offered'].includes(p.status))throw Error('La oferta ya no está disponible');
+ p.status='rejected';
+ return p;
+}
+
 export function signYouthCandidate(s,club,id){
  const t=s.teams[club];if(!t)throw Error('Club no encontrado');
  const missions=scoutingMissions(s,club);
- const mission=missions.find(m=>m.status==='ready'&&m.candidates.some(p=>p.id===id));
+ const mission=missions.find(m=>m.status==='ready'&&m.candidates.some(p=>String(p.id)===String(id)));
  if(!mission)throw Error('El informe no contiene esta promesa disponible');
  const p=mission.candidates.find(p=>p.id===id);
- if(p.status!=='available')throw Error('Esta promesa ya fue fichada');
+ if(!['available','offered'].includes(p.status))throw Error('La propuesta ya expiró o fue rechazada');
  t.youth??=[];if(t.youth.length>=22)throw Error('Academia completa (22 juveniles). Ascendé o liberá espacio');
  if(t.budget<p.fee)throw Error('Presupuesto insuficiente para incorporar esta promesa');
  if(Object.values(s.teams).some(team=>(team.youth||[]).some(x=>x.id===p.id)||(team.players||[]).some(x=>x.id===p.id)))throw Error('Este jugador ya pertenece a un club');
