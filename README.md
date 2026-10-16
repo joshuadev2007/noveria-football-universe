@@ -1,3 +1,27 @@
+# Noveria 5.13 · Fase final local de ocho equipos 🏆⚽
+
+**Nuevo reglamento de las ligas nacionales en las nueve federaciones de Arcalis.** La fase regular sigue disputando las mismas 18 jornadas, la Copa Nacional y las copas internacionales no cambian, y la Recopa sigue a partido único.
+
+- **Clasifican los cuatro primeros de cada grupo** A y B: ocho clubes por país.
+- **Cuartos de final** cruzados entre zonas, a ida y vuelta: **A1–B4, B1–A4, A2–B3 y B2–A3**.
+- **Semifinales** de los cuatro ganadores, a ida y vuelta. Se reordenan por su ubicación original en la fase regular: mejor contra peor, segundo contra tercero.
+- **Final** entre los dos ganadores, también a ida y vuelta.
+- **Siempre cierra de local el equipo mejor clasificado** en su zona: primero cuenta el puesto de grupo; si hay empate de posición, se comparan puntos, diferencia de goles y goles a favor. Esta prioridad de siembra se conserva en las tres rondas.
+- **Marcador global** sumado de ida y vuelta. Si sigue igualado al final de la segunda pierna, se define por prórroga y penales dentro del motor, sin inventar otro partido.
+- **Recopa** a partido único como antes, entre el monarca del torneo corto y el mejor de la tabla anual (o el siguiente clasificado cuando coinciden).
+- **Calendario maestro:** siete fechas locales de fase final después de la jornada 18: dos de cuartos, dos de semifinales, dos de final y una de Recopa.
+- **Clasificaciones y periódicos:** se marcan cuatro clasificados en cada zona, se muestra el nuevo cuadro y hay marcador global de cuartos.
+
+## Partidas existentes
+
+Los títulos, trofeos, alineaciones, mercados y partidos jugados previamente no se modifican. Las fases finales que **ya habían empezado bajo el sistema de cuatro semifinalistas** mantienen su antiguo orden y cruces, para evitar alterar una serie en progreso. La reforma se aplica automáticamente a cada nueva fase final generada, tanto en Apertura como en Clausura.
+
+**Alineación y banca:** ya existe en el menú. Permite formar el once inicial, escoger **siete suplentes**, cambiar de sistema táctico, designar capitán y preparar el equipo para partidos simulados y Noveria Live 2D.
+
+Verificación: `node tests-postseason-8.mjs` comprueba los nueve países, los cruces de cuartos, las vueltas del mejor sembrado, los siete turnos, las coronaciones y los 78 resultados históricos. `npm test` incluye esa prueba y las demás del proyecto.
+
+---
+
 # Noveria 5.12 · Tablas de posiciones tras cada jornada simulada 📊🏆
 
 Después de pulsar **Jugar fecha del calendario**, el juego conserva su pantalla clásica de **Resultados y periódicos**. Ahora, justo debajo de los marcadores y periódicos, aparece **«Así quedan las tablas de posiciones»**.
