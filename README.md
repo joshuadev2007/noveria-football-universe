@@ -1,3 +1,19 @@
+# Noveria 5.7 · ¡Vuelven los resultados y los periódicos! 📰⚽
+
+Al pulsar **▶ Jugar fecha del calendario**, se disputan únicamente los partidos de la fecha oficial y la aplicación abre automáticamente la pantalla clásica de **Resultados y periódicos** (ya no regresa al calendario vacío). Se conserva el orden cronológico establecido por Calendario maestro.
+
+- **Portada de jornada:** marcadores, cantidad de goles, partido destacado y acceso a cada crónica individual.
+- **Nueve países:** selector por federación y botón para mostrar más partidos sin cargar cientos de tarjetas de golpe. Por defecto se muestran los partidos de Veltrania si están disponibles.
+- **Periódicos contextuales:** cada acta genera título, entradilla y narración derivados exclusivamente de goles, orden de las anotaciones, dobletes, remontadas, expulsiones y estadísticas que realmente hayan quedado registradas. También se distinguen empate, goleada, victoria mínima, goles tardíos y definiciones por penales.
+- **Edición imprimible:** artículos con marcador, contexto, minuto a minuto, estadísticas, alineaciones cuando constan y diseño adaptable a móvil. No se inventan entrevistas, goleadores, estadísticas ni incidencias.
+- **Periódico general:** publica algunos de los partidos destacados de cada fecha, vinculados a sus actas. El filtro **Partidos** los agrupa.
+- **Archivo histórico intacto:** los primeros 78 resultados siguen sin recibir detalles ficticios. El motor editorial no modifica ningún resultado, estadística ni guardado.
+- Se mantienen **Noveria Live 2D, Mercado 24, Calendario maestro y Joshua Cloud**.
+
+Prueba automática adicional: `node tests-editorial.mjs`.
+
+---
+
 # Noveria 5.6 · Live 2D con jugadas representadas sobre la cancha ⚽📺
 
 El **modo 2D** ya no mueve las bolitas al azar: la trayectoria del balón y las carreras se reconstruyen a partir de los eventos disponibles en el partido.
