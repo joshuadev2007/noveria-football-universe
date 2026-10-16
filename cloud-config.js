@@ -5,5 +5,5 @@
  * Si no lo configurás aquí, sigue el formulario local por dispositivo.
  * Guía: CONFIGURAR_NUBE.md
  */
-export const SUPABASE_URL = '';
-export const SUPABASE_ANON_KEY = '';
+export const SUPABASE_URL = 'https://pdgfayuuovhjcqnzgvyb.supabase.co/';
+export const SUPABASE_ANON_KEY = 'sb_publishable_NVAm5s10NO_mv2FaZ3W2Xg_UDwweID7';
