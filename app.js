@@ -176,7 +176,7 @@ function calendarPage(){
  const e=calendarCurrent(s),next=calendarUpcoming(s,18),fixtures=masterFixtures(e),history=(s.calendar?.history||[]).slice(-8).reverse();
  const date=e?calendarDate(e):'Edición finalizada · '+cycleName(s);
  return `<div class="stack">${head('📅 Calendario maestro · '+cycleName(s),'Clausura y Apertura avanzan en orden con la tabla anual y el palmarés archivado.')}
- <section class="calendar-hero"><span class="eyebrow">🟢 FECHA OFICIAL · ${E(cycleName(s).toUpperCase())}</span><h2>${e?E(e.title):'🏆 Fin de temporada'}</h2><p class="calendar-main-date">${E(date)}</p><p class="muted small">${e?'Semana '+e.week+' · '+e.day+' · Fecha '+e.ordinal:'No hay fechas pendientes.'}</p><div class="controls">${calendarSeasonComplete(s)?button('🚀 Iniciar '+E(cycleNextName(s)),'next-season','','btn primary'):e?button('▶ Jugar fecha del calendario','calendar-play','','btn primary'):'<span class="tag greentag">✓ Calendario finalizado</span>'}${button('🔴 Ver en vivo 2D','nav','data-target="vivo"','btn')}</div>
+ <section class="calendar-hero"><span class="eyebrow">🟢 FECHA OFICIAL · ${E(cycleName(s).toUpperCase())}</span><h2>${e?E(e.title):'🏆 Fin de temporada'}</h2><p class="calendar-main-date">${E(date)}</p><p class="muted small">${e?'Semana '+e.week+' · '+e.day+' · Fecha '+e.ordinal:'No hay fechas pendientes.'}</p><div class="controls">${calendarSeasonComplete(s)?button('🚀 Iniciar '+E(cycleNextName(s)),'next-season','','btn primary'):e?button('▶ Jugar fecha del calendario','calendar-play','','btn primary'):'<span class="tag greentag">✓ Calendario finalizado</span>'}${button('🔴 Ver en vivo 2D','nav','data-target="vivo"','btn')}${s.postseason?.stage==='finalizada'&&!calendarSeasonComplete(s)?button('⏭ Terminar copas pendientes','finish-calendar','','btn'):''}</div>
  <div class="notice" style="margin-top:13px">🏆 ${calendarSeasonComplete(s)?'Ya terminó '+E(cycleName(s))+'. La siguiente competición oficial es '+E(cycleNextName(s))+'. Tus campeones quedan archivados.':s.postseason?.stage==='finalizada'?'Terminaste la fase final local, pero siguen fechas globales pendientes. Disputá las copas nacionales y Arcalis para desbloquear '+E(cycleNextName(s))+'.':'Solo podés jugar la fecha activa. La próxima edición será '+E(cycleNextName(s))+'.'} ${s.market?.status==='open'?'Si iniciás otra edición, el mercado abierto completará sus días restantes.':''}</div></section>
  <div class="grid two"><div class="card"><h2 class="h2">🗓️ Agenda de próximas fechas</h2><div class="calendar-timeline">${next.map((item,i)=>`<div class="calendar-event ${i===0?'on':''}"><span class="calendar-event-icon">${item.icon}</span><div class="calendar-event-text"><b>${E(calendarDate(item))}</b><span>${E(item.title)} · Turno ${item.ordinal}</span></div><span class="calendar-event-status">${i===0?'HOY':'PRÓXIMA'}</span></div>`).join('')}</div></div>
  <div class="card"><h2 class="h2">⚽ Partidos programados</h2>${fixtures.length?fixtures.map(scoreFixture).join(''):'<p class="muted small">Los cruces se generan según se completan las rondas anteriores. En esta fecha se juegan los encuentros de la competición indicada.</p>'}<div class="notice">Los demás países disputan sus encuentros simultáneamente. Mirá sus partidos desde Mundo o Live 2D.</div></div></div>
@@ -443,7 +443,7 @@ function playerModal(id,name){const t=club(name),p=t?.players.find(x=>String(x.i
 function coachModal(name){const t=club(name);modal('Directiva · '+name,`<div class="stack"><div class="notice">El DT actual es <strong>${E(t.coach)}</strong>. Al cambiarlo se publica una noticia y se registra la destitución. Esto no garantiza resultados positivos.</div><form class="form" id="coachForm"><input type="hidden" name="club" value="${E(name)}"><label class="field"><span>Nombre del nuevo entrenador</span><input class="input" name="coach" maxlength="65" required placeholder="Ej. Marcos Valcera"></label><button class="btn danger" type="submit">Confirmar destitución y nuevo DT</button></form></div>`)}
 function showNews(id){const a=s.news.find(n=>n.id===id);if(a?.related){const m=lookupMatch(a.related);if(m){paper(m);return}}if(a)modal(a.title,`<div class="eyebrow">${E(a.category)} · ${E(a.date)}</div><h2 style="font-size:27px">${E(a.title)}</h2><p>${E(a.description)}</p>`)}
 
-function playMasterDate(){
+function playMasterDate({batch=false}={}){
  const e=calendarCurrent(s);
  if(!e){toast('📅 Ya se completaron las fechas programadas.');return;}
  if(s.broadcast&&!s.broadcast.finished&&!s.broadcast.replay&&s.broadcast.elapsed>0){toast('⚠ Terminá tu partido en vivo antes de avanzar la fecha.');return;}
@@ -501,14 +501,24 @@ function playMasterDate(){
     related:m.id,date:calendarDate(e),featured:!!m.penalties});
   }
   if(s.news.length>240)s.news.length=240;
-  save();
-  const title=e.title+' · '+calendarDate(e);
-  reportResults(null,title,published.map(m=>m.id));
-  toast('📰 ¡Fecha disputada! '+matches.length+' encuentros · '+(next?'Próxima: '+calendarDate(next):'Fin de temporada'));
- }catch(err){save();toast('⚠ Error de calendario: '+err.message);}
+  if(!batch){save();const title=e.title+' · '+calendarDate(e);reportResults(null,title,published.map(m=>m.id));toast('📰 ¡Fecha disputada! '+matches.length+' encuentros · '+(next?'Próxima: '+calendarDate(next):'Fin de temporada'));}
+  return matches.length;
+ }catch(err){if(batch)throw err;save();toast('⚠ Error de calendario: '+err.message);}
 }
 function onAction(el){let action=el.dataset.action;if(!action)return;
  if(action==='calendar-play'){playMasterDate();return;}
+ if(action==='finish-calendar'){
+  if(s.postseason?.stage!=='finalizada'){toast('⚠ Esta opción se habilita después de jugar la fase final y la Recopa.');return;}
+  if(s.broadcast&&!s.broadcast.finished&&!s.broadcast.replay&&s.broadcast.elapsed>0){toast('📺 Terminá primero el partido 2D que tenés abierto.');return;}
+  if(!confirm('¿Simular automáticamente todas las fechas pendientes de las copas, en orden cronológico? Se registrarán sus resultados y campeones. No se borrará el Apertura ni la Recopa, pero no podrás deshacer los partidos nuevos.'))return;
+  let steps=0;
+  try{
+   while(!calendarSeasonComplete(s)&&calendarCurrent(s)&&steps<160){playMasterDate({batch:true});steps++;}
+   save();nav('calendario');
+   toast(calendarSeasonComplete(s)?'🏆 ¡Copas finalizadas! Ya podés iniciar '+cycleNextName(s):'📅 Se simularon '+steps+' fechas. Quedan eventos por completar.');
+  }catch(err){save();nav('calendario');toast('⚠ Se guardaron las '+steps+' fechas completas. Problema: '+err.message);}
+  return;
+ }
  const scheduled={'simulate-league':'league','sim-country':'league','simulate-cup':'cup','sim-country-cup':'cup','sim-intl':'international','simulate-post':'postseason','sim-country-final':'postseason','simulate-custom':'custom','youth-league':'league'};
  if(Object.prototype.hasOwnProperty.call(scheduled,action)){
   if(calendarReady(s,scheduled[action]))playMasterDate();
