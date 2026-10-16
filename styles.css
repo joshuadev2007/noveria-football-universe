@@ -146,3 +146,36 @@
 .press-spoiler-guard p{max-width:660px;color:#c7d4e5;line-height:1.7}
 .press-spoiler-guard .controls{margin-top:19px}
 @media(max-width:640px){.spoiler-switch{padding:12px;gap:12px}.spoiler-switch>.btn{width:100%}.result-spoiler-hidden .result-score strong{font-size:30px}.press-fixture-context{padding:12px}}
+
+
+/* NOVERIA 5.10 · Academia internacional, ojeadores y crecimiento por rendimiento */
+.academy-head{display:flex;align-items:end;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:clamp(17px,3vw,26px);border:1px solid #6c6f8a;border-radius:18px;background:linear-gradient(125deg,#1b2f49,#182336 68%,#282c45)}
+.academy-head h2{font-size:clamp(22px,3vw,31px);margin:8px 0 6px;color:#f3d6a0}
+.academy-head p{font-size:12px;color:#bfcfe0;margin:0;line-height:1.6}
+.academy-head .field{width:min(340px,100%)}
+.academy-scout-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(235px,100%),1fr));gap:13px;margin-top:14px}
+.academy-prospect,.academy-scout-card{display:flex;flex-direction:column;gap:9px;min-width:0}
+.academy-prospect h3,.academy-scout-card h3{margin:2px 0;font-size:16px;overflow-wrap:anywhere}
+.academy-prospect .eyebrow,.academy-scout-card .eyebrow{font-size:10px}
+.academy-ratings{display:flex;gap:9px;align-items:stretch}
+.academy-ratings>div{flex:1;display:flex;flex-direction:column;gap:3px;border:1px solid #415474;padding:10px 7px;border-radius:11px;text-align:center;min-width:0;background:#15233a}
+.academy-ratings strong{font-size:clamp(21px,3vw,27px);font-weight:900;color:#edf3fd}
+.academy-ratings span{font-size:9px;color:#9db5ce;letter-spacing:.045em;font-weight:700}
+.academy-xp{display:flex;flex-direction:column;gap:8px}
+.academy-xp small{color:#b4c6dc;font-size:10px}
+.academy-xp b{font-size:10px;color:#e5c681}
+.academy-xp-track{height:8px;border-radius:20px;overflow:hidden;background:#263951}
+.academy-xp-track>span{display:block;height:100%;background:linear-gradient(90deg,#4ed7a4,#e5c778);border-radius:20px;transition:width .25s}
+.academy-player-stats{font-size:11px;color:#b8c9dc;line-height:1.55}
+.academy-prospect>.btn{margin-top:auto}
+.academy-scout-card{padding:14px;border:1px solid #4c607d;border-radius:13px;background:linear-gradient(140deg,#1e3048,#151e32)}
+.academy-scout-card .between{margin-top:auto;flex-wrap:wrap;gap:6px}
+.academy-scout-card.signed{opacity:.67;border-color:#4b806b}
+.academy-mission{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid #35445b;font-size:12px;flex-wrap:wrap}
+.academy-mission span{color:#bfcfe0}
+.academy-mission-help{padding:10px;border-radius:10px;border:1px solid #49647d;background:#172d42;font-size:12px;color:#bed7e2;line-height:1.5}
+.academy-graduate-list{display:flex;flex-direction:column;gap:10px}
+.academy-graduate{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #435778;padding:10px 14px;border-radius:12px;flex-wrap:wrap}
+.academy-graduate>div{display:flex;flex-direction:column;gap:4px}
+.academy-graduate strong{font-size:13px}
+@media(max-width:650px){.academy-head{align-items:stretch}.academy-head .field{width:100%}.academy-scout-grid{grid-template-columns:1fr}.academy-ratings strong{font-size:24px}.academy-scout-card .between>.btn{width:100%}}
