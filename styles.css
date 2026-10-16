@@ -124,3 +124,25 @@
 .match-newspaper .paperstats>div{min-width:0}.match-newspaper.tone-dramatic h1,.match-newspaper.tone-rout h1{color:#6f2330}
 @media(max-width:690px){.match-newspaper .paper-narrative{column-count:1}.match-newspaper .paperScore{gap:4px}.match-newspaper .paperScore span{font-size:12px}.paper-feature .between{align-items:flex-start}.match-newspaper .paperstats{grid-template-columns:1fr}}
 @media print{.match-newspaper .paper-narrative{column-count:2}.match-newspaper .paper-tags span{print-color-adjust:exact}.match-newspaper .paper-atmosphere{print-color-adjust:exact}}
+
+
+/* Noveria 5.9 · resultados sin spoilers y conferencias vinculadas a partido */
+.spoiler-switch{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px;border:1px solid #526686;border-radius:14px;background:linear-gradient(115deg,#1b304b,#172035);flex-wrap:wrap}
+.spoiler-switch>div{flex:1 1 290px}.spoiler-switch strong{font-weight:850;color:#f8d99e;font-size:15px}
+.spoiler-switch p{margin:7px 0 0;line-height:1.55}
+.spoiler-switch>.btn{flex:0 0 auto}
+.result-spoiler-hidden .result-score strong{font-size:clamp(25px,4vw,37px);letter-spacing:.08em;color:#d0d7e7}
+.result-spoiler-hidden .result-goals{background:#1a283b;color:#c8d0e4}
+.result-spoiler-hidden .result-bottom{gap:10px;flex-wrap:wrap}
+.result-spoiler-hidden .result-bottom>span{color:#c1d1e5}
+.spoiler-quiet{border:1px dashed #7894aa;background:linear-gradient(120deg,#18263d,#142b38)}
+.spoiler-quiet strong{font-size:14px;color:#f4d5a1}
+.press-fixture-context{padding:16px;border-radius:14px;border:1px solid #776042;background:linear-gradient(115deg,#262c3f,#18314b);display:flex;flex-direction:column;gap:7px;margin-bottom:17px}
+.press-fixture-context strong{color:#ffe0a5;font-size:clamp(15px,1.8vw,20px)}
+.press-fixture-context span{color:#c6d6ea;font-weight:700;font-size:13px}
+.press-fixture-context p{margin:3px 0}
+.press-spoiler-guard{padding:clamp(18px,4vw,32px);border:1px solid #6e6d7e;background:linear-gradient(150deg,#222d46,#1b2035)}
+.press-spoiler-guard h2{font-size:clamp(19px,3vw,26px);margin:0 0 8px}
+.press-spoiler-guard p{max-width:660px;color:#c7d4e5;line-height:1.7}
+.press-spoiler-guard .controls{margin-top:19px}
+@media(max-width:640px){.spoiler-switch{padding:12px;gap:12px}.spoiler-switch>.btn{width:100%}.result-spoiler-hidden .result-score strong{font-size:30px}.press-fixture-context{padding:12px}}
