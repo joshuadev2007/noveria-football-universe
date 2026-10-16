@@ -88,7 +88,9 @@ export function youthMatchDevelopment(s,fixture,homeSquad,awaySquad,{friendly=fa
    players.push({id:p.id,name:p.name,ovrBefore:before,ovr:p.ovr,rating,goals:goalsBy,assists:assistsBy,xp,improved:p.ovr-before});
   }
   if(friendly){t.youthFriendlyGrowth={cycle:cycle(s),count:scope+1};}
-  results[side]=players;
+  // Guardar solo las 3 mejores actuaciones para reducir el tamaño de la partida.
+  // Las estadísticas y toda la experiencia sí quedan en cada jugador.
+  results[side]=players.sort((a,b)=>b.rating-a.rating||b.goals-a.goals).slice(0,3);
  }
  fixture.youthRatings=results;
  return results;
