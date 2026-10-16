@@ -495,10 +495,11 @@ function playMasterDate({batch=false}={}){
    catchUpCountries(s,e.ordinal);
    for(const c of FOREIGN_COUNTRIES)matches.push(...(s.world?.[c]?.fixtures||[]).filter(m=>m.round===e.ordinal&&played(m)));
    // La cantera sigue el mismo fin de semana que la primera división.
-   const youthDate=e.ordinal-(s.season===2026?7:1)+1;
-   if(youthDate>=1&&youthDate<=5)for(const c of COUNTRIES){
-    const youth=createYouthLeague(s,c);
-    while(youth.round<youthDate&&youth.round<5)matches.push(...simulateYouthLeagueRound(s,c));
+   const youthDate=s.season===2026&&(!s.edition||s.edition==='Apertura')
+    ?Math.min(17,Math.floor((e.ordinal-6)*17/12)):Math.min(17,e.ordinal);
+   if(youthDate>=1)for(const c of COUNTRIES){
+    const youth=createYouthLeague(s,c),limit=youth.rounds||Math.max(...youth.fixtures.map(f=>f.round));
+    while(youth.round<youthDate&&youth.round<limit)matches.push(...simulateYouthLeagueRound(s,c));
    }
    if(e.ordinal===18)for(const c of COUNTRIES)registerAwards(s,c,countryRows(c,'annual').map(r=>r.name));
    ui.round=e.ordinal;
