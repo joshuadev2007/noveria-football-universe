@@ -263,3 +263,18 @@
 .post-seed span{font-size:11px;color:#b8cce0;white-space:normal}
 .post-stage .post-fixture{overflow-wrap:anywhere}
 @media(max-width:650px){.post-seed{flex-direction:column;align-items:flex-start;gap:5px;padding:11px}}
+
+
+/* Noveria 5.15 · Ojeo vivo, ofertas temporales y divisiones menores */
+.academy-offer-status{padding:8px 10px;font-size:11px;line-height:1.45;color:#d2e4ef;background:#1b3450;border:1px solid #465e79;border-radius:10px;font-weight:800}
+.academy-offer-status.urgent{color:#fff0ce;background:linear-gradient(120deg,#603e26,#463148);border-color:#a17c4b}
+.academy-scout-card .controls{display:flex;flex-wrap:wrap;gap:6px}
+.academy-scout-card .controls .btn{white-space:nowrap}
+.academy-next-match{margin:14px 0;padding:13px;border-radius:12px;border:1px solid #4e697f;background:linear-gradient(125deg,#173047,#1d263d);color:#f4d5a1;font-weight:750;font-size:13px}
+.academy-standings{display:flex;flex-direction:column;border-radius:12px;border:1px solid #40556a;overflow:hidden;max-height:470px;overflow-y:auto}
+.academy-standing-row{display:grid;grid-template-columns:26px minmax(90px,1fr) 60px 65px;gap:10px;align-items:center;padding:9px 12px;border-bottom:1px solid #34455b;font-size:12px}
+.academy-standing-row:nth-child(odd){background:#182739}
+.academy-standing-row.our-club{background:#403927;border-left:3px solid #e3b951;color:#ffe9ba}
+.academy-standing-row>span:nth-child(3){text-align:right;color:#bed1e5}
+.academy-standing-row>strong{text-align:right;color:#e3d19c}
+@media(max-width:590px){.academy-standing-row{grid-template-columns:22px minmax(90px,1fr) 43px 55px;gap:5px;padding:8px 6px;font-size:11px}.academy-scout-card .controls{width:100%}.academy-scout-card .controls .btn{flex:1 1 95px}}
