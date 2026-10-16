@@ -134,7 +134,7 @@ function postseasonPanels(s,country){
   const rows=teams.map(n=>({name:n,pj:all.filter(m=>[m.home,m.away].includes(n)).length,w:0,d:0,l:0,
    gf:all.reduce((sum,m)=>sum+(m.home===n?m.scoreH:m.away===n?m.scoreA:0),0),
    gc:all.reduce((sum,m)=>sum+(m.home===n?m.scoreA:m.away===n?m.scoreH:0),0),
-   spot:winners.includes(n)?'advance':'none',status:winners.includes(n)?stage==='recopa'||stage==='final'?'Campeón':'Finalista':'En disputa',confirmed:winners.includes(n)}));
+   spot:winners.includes(n)?'advance':'none',status:winners.includes(n)?stage==='recopa'||stage==='final'?'Campeón':stage==='cuartos'?'Semifinalista':'Finalista':'En disputa',confirmed:winners.includes(n)}));
   rows.forEach(r=>{r.gd=r.gf-r.gc;r.pts=null;});
   rows.sort((a,b)=>Number(b.spot==='advance')-Number(a.spot==='advance')||b.gf-a.gf);
   panels.push(common('knockout','post:'+country+':'+stage,(stage==='recopa'?'Recopa':stage==='final'?'Final':stage==='cuartos'?'Cuartos de final':'Semifinales')+' · '+country,country,rows,
