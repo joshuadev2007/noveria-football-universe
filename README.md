@@ -1,3 +1,20 @@
+# Noveria 5.6 · Live 2D con jugadas representadas sobre la cancha ⚽📺
+
+El **modo 2D** ya no mueve las bolitas al azar: la trayectoria del balón y las carreras se reconstruyen a partir de los eventos disponibles en el partido.
+
+- Los **22 jugadores**, con sus números, forman líneas de defensa, mediocampo y ataque y acompañan el desarrollo de la jugada.
+- Hay **circulación de pelota, pases sucesivos y conducciones** con un poseedor marcado visualmente.
+- Al anunciar un **gol**, el atacante progresa y el balón cruza la línea de la portería correcta; el marcador sigue leyendo los goles oficiales del acta.
+- Los **tiros desviados** van fuera, las **atajadas** terminan junto al arquero, y los **córners** llevan la pelota al banderín.
+- Los arqueros reaccionan, los defensores presionan, y aparecen trazos de pelota y rótulos de la acción.
+- El movimiento es **determinista**: pausar, continuar, cambiar velocidad o restaurar una partida produce el mismo fotograma para el mismo instante.
+- La animación es una **reconstrucción ilustrativa basada en el tipo y momento del evento**, no un registro real de trayectorias ni una simulación física exacta. No se agregan goles o eventos a la historia y se conserva el tratamiento especial de partidos históricos sin detalles individuales.
+- Compatible con **Noveria 5.5.1**, Calendario maestro, Mercado 24 y guardados locales/Joshua Cloud. No hace falta modificar tablas ni configurar credenciales.
+
+Para probarlo: **VER EN VIVO 2D → seleccionar un partido de la fecha oficial → ▶ Reproducir**. La actualización PWA usa una nueva versión de caché; si está mostrando el movimiento viejo, abrí el sitio en Chrome y recargá, sin borrar los datos locales.
+
+---
+
 # Noveria 5.5 · Calendario maestro 📅🏆
 
 **Todas las competiciones oficiales avanzan por fecha cronológica.** Entrá a **📅 Calendario maestro** desde el menú; en el celular aparece también en **Más**.
