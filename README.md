@@ -1,3 +1,23 @@
+# Noveria 5.4 · El Gran Mercado 24 📺⚽
+
+**Actualización publicada el 15 de octubre de 2026.** Accedé a **📺 Mercado 24 · Fichajes** desde el menú; en celular aparece en **Más**.
+
+## Fichar paso a paso
+1. Seleccioná tu club en **Directivas y DT**. En modo DT solo se puede contratar para tu club; como presidente elegís el comprador en el mercado.
+2. En **Mercado 24 · Fichajes**, si dice *Ventana cerrada*, pulsá **Abrir ventana de pases**. También se puede abrir un mercado extraordinario antes de que termine la temporada.
+3. Usá el buscador con el filtro **Mostrando fichajes a tu alcance**, que presenta jugadores compatibles con tu presupuesto, los límites de plantilla y los cupos de venta. Si querés explorar a todos los jugadores, alterná **Ver todos los jugadores**.
+4. Tocá **✍ Negociar**, ajustá precio, salario y años de contrato, y enviá la oferta.
+5. Si hay **contraoferta**, dirigite a **Mi agenda de negociaciones** y aceptala o rechazala. Si es aceptada, el jugador pasa inmediatamente de un club a otro, y se actualizan ambos presupuestos. Si estás sin espacio en la plantilla, antes podés liberar un futbolista. También hay cesiones, agentes libres y cláusulas.
+6. **Avanzar un día** permite negociar también a los demás clubes. **Simular hasta el cierre** ejecuta el resto del mercado.
+
+## Nico Valcera · El Gran Mercado 24
+El programa televisivo ficticio muestra rumores del día calculados con jugadores, clubes y presupuestos existentes en la partida. **Un rumor no es una transferencia confirmada.** Los traspasos confirmados aparecen en otra columna y corresponden a movimientos registrados. Al abrir el mercado y avanzar jornadas de pases se publican notas de rumores en el periódico, sin mover jugadores ni modificar resultados por el mero rumor.
+
+## Compatibilidad de partidas y nube
+**No borres datos del navegador ni reinicies tu partida.** La actualización mantiene el formato de guardado anterior, la jornada y el palmarés, incluidos Apertura y Recopa. La sincronización de **Joshua Cloud** y el inicio de sesión con **correo y contraseña** o código se mantienen sin cambios; no modifica `cloud-config.js`, ni claves ni tablas de Supabase.
+
+---
+
 # NOVERIA FOOTBALL UNIVERSE 5.1 · Prensa contextual 🎙️⚽
 
 Noveria es un universo ficticio de fútbol con **nueve países**, **252 clubes**, ligas, copas nacionales, copas continentales, mercado de pases, modos DT y federación, cantera, estadio, prensa, archivo histórico y partidas guardadas en local/Supabase.
