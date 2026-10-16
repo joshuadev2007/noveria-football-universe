@@ -1,5 +1,6 @@
 import {TEAMS,FIXTURES,FOREIGN_COUNTRIES} from './data.js';
 import {cyclePhase,cycleKey,cycleName,cycleNext,cycleIsAnnualFinal,annualMatches} from './season-cycle.js';
+import {seniorYouthDevelopment} from './youth-scouting.js';
 
 export const STORAGE_KEY='noveria-universe-save-v1';
 export const FIRST_NAMES=['Mateo','Thiago','Damián','Emiliano','Bruno','Santiago','Noah','Iker','Adrián','Gael','Elian','Nicolás','Alexis','Kevin','Samuel','Héctor','Marco','Iván','Gabriel','Luca','Enzo','Erik','Lucas','Rafael','Daniel','Jesús','Oliver','Aaron','Raúl','Diego','Joel','Néstor','Emanuel','Ángel','Axel','Esteban','Julián','Leandro','Hugo','Luis','Pablo','Leonardo','Sergio','Matías','Darío','Jairo','Rubén','Ariel','Elías','Benjamín','Sebastián'];
@@ -88,7 +89,7 @@ export function simulateMatch(s,match,options={}){
   if(!options.silent&&r()<.23){match.referee.varChecks++;events.push({min:Math.min(90,18+Math.floor(r()*68)),type:'var',side:r()<.5?'home':'away',p1Name:'Revisión VAR sin alterar el resultado'});events.sort((a,b)=>a.min-b.min);}
   const relation=(home.rivalryRecords[away.name]||{games:0,w:0,d:0,l:0,gf:0,gc:0});relation.games++;relation.gf+=sh;relation.gc+=sa;if(sh>sa)relation.w++;else if(sh<sa)relation.l++;else relation.d++;home.rivalryRecords[away.name]=relation;
   const reverse=(away.rivalryRecords[home.name]||{games:0,w:0,d:0,l:0,gf:0,gc:0});reverse.games++;reverse.gf+=sa;reverse.gc+=sh;if(sa>sh)reverse.w++;else if(sa<sh)reverse.l++;else reverse.d++;away.rivalryRecords[home.name]=reverse;
-  if(!options.silent)addNews(s,match.competition,match.headline,match.summary,match.id);
+  if(!options.silent){seniorYouthDevelopment(s,match);addNews(s,match.competition,match.headline,match.summary,match.id);}
   return match;
 }
 export function finalizeLeagueRound(s,round){if(s.leagueRound>=round)return false;const games=s.fixtures.filter(f=>f.round===round&&['LSV','LPV'].includes(f.competition));if(!games.length||games.some(f=>!played(f)))return false;s.leagueRound=round;reviewCoaches(s,round);
@@ -404,7 +405,7 @@ export function startNextSeason(s){
   for(const t of TEAMS.filter(t=>t.division!=='EXT')){const team=s.teams[s.slotMap[t.name]];team.group=t.group;team.division=t.division;}
  }
  for(const t of Object.values(s.teams)){
-  if(next.season!==old){for(const p of t.youth||[]){p.age++;p.ovr=Math.min(p.pot,p.ovr+(p.age<19?1:0));}
+  if(next.season!==old){for(const p of t.youth||[]){p.age++;/* El OVR progresa por rendimiento; no por cumplir años. */}
    t.youth=(t.youth||[]).filter(p=>p.age<=21);
    for(const p of t.players){p.age++;if(Number.isInteger(p.contractYears)&&p.contractYears>1)p.contractYears--;}}
   for(const p of t.players)p.outGames=0;
