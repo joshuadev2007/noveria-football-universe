@@ -2,7 +2,7 @@
  * Nunca modifica goles, eventos, fixture ni palmarés del motor deportivo. */
 import {played} from './engine.js';
 const stageName=m=>String(m?.phase||m?.group||'').toLowerCase();
-const stageIsTwoLegs=stage=>/^(final|semifinal|semifinales)$/.test(stage);
+const stageIsTwoLegs=stage=>/^(cuartos|final|semifinal|semifinales)$/.test(stage);
 export function seriesAggregate(s,match){
  if(!match)return null;
  // Evita buscar entre miles de encuentros de liga por cada tarjeta de partido.
