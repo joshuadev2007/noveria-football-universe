@@ -2,6 +2,7 @@
 import {TEAMS,FIXTURES,FOREIGN_COUNTRIES} from './data.js';
 import {defaultTeam,ranking,played,simulateMatch,changeCoach,CUP_GROUPS} from './engine.js';
 import {cyclePhase,cycleKey,cycleName,cycleIsAnnualFinal} from './season-cycle.js';
+import {leaguePlayoffSeeds,leaguePlayoffPairs,leaguePlayoffReseed,leaguePlayoffFinal} from './league-playoffs.js';
 
 const topTemplates={A:TEAMS.filter(t=>t.country==='Veltrania'&&t.group==='A'),B:TEAMS.filter(t=>t.country==='Veltrania'&&t.group==='B'),S:TEAMS.filter(t=>t.country==='Veltrania'&&t.division==='LPV')};
 export const PROFILES={
@@ -44,19 +45,18 @@ export function catchUpCountries(s,target){ensureContinent(s);const outcomes={};
 function game(country,year,stage,leg,a,b,k){return {id:`${country}-${year}-${stage}-${leg}-${k}`,competition:'FINAL-'+country,group:stage,round:leg,home:a,away:b,played:false,scoreH:null,scoreA:null,stadium:'Sede de '+country};}
 export function setupCountryFinals(s,country){
  const w=s.world[country];if(w.postseason.stage!=='locked')return;
- const A=countryStandings(s,country,'A').slice(0,4),B=countryStandings(s,country,'B').slice(0,4);
- const seedRank=[...A.map((r,i)=>({...r,place:i+1})),...B.map((r,i)=>({...r,place:i+1}))].sort(
-  (x,y)=>x.place-y.place||y.pts-x.pts||y.gd-x.gd||y.gf-x.gf||x.name.localeCompare(y.name,'es'));
- const pairs=[[A[0].name,B[3].name],[B[0].name,A[3].name],[A[1].name,B[2].name],[B[1].name,A[2].name]];
+ const seeds=leaguePlayoffSeeds(countryStandings(s,country,'A'),countryStandings(s,country,'B'));
+ const ordered=seeds.map(x=>x.name),pairs=leaguePlayoffPairs(ordered);
  const fixtures=pairs.flatMap(([high,low],i)=>[
   game(country,cycleKey(s),'cuartos',1,low,high,i),
   game(country,cycleKey(s),'cuartos',2,high,low,i)
  ]);
- w.postseason={stage:'cuartos',leg:1,format:'cuartos8',fixtures,seeds:seedRank.map(x=>x.name),
+ w.postseason={stage:'cuartos',leg:1,format:'cuartos8',seeding:'global-1-8',
+  fixtures,seeds:ordered,
+  seedDetails:seeds.map(x=>({name:x.name,group:x.group,groupPlace:x.groupPlace,seed:x.seed,pts:x.pts,gd:x.gd,gf:x.gf})),
   annual:countryStandings(s,country,'annual')[0].name};
  if(cycleIsAnnualFinal(s))awardCountry(s,country,'Escudo de Oro',w.postseason.annual);
 }
-
 function awardCountry(s,country,title,club){const w=s.world[country];const key=`${country}:${cycleKey(s)}:${title}`;if(w.champions.some(x=>x.key===key))return;const specific=title==='Apertura'||title==='Clausura'?`${cycleName(s)} de ${country}`:title==='Escudo de Oro'?`Escudo de Oro de ${country}`:`${title} de ${country} · ${cycleName(s)}`;w.champions.push({key,title:specific,winner:club,season:s.season,edition:cyclePhase(s)});s.honours.push({title:specific,winner:club,season:String(s.season),edition:cyclePhase(s)});s.teams[club].trophies.push(`${specific} · ${s.season}`);s.news.unshift({id:'world-'+key,category:'Arcalis',title:`${club} conquista ${specific}`,description:`${country} tiene un nuevo campeón nacional.`,date:cycleName(s)});}
 function winnerOf(m,seed){if(m.scoreH!==m.scoreA)return m.scoreH>m.scoreA?m.home:m.away;m.extraTime=true;const homeWin=hash(m.id+seed)%2===0;m.penalties=homeWin?'5-4':'4-5';return homeWin?m.home:m.away;}
 function aggregate(a,b,seed){const first=a.scoreH+b.scoreA,second=a.scoreA+b.scoreH;if(first!==second)return first>second?a.home:a.away;const homeWin=hash(a.id+seed)%2===0;b.extraTime=true;b.penalties=homeWin?(b.home===a.home?'5-4':'4-5'):(b.home===a.home?'4-5':'5-4');return homeWin?a.home:a.away;}
@@ -71,8 +71,7 @@ export function simulateCountryFinalRound(s,country){
   else{
    const games=p.fixtures.filter(f=>f.group==='cuartos'),winners=[];
    for(let i=0;i<games.length;i+=2)winners.push(aggregate(games[i],games[i+1],s.seed));
-   winners.sort((a,b)=>p.seeds.indexOf(a)-p.seeds.indexOf(b));
-   const pairs=[[winners[0],winners[3]],[winners[1],winners[2]]];
+   const pairs=leaguePlayoffReseed(winners,p.seeds);
    p.fixtures.push(...pairs.flatMap(([high,low],i)=>[
     game(country,cycleKey(s),'semifinal',1,low,high,i),
     game(country,cycleKey(s),'semifinal',2,high,low,i)
@@ -85,8 +84,7 @@ export function simulateCountryFinalRound(s,country){
    const games=p.fixtures.filter(x=>x.group==='semifinal');
    const winners=[aggregate(games[0],games[1],s.seed),aggregate(games[2],games[3],s.seed)];
    const order=p.seeds||countryStandings(s,country,'annual').map(x=>x.name);
-   winners.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
-   const [high,low]=winners;
+   const [high,low]=leaguePlayoffFinal(winners,order);
    p.fixtures.push(game(country,cycleKey(s),'final',1,low,high,0),game(country,cycleKey(s),'final',2,high,low,0));
    p.stage='final';p.leg=1;
   }
