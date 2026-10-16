@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {FOREIGN_COUNTRIES} from './data.js';
 import {freshState,simulateMatch} from './engine.js';
+import {matchLineup} from './lineup.js';
 import {ensureEcosystem,inspectAcademy,createYouthLeague,simulateYouthLeagueRound,createYouthMatch,youthTrain,promoteProspect} from './ecosystem.js';
 import {sendYouthScout,advanceYouthScouting,scoutingMissions,signYouthCandidate,startYouthGraduate,youthProgress} from './youth-scouting.js';
 
@@ -44,7 +45,7 @@ assert.ok(youthProgress(star).needed>0);
 const promoted=promoteProspect(s,club,star.id);
 assert.ok(promoted.academyGraduate);
 startYouthGraduate(s,club,promoted.id);
-assert.ok(t.players.slice(0,11).some(p=>p.id===promoted.id));
+assert.ok(matchLineup(t).starters.some(p=>p.id===promoted.id));
 const nextMatch=s.fixtures.find(m=>!m.played&&(m.home===club||m.away===club));
 simulateMatch(s,nextMatch);
 assert.ok(promoted.apps>=1);
