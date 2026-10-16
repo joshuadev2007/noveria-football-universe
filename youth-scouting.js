@@ -172,3 +172,17 @@ export function signYouthCandidate(s,club,id){
  s.news??=[];s.news.unshift({id:'youth-sign-'+p.id,category:'Cantera',title:'🌟 '+p.name+' ficha por la cantera de '+club,description:'El joven de '+mission.country+' llega con OVR '+p.ovr+' y potencial '+p.pot+'.',date:cycle(s),relatedClub:club});
  return next;
 }
+
+/** Ubica a un canterano ascendido dentro del once del simulador.
+ * La simulación toma los primeros 11 jugadores como titulares.
+ */
+export function startYouthGraduate(s,club,id){
+ const t=s.teams[club];if(!t)throw Error('Club desconocido');
+ const i=t.players.findIndex(p=>String(p.id)===String(id));
+ if(i<0||!t.players[i]?.academyGraduate)throw Error('Solo podés dar titularidad a canteranos ascendidos');
+ if(i<11)return t.players[i];
+ const p=t.players[i],similar=t.players.slice(0,11).findIndex(q=>q.pos===p.pos);
+ const slot=similar>=0?similar:10;
+ [t.players[slot],t.players[i]]=[t.players[i],t.players[slot]];
+ return t.players[slot];
+}
