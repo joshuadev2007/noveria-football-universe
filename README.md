@@ -1,3 +1,37 @@
+# Noveria 5.8 · Calendario futbolístico continuo: Clausura y Apertura 🏆📅
+
+**Actualización directa del repositorio.** Conserva la partida guardada, no reinicia el universo y no modifica la base de datos de Joshua Cloud.
+
+## Orden cronológico de los torneos
+
+- **Apertura 2026**: primera edición histórica; todos los marcadores y campeones que ya ganaste se conservan.
+- **Clausura 2027**: nueva liga desde la jornada 1, nueva Copa Nacional, nuevas copas continentales, sus propias semifinales, final y Recopa. El calendario comienza en **febrero de 2027**.
+- **Apertura 2027**: se disputa a partir de **agosto de 2027**, con sus calendarios y campeones independientes.
+- **Clausura 2028 → Apertura 2028**, y así sucesivamente.
+
+## Tabla anual y descensos
+
+La **tabla anual de 2027** acumula los **18 partidos del Clausura 2027 y 18 del Apertura 2027** (36 partidos por club que complete ambas ediciones en Primera). En Clausura se ve el acumulado provisional, y el **Escudo de Oro** se concede **una sola vez** al completar el Apertura del año. La excepción inaugural sigue siendo el Escudo de Oro de 2026, que permanece intacto. Los ascensos y descensos de cada país se resuelven al cerrar el Apertura anual, no a mitad de año.
+
+## ¿Cómo paso al Clausura 2027 si ya gané la Recopa?
+
+1. Abrí **📅 Calendario maestro**.
+2. Si ya ganaste la final y Recopa del Apertura 2026, pero todavía faltan Copa Nacional o Copas de Arcalis, podés jugar sus fechas normalmente **en orden**, o pulsar **⏭ Terminar copas pendientes**. Esta segunda opción pide confirmación y **simula los encuentros pendientes cronológicamente**, conservando campeones, resultados y palmarés.
+3. Cuando las competiciones estén terminadas, verás **🚀 Iniciar Clausura 2027** en **Calendario maestro** y **Palmarés y partida**.
+4. Si el mercado sigue abierto, el juego te preguntará antes de simular sus días finales y cerrar la ventana. Tras confirmar, archivará la edición anterior y comenzará el nuevo torneo sin borrarla.
+5. Para comprobar 2027, abrí **Clasificaciones → Escudo de Oro**, que ahora refleja la tabla anual por año con ambos torneos cortos.
+
+## Integridad
+
+- El **palmarés** conserva los títulos del Apertura, Recopa, Copa Nacional, federaciones y copas continentales.
+- Las ediciones tienen identificadores únicos (ejemplo `2027-Clausura` y `2027-Apertura`) para que sus partidos, calendarios y archivos no se confundan.
+- Los guardados anteriores sin campo `edition` se interpretan como **Apertura**, sin reiniciar el progreso.
+- El formato de guardado, el login, los datos de Supabase, Mercado 24 y Live 2D permanecen compatibles.
+- **Antes de cambiar de torneo**, recomendamos exportar una copia JSON desde **Palmarés y partida**.
+- Prueba automática nueva: `node tests-cycle.mjs` (tres ediciones completas y validación de tabla anual, títulos y 78 resultados históricos).
+
+---
+
 # Noveria 5.7 · ¡Vuelven los resultados y los periódicos! 📰⚽
 
 Al pulsar **▶ Jugar fecha del calendario**, se disputan únicamente los partidos de la fecha oficial y la aplicación abre automáticamente la pantalla clásica de **Resultados y periódicos** (ya no regresa al calendario vacío). Se conserva el orden cronológico establecido por Calendario maestro.
