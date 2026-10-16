@@ -29,21 +29,22 @@ export function matchEditorial(m){
  const leader=st?(hn>an?'home':an>hn?'away':null):null;
  const poss=st?(safe(st.posH)>safe(st.posA)?'home':safe(st.posA)>safe(st.posH)?'away':null):null;
  const knockout=Boolean(m.penalties||m.extraTime||['CUP','POST','ARCALIS'].includes(m.competition)||m.phase==='knockout'||m.group==='final'||m.group==='recopa'||m.leg);
- let comeback=null,lateDecider=null,firstGoal=null;
+ let comeback=null,lateDecider=null,firstGoal=null,wasBehind=false;
  if(validGoals){
   let ph=0,pa=0,previous='draw';
   for(const g of goals){if(g.side==='home')ph++;else if(g.side==='away')pa++;
    const ahead=ph===pa?'draw':ph>pa?'home':'away';
    if(!firstGoal)firstGoal=g;
-   if(!draw&&ahead===win&&previous===loser)comeback=g;
-   if(!draw&&ahead===win&&safe(g.min)>=80)lateDecider=g;
+   if(ahead===loser)wasBehind=true;
+   if(!draw&&ahead===win&&wasBehind&&!comeback)comeback=g;
+   if(!draw&&ahead===win&&previous==='draw'&&safe(g.min)>=80)lateDecider=g;
    previous=ahead;
   }
  }
  let headline,lead,tone='standard';
  const margin=Math.abs(h-a);
  if(m.legacy){headline=draw?m.home+' y '+m.away+' igualaron '+h+'–'+a:winner+' venció '+h+'–'+a+' a '+losing;lead='El marcador pertenece al archivo histórico. No se conservan actas individuales suficientes para reconstruir cómo se desarrolló el juego.';tone='archive';}
- else if(m.penalties){headline=winner+' y '+losing+' llevan la definición hasta los penales';lead='El marcador del partido fue '+h+'–'+a+'. La eliminatoria necesitó una definición por penales: '+m.penalties+'.';tone='dramatic';}
+ else if(m.penalties){headline='¡Drama desde los once metros! '+m.home+' y '+m.away+' definen en penales';lead='El partido terminó '+h+'–'+a+' y la definición por penales registrada fue '+m.penalties+'.'+(m.winner?' Avanzó '+m.winner+'.':'');tone='dramatic';}
  else if(comeback){headline='¡Remontada de '+winner+'! '+losing+' dejó escapar su ventaja';lead=winner+' terminó imponiéndose '+h+'–'+a+' después de estar por debajo en el marcador. El cambio de rumbo quedó reflejado en los goles registrados.';tone='dramatic';}
  else if(lateDecider){headline='¡Golpe tardío! '+winner+' decide el duelo en el tramo final';lead='Un gol de '+name(lateDecider)+' al '+safe(lateDecider.min)+'′ fue parte del desenlace del '+h+'–'+a+' ante '+losing+'.';tone='dramatic';}
  else if(draw&&h+a===0){headline='Cerrojo defensivo: '+m.home+' y '+m.away+' firman el 0–0';lead='Ninguno encontró el gol. El partido terminó sin romperse la igualdad.';tone='defensive';}
