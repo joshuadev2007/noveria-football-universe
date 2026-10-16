@@ -82,3 +82,24 @@ La suite comprueba el calendario, el historial, clubes, competiciones, mercado, 
 ## Licencias y aclaraciones
 
 El universo, los clubes y sus nombres son ficticios. Esta es una simulación deportiva y **no incluye fútbol 3D**. La repetición 2D representa los eventos ya calculados, y no es un motor de juego en tiempo real donde se puedan modificar resultados con una pausa. Las fotografías remotas, cuando están disponibles, son ilustrativas; `assets/aficion-noveria.webp` funciona de respaldo local.
+
+## NOVERIA 4.1 — Sincronización entre PC y móvil con Supabase
+
+- `SUPABASE_SETUP.sql`: copiar y ejecutar en Supabase SQL Editor. Crea tabla con RLS y función de guardado atómica; cada cuenta ve solo su partida.
+- `cloud-sync.js`: cliente sin dependencias externas, autenticación por email, tokens refrescados, respaldo y sincronización diferida con detección de conflictos.
+- `cloud-config.js`: configuración opcional global con la **URL** de Supabase y la **publishable/anon key** (públicas). Nunca usar la secret/service_role key.
+- Alternativa: introducir ambos valores en el menú **Nube y sincronización** una vez por dispositivo.
+- El primer inicio de sesión NO borra nada: se elige subir la partida local o bajar la remota; conflictos requieren decisión explícita.
+- Los cambios de una cuenta se guardan en `public.noveria_saves` (JSONB + revisión). Al abrir otro dispositivo con el mismo usuario se recupera la partida más reciente si no hay modificaciones locales divergentes.
+- Sin Supabase configurado sigue funcionando todo como antes con guardado local y exportación/importación JSON.
+- GitHub Pages aloja el cliente web pero NO aloja datos privados. Los archivos estáticos se pueden publicar en Pages. El progreso se sincroniza por Supabase cuando se haya ejecutado SQL, configurado Auth y conexión.
+- Se recomienda usar Noveria por HTTPS (GitHub Pages) y respaldar la partida JSON antes de sincronizar por primera vez.
+
+**Configurar Supabase en 5 minutos:**
+1. Crear un proyecto en [Supabase](https://supabase.com/dashboard) (también podés usar uno existente, con RLS y tabla propia para Noveria).
+2. En SQL Editor ejecutar todo el contenido de `SUPABASE_SETUP.sql`.
+3. En Authentication → Providers comprobar que Email está habilitado. Si Supabase envía confirmación, confirmá el correo recibido al crear la cuenta.
+4. En Project Settings → API Keys copiar **publishable/anon key** (no `service_role` ni `secret`) y Project URL. Pegarlos en **Nube y sincronización** dentro de Noveria; o definirlos en `cloud-config.js` y publicar ese archivo.
+5. Crear una cuenta de Noveria con correo/contraseña, entrar, y tocar **Subir mi partida actual** (o **Usar partida de la nube** si ya existe). Después ingresar con la misma cuenta en el celular. Exportar JSON antes de elegir.
+
+Si el servidor devuelve error de función inexistente, ejecutá el SQL o recargá el esquema de la API en Supabase. No publicar las claves secretas ni las contraseñas en GitHub.
