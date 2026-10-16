@@ -27,7 +27,7 @@ export function globalLabel(s,match){const t=seriesAggregate(s,match);if(!t)retu
 function honourKey(h){return `${h.season||''}|${h.title}|${h.winner}`;}
 function featuredFinal(s,h){const name=String(h.title||'').toLowerCase(),country=Object.values(s.teams)[0];
  let fs=[];
- if(name.startsWith('apertura')&&(!name.includes(' de '))){fs=(s.postseason?.fixtures||[]).filter(m=>m.group==='final');}
+ if((name.startsWith('apertura')||name.startsWith('clausura'))&&(!name.includes(' de '))){fs=(s.postseason?.fixtures||[]).filter(m=>m.group==='final');}
  else if(name.includes('recopa veltrana'))fs=(s.postseason?.fixtures||[]).filter(m=>m.group==='recopa');
  else if(name.includes('copa de las provincias'))fs=(s.cup?.fixtures||[]).filter(m=>m.group==='final');
  else for(const [nation,w] of Object.entries(s.world||{})){if(name.includes(nation.toLowerCase()))fs=name.includes('copa')?(w.cup?.fixtures||[]).filter(m=>m.group==='final'):(w.postseason?.fixtures||[]).filter(m=>m.group==='final'||m.group==='recopa');}
