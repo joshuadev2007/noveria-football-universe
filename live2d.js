@@ -2,7 +2,7 @@
  * No altera partidos históricos ni estadísticas hasta que termina la transmisión.
  */
 import {simulateMatch,played} from './engine.js';
-import {calendarMatchReady} from './calendar.js';
+import {calendarMatchReady,calendarCurrent} from './calendar.js';
 export const LIVE_SECONDS=120;
 const hash=(str)=>{let h=2166136261;for(const c of String(str))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
 const pct=(str)=>hash(str)/4294967295;
@@ -90,6 +90,7 @@ export function coachSubstitution(s,b,outId,inId){const side=managerSide(s,b);if
  * Correr exactamente una vez: comprueba match.played para evitar resultados duplicados.
  */
 export function finishBroadcast(s){const b=s.broadcast;if(!b)throw Error('No hay transmisión activa');if(b.finished)return {match:findBroadcastFixture(s,b.id)?.m,first:false};const entry=findBroadcastFixture(s,b.id);if(!entry)throw Error('No se encontró la ficha del encuentro');const m=entry.m;if(played(m)||b.replay){b.finished=true;b.elapsed=b.duration;b.preview=structuredClone(m);return {match:m,first:false};}
+ const activeDate=calendarMatchReady(s,entry)?calendarCurrent(s):null;
  const beforeH=s.teams[m.home].tactic,beforeA=s.teams[m.away].tactic;
  try{s.teams[m.home].tactic=b.startTactics.home;s.teams[m.away].tactic=b.startTactics.away;simulateMatch(s,m,{silent:entry.kind.startsWith('foreign')||entry.kind==='international'});}finally{s.teams[m.home].tactic=beforeH;s.teams[m.away].tactic=beforeA;}
  // La ficha del motor es la fuente de verdad; solo añadimos decisiones que vimos en el directo.
@@ -107,6 +108,7 @@ export function finishBroadcast(s){const b=s.broadcast;if(!b)throw Error('No hay
   const last=s.news.find(x=>x.related===m.id);if(last){last.title=m.headline;last.description=m.summary;}
  }
  m.tacticalDecisions=b.decisions;
+ if(activeDate){m.calendarDate=activeDate.date;m.calendarEvent=activeDate.id;}
  b.finished=true;b.elapsed=b.duration;b.preview=structuredClone(m);
  return {match:m,first:true,entry};
 }
