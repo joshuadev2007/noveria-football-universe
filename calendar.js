@@ -2,6 +2,7 @@
  * Cronología única para todas las competiciones, compartida por los nueve países.
  * No reescribe los resultados históricos. Solo administra nuevas fechas.
  */
+import {cyclePhase,cycleKey,cycleName} from './season-cycle.js';
 const LABELS={
  league:'🏟️ Liga Suprema y ligas nacionales',
  cup:'🏆 Copa Nacional · fecha copera',
@@ -25,24 +26,25 @@ const localNextRound=s=>{
  }
  return 19;
 };
-const addEvent=(arr,year,week,day,kind,n)=>{
+const addEvent=(arr,year,week,day,kind,n,edition='Apertura')=>{
  // Semana 1 comienza el primer lunes de agosto, zona horaria independiente.
- const base=new Date(Date.UTC(year,7,1));
+ const base=new Date(Date.UTC(year,edition==='Clausura'?1:7,1));
  const offset=(8-base.getUTCDay())%7; // lunes siguiente o el mismo 1 de agosto
  base.setUTCDate(1+offset+(week-1)*7+(day=== 'miércoles'?2:5));
  const date=base.toISOString().slice(0,10);
- arr.push({id:'cal-'+year+'-'+week+'-'+day,week,day,kind,ordinal:n,date,title:LABELS[kind],icon:icons[kind]});
+ arr.push({id:'cal-'+year+'-'+edition+'-'+week+'-'+day,week,day,kind,ordinal:n,date,title:LABELS[kind],icon:icons[kind],edition,season:year});
 };
-export function calendarTimeline(season){
- const arr=[];let league=season===2026?7:1,cup=1,intl=1,post=1,custom=1;
+export function calendarTimeline(state){
+ const season=typeof state==='object'?Number(state.season):Number(state),edition=typeof state==='object'?cyclePhase(state):'Apertura';
+ const arr=[];let league=season===2026&&edition==='Apertura'?7:1,cup=1,intl=1,post=1,custom=1;
  // El primer año conserva intactas las 6 jornadas originales ya disputadas.
- const startingWeek=season===2026?7:1;
+ const startingWeek=season===2026&&edition==='Apertura'?7:1;
  for(let week=startingWeek;week<=95;week++){
   let kind;
   if(cup<=7 && week%3===1)kind='cup';
   else if(intl<=12 && (week%2===0||cup>7))kind='international';
   else kind='custom';
-  addEvent(arr,season,week,'miércoles',kind,kind==='cup'?cup++:kind==='international'?intl++:custom++);
+  addEvent(arr,season,week,'miércoles',kind,kind==='cup'?cup++:kind==='international'?intl++:custom++,edition);
   if(league<=18 && (week%5!==0||cup>7))kind='league';
   else if(cup<=7 && league<=18)kind='cup';
   else if(league<=18)kind='league';
@@ -50,7 +52,7 @@ export function calendarTimeline(season){
   else if(cup<=7)kind='cup';
   else if(intl<=12)kind='international';
   else kind='custom';
-  addEvent(arr,season,week,'sábado',kind,kind==='league'?league++:kind==='cup'?cup++:kind==='international'?intl++:kind==='postseason'?post++:custom++);
+  addEvent(arr,season,week,'sábado',kind,kind==='league'?league++:kind==='cup'?cup++:kind==='international'?intl++:kind==='postseason'?post++:custom++,edition);
  }
  return arr;
 }
@@ -80,8 +82,9 @@ function calendarCompleted(s,e){
  return true;
 }
 export function ensureCalendar(s){
- if(!s.calendar||s.calendar.season!==s.season)s.calendar={season:s.season,cursor:0,history:[]};
- const list=calendarTimeline(s.season);
+ if(s.calendar&&s.calendar.edition===undefined&&s.season===2026)s.calendar.edition='Apertura';
+ if(!s.calendar||s.calendar.season!==s.season||s.calendar.edition!==cyclePhase(s))s.calendar={season:s.season,edition:cyclePhase(s),key:cycleKey(s),cursor:0,history:[]};
+ const list=calendarTimeline(s);
  // Migración de torneos antiguos: conservar las rondas ya jugadas.
  for(const c of s.competitions||[]){
   if(!Number.isInteger(c.calendarStart)){
@@ -95,10 +98,10 @@ export function ensureCalendar(s){
 }
 export function calendarCurrent(s){
  const c=ensureCalendar(s);
- return calendarTimeline(s.season)[c.cursor]||null;
+ return calendarTimeline(s)[c.cursor]||null;
 }
 export function calendarUpcoming(s,count=12){
- const c=ensureCalendar(s),list=calendarTimeline(s.season);
+ const c=ensureCalendar(s),list=calendarTimeline(s);
  return list.slice(c.cursor,c.cursor+count);
 }
 export function calendarDate(e){
@@ -127,7 +130,7 @@ export function calendarMatchReady(s,entry){
  return false;
 }
 export function calendarRegisterCustom(s,c){
- const e=calendarCurrent(s),all=calendarTimeline(s.season);
+ const e=calendarCurrent(s),all=calendarTimeline(s);
  const from=e?all.findIndex(x=>x.id===e.id):0;
  const slot=all.slice(Math.max(0,from)).find(x=>x.kind==='custom');
  if(!slot)throw Error('No quedan fechas de torneos personalizados en este calendario.');
