@@ -2,6 +2,7 @@ import {TEAMS,FIXTURES,FOREIGN_COUNTRIES} from './data.js';
 import {cyclePhase,cycleKey,cycleName,cycleNext,cycleIsAnnualFinal,annualMatches} from './season-cycle.js';
 import {seniorYouthDevelopment} from './youth-scouting.js';
 import {matchLineup,lineupStrength} from './lineup.js';
+import {leaguePlayoffSeeds,leaguePlayoffPairs,leaguePlayoffReseed,leaguePlayoffFinal} from './league-playoffs.js';
 
 export const STORAGE_KEY='noveria-universe-save-v1';
 export const FIRST_NAMES=['Mateo','Thiago','Damián','Emiliano','Bruno','Santiago','Noah','Iker','Adrián','Gael','Elian','Nicolás','Alexis','Kevin','Samuel','Héctor','Marco','Iván','Gabriel','Luca','Enzo','Erik','Lucas','Rafael','Daniel','Jesús','Oliver','Aaron','Raúl','Diego','Joel','Néstor','Emanuel','Ángel','Axel','Esteban','Julián','Leandro','Hugo','Luis','Pablo','Leonardo','Sergio','Matías','Darío','Jairo','Rubén','Ariel','Elías','Benjamín','Sebastián'];
@@ -251,13 +252,11 @@ export function validateImport(data){if(!data||data.version!==1||typeof data.tea
 function finalFixture(s,stage,leg,a,b,extra=''){return {id:`POST-${cycleKey(s)}-${stage}-${leg}-${a.slice(0,4)}-${b.slice(0,4)}`,competition:'POST',group:stage,round:leg,slot:0,home:a,away:b,scoreH:null,scoreA:null,played:false,legacy:false,extra};}
 export function setupPostseason(s){
  if(s.postseason?.stage!=='locked')return;
- // Ocho clasificados: cuatro de cada zona. Los cruces siempre enfrentan
- // grupos opuestos y el mejor posicionado cierra de local.
- const A=standings(s,'A').slice(0,4),B=standings(s,'B').slice(0,4);
- const seedRank=[...A.map((r,i)=>({...r,group:'A',place:i+1})),...B.map((r,i)=>({...r,group:'B',place:i+1}))].sort(
-  (x,y)=>x.place-y.place||y.pts-x.pts||y.gd-x.gd||y.gf-x.gf||x.name.localeCompare(y.name,'es'));
- const pairs=[[A[0].name,B[3].name],[B[0].name,A[3].name],[A[1].name,B[2].name],[B[1].name,A[2].name]];
- const p=s.postseason;p.stage='cuartos';p.leg=1;p.format='cuartos8';p.seeds=seedRank.map(x=>x.name);p.fixtures=[];
+ const seeds=leaguePlayoffSeeds(standings(s,'A'),standings(s,'B'));
+ const ordered=seeds.map(x=>x.name),pairs=leaguePlayoffPairs(ordered),p=s.postseason;
+ p.stage='cuartos';p.leg=1;p.format='cuartos8';p.seeding='global-1-8';
+ p.seeds=ordered;p.seedDetails=seeds.map(x=>({name:x.name,group:x.group,groupPlace:x.groupPlace,seed:x.seed,pts:x.pts,gd:x.gd,gf:x.gf}));
+ p.fixtures=[];
  for(let i=0;i<pairs.length;i++){
   const [higher,lower]=pairs[i],id='q'+(i+1);
   p.fixtures.push(finalFixture(s,'cuartos',1,lower,higher,id),finalFixture(s,'cuartos',2,higher,lower,id));
@@ -271,8 +270,7 @@ export function simulatePostseasonRound(s){const p=s.postseason;if(!p||p.stage==
    const fixtures=p.fixtures.filter(f=>f.group==='cuartos');
    const qualified=[];
    for(let i=0;i<fixtures.length;i+=2)qualified.push(legWinner(s,fixtures.slice(i,i+2)));
-   qualified.sort((a,b)=>p.seeds.indexOf(a)-p.seeds.indexOf(b));
-   const pairs=[[qualified[0],qualified[3]],[qualified[1],qualified[2]]];
+   const pairs=leaguePlayoffReseed(qualified,p.seeds);
    for(let i=0;i<pairs.length;i++){
     const [higher,lower]=pairs[i],id='s'+(i+1);
     p.fixtures.push(finalFixture(s,'semifinales',1,lower,higher,id),finalFixture(s,'semifinales',2,higher,lower,id));
@@ -283,8 +281,7 @@ export function simulatePostseasonRound(s){const p=s.postseason;if(!p||p.stage==
    const rounds=p.fixtures.filter(f=>f.group==='semifinales');
    const winners=[legWinner(s,rounds.slice(0,2)),legWinner(s,rounds.slice(2,4))];
    const order=p.seeds?.length?p.seeds:standings(s,'annual').map(x=>x.name);
-   winners.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
-   const high=winners[0],low=winners[1];
+   const [high,low]=leaguePlayoffFinal(winners,order);
    p.fixtures.push(finalFixture(s,'final',1,low,high),finalFixture(s,'final',2,high,low));
    p.stage='final';p.leg=1;
   }
