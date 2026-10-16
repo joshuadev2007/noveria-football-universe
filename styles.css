@@ -45,3 +45,8 @@
 .market-ovr{font-size:42px;font-weight:900;color:#e7c37e;border:2px solid #ab8750;border-radius:14px;padding:8px 13px}
 @media(max-width:870px){.market-filters{grid-template-columns:1fr 1fr}.market-filters>.field:first-child{grid-column:1/-1}.market-filters .btn{align-self:end}}
 @media(max-width:580px){.market-cover{min-height:225px;padding:22px}.market-cover h2{font-size:38px}.market-filters{grid-template-columns:1fr}.market-filters>.field:first-child{grid-column:auto}.market-event{flex-wrap:wrap}.market-event .controls{width:100%}.market-event .btn{flex:1}.market-cover p{font-size:12px}}
+
+/* NOVERIA 3.1: persistencia local visible */
+.save-dashboard{border:1px solid #54866f;background:linear-gradient(120deg,#16392f,#152b37);padding:14px 16px;border-radius:12px}
+.save-indicator,.save-status{font-weight:850;color:#91efc7}.save-error{color:#ffa8aa!important}
+.save-dashboard p{margin:9px 0 0}.sidebar-foot [data-save-time]{margin-top:5px}

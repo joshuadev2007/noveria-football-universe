@@ -1,10 +1,10 @@
 {
   "name": "noveria-football-universe",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "type": "module",
   "description": "Simulador de fútbol ficticio de Noveria - edición 2026",
   "scripts": {
-    "test": "node tests.mjs && node tests-upgrade.mjs && node tests-market.mjs && node tests-seasons.mjs"
+    "test": "node tests.mjs && node tests-upgrade.mjs && node tests-market.mjs && node tests-seasons.mjs && node tests-save.mjs"
   }
 }

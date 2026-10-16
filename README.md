@@ -4,7 +4,7 @@
 
 > Este proyecto es independiente de Reino Rojinegro; no modifica ni necesita sus archivos.
 
-## Qué incluye esta edición 3.0 jugable
+## Qué incluye esta edición 3.1 jugable
 
 - **60 clubes**, nueve países de Arcalis, 18 clubes de Primera (zonas A/B), 10 de Segunda y 32 internacionales.
 - Historia **real del juego** importada: partidos y tablas de las jornadas 1 a 6, sin modificar sus marcadores.
@@ -36,9 +36,18 @@
 - **Temporadas sucesivas:** una vez concluidas final, Recopa y ventana de pases, podés empezar el siguiente Apertura. Se intercambian dos equipos ascendidos y dos descendidos, renueva el calendario de 18 jornadas, crecen edades y presupuestos y las temporadas anteriores quedan archivadas con sus partidos.
 - **Migración sin borrar:** el guardado anterior `noveria-universe-save-v1` sigue siendo compatible; se añaden los nuevos campos al cargar. **Exportá un JSON ANTES de actualizar por seguridad.**
 
+## Novedad 3.1 — guardado reforzado en GitHub Pages
+
+- **Autosave en cada decisión:** la fecha, resultados, fichajes, salarios, contratos, cantera, entrenadores, uniformes y nuevas temporadas se escriben automáticamente.
+- **Doble almacenamiento local:** guarda una copia JSON compatible con V1–V3 en `localStorage` y otra copia más robusta en **IndexedDB**; si una falla, la app intenta recuperar la otra.
+- **Al volver al enlace desde el mismo navegador y dispositivo**, la app carga la última copia válida y muestra «✓ Partida guardada» con la hora de guardado.
+- **Panel «Palmarés y partida»:** botón Guardar ahora, crear/restaurar punto de recuperación manual, solicitar almacenamiento persistente al navegador, exportar copia JSON e importarla.
+- **No hay sincronización con GitHub ni entre dispositivos:** GitHub Pages aloja HTML/JS/CSS, nunca tu partida de forma privada. Para pasar progreso de la computadora al celular, exportá JSON e importalo allí. No borres los datos del sitio ni uses incógnito para jugar partidas permanentes.
+- En versiones anteriores que tenían partidas en el mismo dominio, la migración se hace automáticamente **sin borrar las partidas ni inventar resultados**. Conviene exportar JSON antes de actualizar como precaución.
+
 ## Limitaciones actuales (importante)
 
-- **El guardado está en `localStorage` del navegador**, no sincroniza entre dispositivos. Usá **Palmarés y partida → Descargar copia JSON** para respaldos. La partida se puede importar después.
+- **El guardado usa `localStorage` e IndexedDB en este navegador**, no sincroniza entre dispositivos. Usá **Palmarés y partida → Descargar copia JSON** para respaldos. La partida se puede importar después.
 - Las jornadas 1–6 contienen **marcadores oficiales de nuestra historia**; no existían actas de jugadores ni goleadores. **No se inventan** datos individuales retroactivos.
 - El sistema es **simulación basada en eventos y datos**, no un juego 3D ni una retransmisión con animación de jugadores en tiempo real.
 - La Copa de Campeones de Arcalis y la Copa Horizonte figuran con sus criterios de clasificación veltranos; sus **formatos internacionales oficiales aún deben definirse**, por eso todavía no están automatizados. El constructor permite organizar torneos personalizados con clubes extranjeros.
@@ -77,6 +86,7 @@ node tests.mjs
 node tests-upgrade.mjs
 node tests-market.mjs
 node tests-seasons.mjs
+node tests-save.mjs
 ```
 
 Las pruebas revisan: 60 clubes, historial importado, 252 encuentros de ligas, localías, jornadas dobles, clásicos, simulación hasta jornada 18, fase final, Recopa, Copa Nacional, fichajes y competiciones personalizadas.
@@ -89,7 +99,9 @@ Las pruebas revisan: 60 clubes, historial importado, 252 encuentros de ligas, lo
 | `styles.css` | Diseño adaptable premium |
 | `data.js` | Identidades de los 60 clubes y calendario íntegro |
 | `engine.js` | Reglas, simulación, datos, rankings, noticias y títulos |
-| `app.js` | Interfaz de usuario y periódico deportivo |
+| `app.js` | Interfaz, periódico deportivo y controles de guardado |
+| `save-system.js` | Autosave redundante localStorage/IndexedDB, recuperación y protección |
+| `tests-save.mjs` | Comprobación de guardado y compatibilidad de partidas antiguas |
 | `assets/icon.svg` | Icono de aplicación |
 | `assets/aficion-noveria.webp` | Imagen gráfica local de ambiente futbolero |
 | `tests-upgrade.mjs` | Pruebas de los cinco formatos adicionales |
