@@ -1,3 +1,34 @@
+# Noveria 5.10 · Academia de talentos y ojeadores internacionales 🌱🌍
+
+**Disponible desde el menú Cantera sub-20.** Se mantiene el progreso del club y la partida guardada; no se modifican campeones ni resultados anteriores.
+
+## Ojeadores de nueve países
+
+1. Elegí tu club en Cantera. En «Enviar ojeador al extranjero» seleccioná cualquiera de **los otros ocho países** de Arcalis.
+2. Pulsá **Enviar ojeador**. Su viaje descuenta entre 0,175 y 0,115 M VLR según el nivel de ojeadores. Podés tener **dos misiones a la vez**, o tres con instalaciones de ojeadores al nivel 4 o 5.
+3. El ojeador vuelve después de **1 a 3 fechas oficiales del calendario maestro**. La misión no depende de tiempo real ni se puede acelerar con recargas de página.
+4. El informe ofrece entre cuatro y seis futbolistas juveniles con **nombre, edad, posición, país, estilo, OVR actual, potencial exacto y precio de incorporación**. Elegí «Fichar promesa» para añadirlo a tu cantera. No se duplica el jugador ni se cobra dos veces.
+5. Los informes, contrataciones y misiones quedan en el guardado local y se sincronizan con Joshua Cloud cuando está conectado.
+
+## Crecimiento de OVR según rendimiento
+
+- Los juveniles reciben **XP de su calificación, goles, asistencias y resultado del partido** en Liga Sub-20 o amistosos. Sus estadísticas individuales de PJ/G/A/forma se acumulan.
+- La barra XP muestra cuánto falta para aumentar el **OVR real del futbolista**; las subidas se conservan en la partida y se detienen al alcanzar el potencial.
+- Entrenar cuesta **0,10 M VLR** y aporta XP. Máximo **ocho entrenamientos por edición** para evitar crecimiento ilimitado sin partidos.
+- Los amistosos suman estadísticas siempre, pero como desarrollo aportan XP en los primeros **cuatro por edición**; en Liga Sub-20 siguen creciendo normalmente.
+- Podés **promover** un juvenil, pulsar **Dar titularidad** y hacer que mejore mediante sus actuaciones reales en Primera. Los jugadores no suben de OVR automáticamente solo por cumplir años.
+- El potencial define el límite de crecimiento. Mejorar instalaciones de academia y ojeadores sigue teniendo utilidad.
+
+## Liga juvenil completa
+
+Las nuevas ligas Sub-20 incluyen **los 18 clubes de Primera de cada país**, con **17 jornadas y 153 partidos**, distribuidos entre las fechas del calendario oficial. Antes solo participaban seis clubes. Las ligas juveniles de cinco fechas ya guardadas se respetan y no se reinician.
+
+Para probar los nuevos sistemas de forma automatizada: `node tests-youth-scouting.mjs`.
+
+> Recomendamos exportar una copia JSON desde Palmarés y partida antes de hacer el primer fichaje internacional, especialmente al usar varios dispositivos.
+
+---
+
 # Noveria 5.8.1 · Elegí los países para ver resultados y periódicos 🌍📰
 
 **Antes de simular:** entrá a **Calendario maestro** y buscá la tarjeta «¿De qué país querés ver los marcadores?». Elegí **TODOS LOS PAÍSES** o cualquiera de las nueve federaciones de Arcalis, y pulsá **Jugar fecha del calendario**.
