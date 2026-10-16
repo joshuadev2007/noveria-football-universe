@@ -1,6 +1,6 @@
 /* NOVERIA 4 · Liga viva: afición, cantera, prensa, infraestructuras y carrera. */
 import {FIRST_NAMES,LAST_NAMES,played} from './engine.js';
-import {getPressConference,pressSnapshot,answerPress} from './press-room.js';
+import {getPressConference,pressSnapshot,pressCompetitions,answerPress} from './press-room.js';
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 function hash(txt){let h=0x811c9dc5;for(const x of txt)h=Math.imul(h^x.charCodeAt(),16777619);return h>>>0}
 function sample(a,seed){return a[hash(seed)%a.length]}
@@ -21,7 +21,7 @@ export const PRESS_QUESTIONS=[
  '¿Te preocupan los posibles errores arbitrales?',
  '¿La economía del club limita la llegada de refuerzos?',
 ];
-export {getPressConference,pressSnapshot,answerPress};
+export {getPressConference,pressSnapshot,pressCompetitions,answerPress};
 export function careerOffers(s){ensureEcosystem(s);const current=s.managedClub;const teams=Object.values(s.teams).filter(t=>t.name!==current&&t.division==='LSV');const filtered=teams.filter(t=>t.board<73||hash(t.name+'offers'+s.season)%3===0);s.career.offers=filtered.slice(0,12).map(t=>({club:t.name,salary:Math.round(1+(t.rating||55)/11),country:t.country}));return s.career.offers;}
 export function acceptCareerJob(s,club){ensureEcosystem(s);const t=s.teams[club];if(!t)throw Error('Club no encontrado');const old=s.managedClub;if(old===club)throw Error('Ya trabajás en este club');s.career.history.unshift({season:s.season,from:old,to:club});s.career.reputation=clamp(s.career.reputation+3,0,99);s.mode='manager';s.managedClub=club;s.career.club=club;s.career.offers=[];s.news.unshift({id:'career-'+Date.now(),category:'Directivas',title:`Nuevo DT en ${club}`,description:`Llega desde ${old} para comenzar un nuevo proyecto.`,date:`Apertura ${s.season}`});return t;}
 export function seasonAwards(s,country,leagueNames){ensureEcosystem(s);const players=leagueNames.flatMap(n=>(s.teams[n]?.players||[]).map(p=>({...p,club:n})));const best=players.filter(p=>p.apps>0).sort((a,b)=>(b.goals*5+b.assists*3+b.form)-(a.goals*5+a.assists*3+a.form));const keeper=players.filter(p=>p.pos==='POR'&&p.apps>0).sort((a,b)=>b.form-a.form);const young=players.filter(p=>p.age<=21&&p.apps>0).sort((a,b)=>b.ovr-a.ovr);return [{title:'Mejor entrenador',player:{name:s.teams[leagueNames[0]]?.coach||'—',club:leagueNames[0],goals:0,assists:0}},{title:'Bota de Oro',player:best.slice().sort((a,b)=>b.goals-a.goals)[0]},{title:'Balón de Oro',player:best[0]},{title:'Guante de Oro',player:keeper[0]},{title:'Jugador revelación',player:young[0]}].filter(x=>x.player);}

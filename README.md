@@ -153,3 +153,14 @@ Si el servidor devuelve error de función inexistente, ejecutá el SQL o recarg�
 - Conservar el template de otras aplicaciones: no reemplazar la plantilla de Magic Link; añadir a Redirect URLs la URL de Noveria. Si se desea OTP numérico, agregar `{{ .Token }}` al template existente sin borrar `{{ .ConfirmationURL }}`.
 - No hay cambios al esquema `noveria_saves`, ni a los campeonatos o los resultados.
 - Instrucciones completas en `CONFIGURAR_NUBE.md`.
+
+
+## NOVERIA 5.2 — El mundo recuerda a sus campeones 🏆
+
+- **Global visible:** en semifinales y finales de ida y vuelta en Veltrania, las demás federaciones y torneos especiales Apertura. Se muestran marcadores agregados parciales y finales, respetando las tandas de penales registradas.
+- **Portada extraordinaria:** al inscribirse un nuevo campeón en el palmarés, se genera una edición con el nombre del club y un resultado final comprobable cuando está disponible. La edición se guarda en `footballExperience` junto a su llave única, sin duplicados. Los títulos antiguos de tu partida reciben su portada al actualizar, incluido el Apertura 2026 de Unión Popular Aurena; no se modifican resultados.
+- **Ceremonia del campeón:** trofeo, animación y accesos directos al periódico y la conferencia.
+- **Prensa para todos los torneos:** menú para elegir Liga, Copa Nacional, Fase final/Recopa, Copa de Campeones, Horizonte o torneos personalizados en los que el club participe; cada torneo tiene su propio historial de conferencia y preguntas.
+- **Web más ágil:** periódico limitado a 24 noticias por página, filtros por temática e índice de partidos en memoria mientras consultas actas.
+- **Sin cambios en Supabase:** `cloud-config.js` no se incluye en el ZIP de actualización. Todos los datos nuevos viven en el JSON de partida actual dentro de las tablas ya instaladas.
+- **Respaldos:** exportá JSON antes de la actualización y esperá la confirmación de sincronización global antes de cambiar de dispositivo. No borres el almacenamiento del sitio.

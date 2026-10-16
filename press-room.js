@@ -12,19 +12,71 @@ function allFixtures(s,club){const t=s.teams[club];if(!t)return [];const all=[..
 function outcome(m,club){const own=m.home===club?m.scoreH:m.scoreA,other=m.home===club?m.scoreA:m.scoreH;return {fixture:m,opponent:m.home===club?m.away:m.home,own,other,result:own>other?'G':own<other?'P':'E',home:m.home===club};}
 function resultText(r){return r?`${r.own}-${r.other} ante ${r.opponent}`:'Sin partidos recientes';}
 function days(mark){return mark||0}
-export function pressSnapshot(s,name){const team=s.teams[name];if(!team)throw Error('Club no encontrado');const fixtures=leagueFixtures(s,name);const recent=fixtures.filter(played).sort((a,b)=>(a.round||0)-(b.round||0)||(a.slot||0)-(b.slot||0)||String(a.id).localeCompare(String(b.id))).map(m=>outcome(m,name));const last=recent.at(-1)||null;
- const window=recent.slice(-5),won=window.filter(x=>x.result==='G').length,lost=window.filter(x=>x.result==='P').length,draw=window.filter(x=>x.result==='E').length;let streak=0;if(last)for(let i=recent.length-1;i>=0&&recent[i].result===last.result;i--)streak++;
- const all=allFixtures(s,name);const lastEvent=[...all].sort((a,b)=>String(a.id).localeCompare(String(b.id))).at(-1);
- let names=Object.values(s.teams).filter(t=>t.country===team.country&&t.division===team.division).map(t=>t.name);const countryFixtures=team.country==='Veltrania'?s.fixtures:s.world?.[team.country]?.fixtures||[];
- const table=ranking(countryFixtures.filter(m=>m.competition===team.division),names),rank=table.findIndex(x=>x.name===name)+1;const row=table.find(x=>x.name===name)||{pts:0,gd:0,pj:0};
- const next=fixtures.filter(m=>!played(m)).sort((a,b)=>(a.round||0)-(b.round||0)||(a.slot||0)-(b.slot||0))[0]||null;
- const injuries=(team.players||[]).filter(p=>val(p.outGames)>0);const market=(s.market?.status==='open');
- const signature=[s.season,name,all.length,all.map(m=>m.id).sort().at(-1)||'sin-partidos'].join('|');
- return {name,country:team.country,division:team.division,season:s.season,team,results:recent,last,lastEvent,form:window.map(x=>x.result).join(''),won,lost,draw,streak,rank,teams:table.length,row,next,injuries,market,signature,latestMatchText:resultText(last)};
+/** Cada competencia tiene sus propias ruedas de prensa y su progreso separado. */
+export function pressCompetitions(s,name){
+ const t=s.teams[name];if(!t)return ['Liga'];
+ const found=['Liga'];
+ const has=arr=>(arr||[]).some(m=>m.home===name||m.away===name);
+ if(has(t.country==='Veltrania'?s.cup?.fixtures:s.world?.[t.country]?.cup?.fixtures))found.push('Copa Nacional');
+ if(has(t.country==='Veltrania'?s.postseason?.fixtures:s.world?.[t.country]?.postseason?.fixtures))found.push('Fase final y Recopa');
+ if(has(s.international?.champions?.fixtures))found.push('Copa de Campeones');
+ if(has(s.international?.horizonte?.fixtures))found.push('Copa Horizonte');
+ for(const c of s.competitions||[])if(has(c.fixtures))found.push('Torneo: '+c.name);
+ return found;
 }
+function fixturesByFocus(s,name,focus){
+ const t=s.teams[name];if(!t)return [];
+ if(!focus||focus==='Liga')return leagueFixtures(s,name);
+ let fixtures=[];
+ if(focus==='Copa Nacional')fixtures=t.country==='Veltrania'?s.cup?.fixtures||[]:s.world?.[t.country]?.cup?.fixtures||[];
+ else if(focus==='Fase final y Recopa')fixtures=t.country==='Veltrania'?s.postseason?.fixtures||[]:s.world?.[t.country]?.postseason?.fixtures||[];
+ else if(focus==='Copa de Campeones')fixtures=s.international?.champions?.fixtures||[];
+ else if(focus==='Copa Horizonte')fixtures=s.international?.horizonte?.fixtures||[];
+ else if(focus.startsWith('Torneo: '))fixtures=s.competitions.find(c=>'Torneo: '+c.name===focus)?.fixtures||[];
+ return fixtures.filter(m=>m.home===name||m.away===name);
+}
+
+export function pressSnapshot(s,name,competition='Liga'){
+ const team=s.teams[name];if(!team)throw Error('Club no encontrado');
+ const fixtures=fixturesByFocus(s,name,competition);
+ const recent=fixtures.filter(played).sort((a,b)=>(a.round||0)-(b.round||0)||(a.slot||0)-(b.slot||0)||String(a.id).localeCompare(String(b.id))).map(m=>outcome(m,name));
+ const last=recent.at(-1)||null;
+ const window=recent.slice(-5),won=window.filter(x=>x.result==='G').length,lost=window.filter(x=>x.result==='P').length,draw=window.filter(x=>x.result==='E').length;let streak=0;if(last)for(let i=recent.length-1;i>=0&&recent[i].result===last.result;i--)streak++;
+ const lastEvent=last?.fixture||null;
+ const names=Object.values(s.teams).filter(t=>t.country===team.country&&t.division===team.division).map(t=>t.name);
+ const countryFixtures=team.country==='Veltrania'?s.fixtures:s.world?.[team.country]?.fixtures||[];
+ const table=ranking(countryFixtures.filter(m=>m.competition===team.division),names),rank=table.findIndex(x=>x.name===name)+1,row=table.find(x=>x.name===name)||{pts:0,gd:0,pj:0};
+ const next=fixtures.filter(m=>!played(m)).sort((a,b)=>(a.round||0)-(b.round||0)||(a.slot||0)-(b.slot||0))[0]||null;
+ const injuries=(team.players||[]).filter(p=>val(p.outGames)>0),market=s.market?.status==='open';
+ const signature=[s.season,name,competition,recent.length,recent.map(m=>m.fixture.id).join('|')].join('|');
+ const trophies=(s.honours||[]).filter(h=>h.winner===name&&String(h.season)===String(s.season));
+ const lastStage=lastEvent?.phase||lastEvent?.group||'';
+ return {name,country:team.country,division:team.division,competition,season:s.season,team,results:recent,last,lastEvent,lastStage,trophies,form:window.map(x=>x.result).join(''),won,lost,draw,streak,rank,teams:table.length,row,next,injuries,market,signature,latestMatchText:resultText(last)};
+}
+
 const choice=(id,label,quote,effects,description)=>({id,label,quote,effects,description});
 function buildTopics(c){const t=c.team,ls=c.last,next=c.next,inj=c.injuries,fmt=c.latestMatchText;const list=[];
  const add=(id,category,weight,question,responses,headline,media='El Heraldo de Noveria')=>list.push({id,category,weight,question,responses,headline,media});
+ // Preguntas sobre la copa seleccionada, sin mezclar puntos de liga con eliminatorias.
+ if(c.competition!=='Liga'){
+  const comp=c.competition;
+  if(c.trophies.some(h=>comp==='Fase final y Recopa'?/Apertura|Recopa/.test(h.title):comp==='Copa Nacional'?/Copa de/.test(h.title):h.title.includes(comp.replace('Torneo: ','')))){
+   const trophy=c.trophies.find(h=>comp==='Fase final y Recopa'?/Apertura|Recopa/.test(h.title):comp==='Copa Nacional'?/Copa de/.test(h.title):h.title.includes(comp.replace('Torneo: ','')));
+   add('campeon-'+comp,'titulo',150,`¡${t.name} acaba de conquistar ${trophy.title}! ¿Qué significa este título para el club?`,[
+    choice('agradecer','Dedicarlo a los aficionados',`Esta copa es de cada persona que acompañó a ${t.name} incluso en los momentos difíciles.`,{morale:3,board:2,fans:5},'El campeón celebra con su gente'),
+    choice('grupo','Agradecer al vestuario',`Estos jugadores escribieron la historia. No hubo atajos, lo conseguimos como equipo.`,{morale:5,board:2,fans:2},'Homenaje a la plantilla'),
+    choice('futuro','Pensar en el próximo desafío',`Hoy celebramos ${trophy.title}, mañana empieza otro reto. Queremos seguir ganando.`,{morale:2,board:4,fans:2},'Ambición del campeón')],`${t.name} celebra su conquista de ${trophy.title}`);
+  }
+  if(ls&&/semifinal|final|recopa|cuartos|octavos/i.test(c.lastStage))add('eliminatoria-'+comp,'eliminatoria',134,`En ${comp}, después del ${fmt}, ¿cómo valorás la eliminatoria ${c.lastStage}?`,[
+   choice('analisis','Explicar las claves',`Cada detalle cuenta en estas series. Aprenderemos de lo ocurrido ante ${ls.opponent}.`,{morale:2,board:3,fans:1},'Lectura táctica de la llave'),
+   choice('aficion','Destacar el carácter',`El equipo compitió con corazón. Vamos a defender nuestro escudo hasta el final.`,{morale:3,board:1,fans:4},'El DT reivindica la entrega'),
+   choice('mesura','Pedir concentración',`Ante ${ls.opponent} no hay lugar para confiarse; la clasificación se gana en cancha.`,{morale:1,board:4,fans:1},'Concentración de eliminatoria')],`La llave de ${comp} bajo la lupa`);
+  if(next)add('previa-'+comp,'copa',126,`Se viene ${next.home} contra ${next.away} en ${comp}. ¿Cómo encaran este desafío?`,[
+   choice('valientes','Prometer valentía',`Jugaremos con decisión. ${comp} exige dar el máximo.`,{morale:3,board:1,fans:3},'Ambición en la copa'),
+   choice('estrategia','Priorizar los detalles',`Vamos a estudiar cada virtud del rival, los detalles pueden decidir una eliminatoria.`,{morale:1,board:4,fans:1},'Preparación para la copa'),
+   choice('plantel','Rotar para competir',`Necesitamos a toda la plantilla para competir en ${comp}. Todos tendrán una oportunidad.`,{morale:4,board:1,fans:1},'Rotaciones en la competición')],`${t.coach} prepara ${comp}`);
+ }
+
  if(ls){
   if(c.streak>=3&&ls.result==='P')add('crisis','rendimiento',116,`Van ${c.streak} derrotas consecutivas. Después del ${fmt}, ¿tenés respuestas para frenar esta crisis?`,[
    choice('sereno','Aceptar la responsabilidad',`Después de ${c.streak} derrotas, me hago responsable. El grupo necesita trabajo y serenidad.`,{morale:2,board:2,fans:0},'Responsabilidad sin señalar jugadores'),
@@ -96,19 +148,19 @@ function buildTopics(c){const t=c.team,ls=c.last,next=c.next,inj=c.injuries,fmt=
 function selectQuestions(s,name,c,cycle){const topics=buildTopics(c),used=new Set();const result=[];const randKey=`${s.seed}|${name}|${c.signature}|${cycle}`;const ranked=topics.map(q=>({...q,sort:q.weight+(hash(randKey+q.id)%13)})).sort((a,b)=>b.sort-a.sort);for(const q of ranked){if(result.length>=3)break;if(used.has(q.category))continue;used.add(q.category);const reporter=['Martina Solís','Damián Rojas','Valeria Montes','Elías Navarro','Camila Vargas','Bruno Campos','Inés Arce','Renato Varela'][(hash(randKey+q.id))%8];result.push({id:`${cycle}-${q.id}`,topic:q.id,category:q.category,question:q.question,responses:q.responses,headline:q.headline,media:q.media,reporter});}
  return result;}
 function sessions(s){s.ecosystem??={};s.ecosystem.press??=[];s.ecosystem.pressConferenceCount??=0;s.ecosystem.pressSessions??={};return s.ecosystem.pressSessions;}
-export function getPressConference(s,name){const store=sessions(s);const c=pressSnapshot(s,name);let current=store[name];if(!current||current.signature!==c.signature){const cycle=(current?.cycle||0)+1;current={signature:c.signature,cycle,season:s.season,questions:selectQuestions(s,name,c,cycle),index:0,entries:[],completed:false};store[name]=current;}
+export function getPressConference(s,name,competition='Liga'){const store=sessions(s);const c=pressSnapshot(s,name,competition);const key=competition==='Liga'?name:name+'::'+competition;let current=store[key];if(!current||current.signature!==c.signature){const cycle=(current?.cycle||0)+1;current={signature:c.signature,cycle,season:s.season,questions:selectQuestions(s,name,c,cycle),index:0,entries:[],completed:false};store[key]=current;}
  return {session:current,context:c,current:current.questions[current.index]||null};}
 const olderStances={calm:'Hay que trabajar sin perder el rumbo.',passion:'Nadie puede estar por encima del escudo.',defend:'Creo en este vestuario y sus futbolistas.',critic:'No podemos ocultar lo que está fallando.'};
-export function answerPress(s,name,question,answer){const team=s.teams[name];if(!team)throw Error('Club no encontrado');const {session,current}=getPressConference(s,name);let response,headline,originalQuestion,media,reporter;
+export function answerPress(s,name,question,answer,competition='Liga'){const team=s.teams[name];if(!team)throw Error('Club no encontrado');const {session,current}=getPressConference(s,name,competition);let response,headline,originalQuestion,media,reporter;
  if(current&&question===current.id){response=current.responses.find(x=>x.id===answer);if(!response)throw Error('Seleccioná una respuesta válida para esta pregunta');headline=current.headline;originalQuestion=current.question;media=current.media;reporter=current.reporter;
  }else if(typeof question==='string'&&question.startsWith('¿')&&olderStances[answer]){response={quote:olderStances[answer],effects:{morale:{calm:2,passion:1,defend:3,critic:-3}[answer],board:{calm:2,passion:0,defend:1,critic:-3}[answer],fans:{calm:0,passion:3,defend:2,critic:-1}[answer]}};headline=`${team.coach} comparece ante la prensa`;originalQuestion=question;media='El Heraldo de Noveria';reporter='Redacción';
  }else throw Error(session.completed?'Esta rueda de prensa ya terminó. Jugá otro partido para abrir una nueva.':'La pregunta cambió. Actualizá la rueda de prensa.');
  const before={morale:team.morale,board:team.board,fans:team.supporters?.mood||55};const e=response.effects||{};
  team.morale=clamp(val(team.morale,70)+val(e.morale),10,99);team.board=clamp(val(team.board,70)+val(e.board),5,99);team.supporters??={mood:55,attendance:0,lastAttendance:0,protests:0};team.supporters.mood=clamp(val(team.supporters.mood,55)+val(e.fans),3,99);
  s.ecosystem.pressConferenceCount++;
- const id=`press-${s.season}-${s.ecosystem.pressConferenceCount}`;const entry={id,name,coach:team.coach,question:originalQuestion,answer:response.quote,stance:answer,media,reporter,headline,season:s.season,impact:{morale:team.morale-before.morale,board:team.board-before.board,fans:team.supporters.mood-before.fans},round:pressSnapshot(s,name).row.pj};
+ const id=`press-${s.season}-${s.ecosystem.pressConferenceCount}`;const entry={id,name,coach:team.coach,question:originalQuestion,answer:response.quote,stance:answer,media,reporter,headline,season:s.season,impact:{morale:team.morale-before.morale,board:team.board-before.board,fans:team.supporters.mood-before.fans},round:pressSnapshot(s,name,competition).row.pj,competition};
  s.ecosystem.press.unshift(entry);if(s.ecosystem.press.length>180)s.ecosystem.press.length=180;
- s.news.unshift({id,category:'Prensa',title:headline,description:`${reporter}, ${media}: «${response.quote}»`,date:`Apertura ${s.season}`,relatedClub:name});if(s.news.length>300)s.news.length=300;
+ s.news.unshift({id,category:'Prensa',title:headline,description:`${reporter}, ${media}: «${response.quote}»`,date:`Apertura ${s.season}`,relatedClub:name,competition});if(s.news.length>300)s.news.length=300;
  if(s.mode==='manager'&&s.managedClub===name&&s.career)s.career.pressScore=val(s.career.pressScore)+val(e.morale);
  if(current&&question===current.id){session.entries.push(entry);session.index++;session.completed=session.index>=session.questions.length;}
  return entry;
