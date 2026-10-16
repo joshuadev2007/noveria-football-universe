@@ -415,6 +415,8 @@ export function startNextSeason(s){
  s.postseason={stage:'locked',leg:1,fixtures:[],apertura:null,recopa:null};s.leagueRound=0;
  s.market.status='closed';s.market.offers=[];s.market.log=[];
  s.market.title='Mercado de Noveria';
+ // Reiniciar exclusivamente el cursor de fechas; no modificar el archivo histórico.
+ delete s.calendar;
  addNews(s,'Nueva temporada',`¡Comienza el Apertura ${s.season}!`,`${promoted.join(' y ')} ascienden. ${fallenA} y ${fallenB} disputarán la Liga de Plata.`);
  return {season:s.season,promoted,relegated:[fallenA,fallenB]};
 }
