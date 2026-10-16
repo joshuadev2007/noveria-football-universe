@@ -1,6 +1,6 @@
 import {TEAMS,FIXTURES,FOREIGN_COUNTRIES} from './data.js';
 import {cyclePhase,cycleKey,cycleName,cycleNext,cycleIsAnnualFinal,annualMatches} from './season-cycle.js';
-import {seniorYouthDevelopment} from './youth-scouting.js';
+import {seniorYouthDevelopment,advanceYouthOffers,teamOverall} from './youth-scouting.js';
 import {matchLineup,lineupStrength} from './lineup.js';
 import {leaguePlayoffSeeds,leaguePlayoffPairs,leaguePlayoffReseed,leaguePlayoffFinal} from './league-playoffs.js';
 
@@ -38,7 +38,7 @@ export function getLeagueNextRound(s){for(let rd=1;rd<=18;rd++){const f=s.fixtur
 function poisson(lambda,r){let l=Math.exp(-lambda),p=1,k=0;do{p*=r();k++}while(p>l&&k<9);return Math.min(6,k-1)}
 function weightedPlayer(team,r,eleven){const candidates=(eleven||team.players.slice(0,11)).filter(p=>p.pos!=='POR');const weighted=candidates.map(p=>({p,w:['DC','ED','EI','MCO','MP'].includes(p.pos)?7:['MC','MI','MD'].includes(p.pos)?3:1}));const tot=weighted.reduce((sum,v)=>sum+v.w,0);let v=r()*tot;for(const x of weighted){v-=x.w;if(v<0)return x.p}return candidates[0];}
 function addNews(s,category,title,description,related){s.news.unshift({id:'n-'+s.seed+'-'+(s.news.length+1),category,title,description,related,date:cycleName(s)+' · Jornada '+Math.max(s.leagueRound,1)});if(s.news.length>240)s.news=s.news.slice(0,240)}
-function rate(team,lineup=matchLineup(team)){const avg=lineupStrength(team,lineup);return (team.rating*.65+avg*.35);}
+function rate(team,lineup=matchLineup(team)){const avg=lineupStrength(team,lineup);const depth=teamOverall(null,team);return +(.90*avg+.10*depth).toFixed(2);}
 export function simulateMatch(s,match,options={}){
   if(played(match))return match;
   const home=s.teams[match.home],away=s.teams[match.away];if(!home||!away)throw Error('Club desconocido');
@@ -47,8 +47,8 @@ export function simulateMatch(s,match,options={}){
   const startersH=selectedH.starters,startersA=selectedA.starters;
   const hRating=rate(home,selectedH),aRating=rate(away,selectedA);
   const attackBonus=t=>t.tactic==='Presión alta'?.13:t.tactic==='Contraataque'?.08:t.tactic==='Posesión'?.10:0;
-  const expH=within(1.24+(hRating-aRating)*.036+.18+attackBonus(home)+(home.morale-70)*.003,.36,3.0);
-  const expA=within(1.18+(aRating-hRating)*.036+attackBonus(away)+(away.morale-70)*.003,.36,3.0);
+  const expH=within(1.22+(hRating-aRating)*.068+.18+attackBonus(home)+(home.morale-70)*.003,.24,3.65);
+  const expA=within(1.18+(aRating-hRating)*.068+attackBonus(away)+(away.morale-70)*.003,.24,3.65);
   let sh=poisson(expH,r),sa=poisson(expA,r);
   const events=[];
   for(const t of [home,away])for(const p of t.players)if((p.outGames||0)>0)p.outGames--;
@@ -73,7 +73,7 @@ export function simulateMatch(s,match,options={}){
   events.sort((a,b)=>a.min-b.min|| (a.type==='goal'?-1:1));
   const shotsH=Math.max(sh+1,Math.floor(6+r()*11+sh)),shotsA=Math.max(sa+1,Math.floor(5+r()*10+sa));
   let poss=within(Math.round(50+(hRating-aRating)*.4+(r()-.5)*23),30,70);
-  match.scoreH=sh;match.scoreA=sa;match.played=true;match.legacy=false;match.events=events;match.stats={posH:poss,posA:100-poss,shotsH,shotsA,onH:within(sh+Math.floor(r()*6),sh,shotsH),onA:within(sa+Math.floor(r()*6),sa,shotsA),cornersH:Math.floor(2+r()*9),cornersA:Math.floor(2+r()*9),foulsH:7+Math.floor(r()*13),foulsA:7+Math.floor(r()*13),xgH:+(expH+(r()-.5)*.6).toFixed(2),xgA:+(expA+(r()-.5)*.6).toFixed(2)};
+  match.scoreH=sh;match.scoreA=sa;match.played=true;match.legacy=false;match.events=events;match.qualityAtKickoff={home:hRating,away:aRating};match.stats={posH:poss,posA:100-poss,shotsH,shotsA,onH:within(sh+Math.floor(r()*6),sh,shotsH),onA:within(sa+Math.floor(r()*6),sa,shotsA),cornersH:Math.floor(2+r()*9),cornersA:Math.floor(2+r()*9),foulsH:7+Math.floor(r()*13),foulsA:7+Math.floor(r()*13),xgH:+(expH+(r()-.5)*.6).toFixed(2),xgA:+(expA+(r()-.5)*.6).toFixed(2)};
   match.lineups={home:startersH.map(p=>p.id),away:startersA.map(p=>p.id)};
   match.bench={home:selectedH.bench.map(p=>p.id),away:selectedA.bench.map(p=>p.id)};
   match.captains={home:selectedH.captain,away:selectedA.captain};
@@ -100,7 +100,9 @@ export function simulateMatch(s,match,options={}){
   if(!options.silent&&r()<.23){match.referee.varChecks++;events.push({min:Math.min(90,18+Math.floor(r()*68)),type:'var',side:r()<.5?'home':'away',p1Name:'Revisión VAR sin alterar el resultado'});events.sort((a,b)=>a.min-b.min);}
   const relation=(home.rivalryRecords[away.name]||{games:0,w:0,d:0,l:0,gf:0,gc:0});relation.games++;relation.gf+=sh;relation.gc+=sa;if(sh>sa)relation.w++;else if(sh<sa)relation.l++;else relation.d++;home.rivalryRecords[away.name]=relation;
   const reverse=(away.rivalryRecords[home.name]||{games:0,w:0,d:0,l:0,gf:0,gc:0});reverse.games++;reverse.gf+=sa;reverse.gc+=sh;if(sa>sh)reverse.w++;else if(sa<sh)reverse.l++;else reverse.d++;away.rivalryRecords[home.name]=reverse;
-  if(!options.silent){seniorYouthDevelopment(s,match);addNews(s,match.competition,match.headline,match.summary,match.id);}
+  seniorYouthDevelopment(s,match);
+  advanceYouthOffers(s,match);
+  if(!options.silent)addNews(s,match.competition,match.headline,match.summary,match.id);
   return match;
 }
 export function finalizeLeagueRound(s,round){if(s.leagueRound>=round)return false;const games=s.fixtures.filter(f=>f.round===round&&['LSV','LPV'].includes(f.competition));if(!games.length||games.some(f=>!played(f)))return false;s.leagueRound=round;reviewCoaches(s,round);
