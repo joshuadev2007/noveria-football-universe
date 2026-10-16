@@ -45,7 +45,10 @@ function leaguePanels(s,country){
   const desc=g==='annual'?'1.º–6.º: Campeones · 7.º: repechaje · 8.º–12.º: Horizonte · 13.º: repechaje · 14.º–18.º: sin plaza':
     g==='S'?'1.º y 2.º: ascenso a Primera al cerrar el Apertura':
     '1.º y 2.º: semifinales · último: zona de descenso al cerrar el Apertura';
-  const complete=(country==='Veltrania'?s.fixtures:s.world?.[country]?.fixtures||[]).filter(m=>g==='S'?m.competition==='LPV':g==='annual'?m.competition==='LSV':m.competition==='LSV'&&m.group===g).every(played);
+  const activeFixtures=country==='Veltrania'?s.fixtures:(s.world?.[country]?.fixtures||[]);
+  // Los clásicos interzonales también suman a A y B: no confirmar plazas antes del último partido.
+  const members=new Set(rows.map(r=>r.name));
+  const complete=activeFixtures.filter(m=>g==='S'?m.competition==='LPV':g==='annual'?m.competition==='LSV':m.competition==='LSV'&&(members.has(m.home)||members.has(m.away))).every(played);
   return common('league','league:'+country+':'+g,reg,country,
    rows.map((r,i)=>{
     let spot='none',status='—';
