@@ -3,6 +3,7 @@
  * No depende del motor ni modifica resultados ya disputados.
  */
 import {FOREIGN_COUNTRIES} from './data.js';
+import {lineupState,chooseLineup,roleAffinity} from './lineup.js';
 const COUNTRIES=['Veltrania',...FOREIGN_COUNTRIES];
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 function hash(v){let h=2166136261;for(const c of String(v))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0;}
@@ -83,6 +84,8 @@ export function youthMatchDevelopment(s,fixture,homeSquad,awaySquad,{friendly=fa
    const before=p.ovr;
    const xp=eligible?Math.max(1,Math.round(2+(rating-6.0)*2.2+goalsBy*2+assistsBy+(goals>conceded?1:0))):0;
    if(eligible)gainXP(s,p,xp,friendly?'Amistoso Sub-20':'Liga Sub-20',fixture.id+':'+p.id);
+   if(!friendly){p.youthForm??={streak:0,annualBoost:{}};p.youthForm.streak=rating>=7.15?p.youthForm.streak+1:Math.max(0,p.youthForm.streak-1);
+    const slot=cycle(s);if(p.youthForm.streak>=5&&Number(p.youthForm.annualBoost[slot]||0)<2&&p.pot<99){p.pot++;p.youthForm.annualBoost[slot]=(p.youthForm.annualBoost[slot]||0)+1;p.youthForm.streak=0;}}
    p.apps=(p.apps||0)+1;p.goals=(p.goals||0)+goalsBy;p.assists=(p.assists||0)+assistsBy;
    p.form=+((Number(p.form||6.5)*Math.max(0,p.apps-1)+rating)/p.apps).toFixed(2);
    players.push({id:p.id,name:p.name,ovrBefore:before,ovr:p.ovr,rating,goals:goalsBy,assists:assistsBy,xp,improved:p.ovr-before});
@@ -135,7 +138,7 @@ export function seniorYouthDevelopment(s,match){
    const bonus=goals*4+assists*3+(defending&&gd>=0?1:0);
    const xp=Math.max(1,Math.round((starters?4:2)+(rating-6.3)*3+bonus))*modifier;
    const old=p.ovr;
-   gainXP(s,p,Math.round(xp),p.academyGraduate?'Primer equipo · cantera':'Primer equipo',key);
+   gainXP(s,p,Math.round(xp),'Primer equipo',key);
    const edition=s.season+'-'+(s.edition||'Apertura');
    if(rating>=7.2&&development.strong>=6&&age<=28&&p.pot<99){
     const before=Number(development.potentialGains[edition]||0);
@@ -268,13 +271,20 @@ export function signYouthCandidate(s,club,id){
  */
 export function startYouthGraduate(s,club,id){
  const t=s.teams[club];if(!t)throw Error('Club desconocido');
- const i=t.players.findIndex(p=>String(p.id)===String(id));
- if(i<0||!t.players[i]?.academyGraduate)throw Error('Solo podés dar titularidad a canteranos ascendidos');
- if(i<11)return t.players[i];
- const p=t.players[i],similar=t.players.slice(0,11).findIndex(q=>q.pos===p.pos);
- const slot=similar>=0?similar:10;
- [t.players[slot],t.players[i]]=[t.players[i],t.players[slot]];
- return t.players[slot];
+ const p=t.players.find(p=>String(p.id)===String(id));
+ if(!p?.academyGraduate)throw Error('Solo podés dar titularidad a canteranos ascendidos');
+ const L=lineupState(t);
+ if(L.starters.includes(String(p.id)))return p;
+ const roles=L.roles;
+ let slot=10,best=-Infinity;
+ for(let i=0;i<L.starters.length;i++){
+  if(roles[i]==='POR'&&p.pos!=='POR')continue;
+  const current=t.players.find(x=>String(x.id)===String(L.starters[i]));
+  const prefer=roleAffinity(roles[i],p.pos)*90-Number(current?.ovr||60)*.12;
+  if(prefer>best){best=prefer;slot=i;}
+ }
+ chooseLineup(s,club,'starters',slot,p.id);
+ return p;
 }
 
 export function youthProgress(p){
