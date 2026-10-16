@@ -82,7 +82,14 @@ function calendarCompleted(s,e){
 export function ensureCalendar(s){
  if(!s.calendar||s.calendar.season!==s.season)s.calendar={season:s.season,cursor:0,history:[]};
  const list=calendarTimeline(s.season);
- // Partidas antiguas: reconocer rondas jugadas sin cambiarlas.
+ // Migración de torneos antiguos: conservar las rondas ya jugadas.
+ for(const c of s.competitions||[]){
+  if(!Number.isInteger(c.calendarStart)){
+   c.calendarStart=1;
+   const rounds=[...new Set((c.fixtures||[]).filter(f=>f.played).map(f=>f.round))];
+   c.calendarRoundsDone=Number.isInteger(c.calendarRoundsDone)?c.calendarRoundsDone:rounds.length;
+  }
+ }
  while(s.calendar.cursor<list.length && calendarCompleted(s,list[s.calendar.cursor]))s.calendar.cursor++;
  return s.calendar;
 }
@@ -143,5 +150,6 @@ export function calendarSeasonComplete(s){
  ensureCalendar(s);
  return localNextRound(s)>18&&!!s.cup?.champion&&stageNumber(s.postseason)===99
  &&Object.values(s.world||{}).every(w=>w.round>=18&&!!w.cup?.champion&&stageNumber(w.postseason)===99)
- &&!!s.international?.champions?.champion&&!!s.international?.horizonte?.champion;
+ &&!!s.international?.champions?.champion&&!!s.international?.horizonte?.champion
+ &&(s.competitions||[]).every(c=>!!c.champion);
 }
