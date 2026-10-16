@@ -353,6 +353,12 @@ function livePage(){
 function pressPage(){
  const name=s.mode==='manager'&&s.managedClub?s.managedClub:(s.managedClub||ui.team),t=club(name);ensureEcosystem(s);
  const focus=pressMatchFocus(s,name),competition=focus?.competition||'Liga',matchId=focus?.m?.id||null;
+ if(focus&&played(focus.m)&&spoilersHidden()&&!ui.revealedResultIds.has(String(matchId))){
+  return `<div class="stack">${head('🎙️ Conferencia de prensa','Tu partida está en modo antiespóiler.')}
+   <section class="card press-spoiler-guard"><h2>🔒 Conferencia pospartido protegida</h2>
+   <p>El encuentro entre ${E(focus.m.home)} y ${E(focus.m.away)} ya terminó, pero ocultamos el marcador, los goleadores y las preguntas que puedan revelarlo. Vos decidís cuándo descubrirlo.</p>
+   <div class="controls">${button('📰 Volver a resultados','nav','data-target="resultados"','btn')}${button('🎙️ Revelar e iniciar conferencia','reveal-press-result',`data-id="${E(matchId)}"`,'btn primary')}</div></section></div>`;
+ }
  const {session,context:c,current:q}=getPressConference(s,name,competition,matchId);
  const recent=(s.ecosystem.press||[]).filter(p=>p.name===name).slice(0,8);
  const chip=(label,num)=>`<span class="press-impact ${num>0?'good':num<0?'bad':'neutral'}">${E(label)} ${num>0?'+':''}${num}</span>`;
@@ -561,7 +567,7 @@ case 'live-match':{const id=el.dataset.id;if(s.broadcast&&!s.broadcast.finished&
  case 'live-reset':{const b=s.broadcast;if(!b||(!b.replay&&!b.finished))break;stopLive();b.elapsed=0;b.finished=false;b.paused=true;b.replay=true;ui.liveMinute=0;liveLastSound=-1;save();render();break;}
  case 'live-tactic':{const b=s.broadcast;if(!b)break;try{coachTactic(s,b,el.dataset.tactic);save();render();toast('🎯 Orden táctica enviada al campo');}catch(e){toast('⚠ '+e.message)}break;}
  case 'live-sub':{const b=s.broadcast;if(!b)break;try{coachSubstitution(s,b,$('lv5-out').value,$('lv5-in').value);save();render();toast('🔁 Cambio confirmado por el DT');}catch(e){toast('⚠ '+e.message)}break;}
- case 'toggle-result-spoilers':toggleResultSpoilers();break;case 'reveal-result':ui.revealedResultIds.add(String(el.dataset.id));render();break;case 'report-more':ui.reportLimit+=24;render();break;case 'more-news':ui.newsLimit+=24;render();break;case 'champion-news':close();nav('noticias');break;case 'champion-press':close();ui.team=el.dataset.name||s.managedClub;nav('prensa');break;case 'press-answer':try{const name=s.mode==='manager'&&s.managedClub?s.managedClub:(s.managedClub||ui.team),focus=pressMatchFocus(s,name);const entry=answerPress(s,name,el.dataset.question,el.dataset.answer,focus?.competition||'Liga',focus?.m?.id||null);save();toast('🎙️ '+entry.headline);render()}catch(e){toast('⚠ '+e.message)}break;
+ case 'reveal-press-result':ui.revealedResultIds.add(String(el.dataset.id));nav('prensa');break;case 'toggle-result-spoilers':toggleResultSpoilers();break;case 'reveal-result':ui.revealedResultIds.add(String(el.dataset.id));render();break;case 'report-more':ui.reportLimit+=24;render();break;case 'more-news':ui.newsLimit+=24;render();break;case 'champion-news':close();nav('noticias');break;case 'champion-press':close();ui.team=el.dataset.name||s.managedClub;nav('prensa');break;case 'press-answer':try{const name=s.mode==='manager'&&s.managedClub?s.managedClub:(s.managedClub||ui.team),focus=pressMatchFocus(s,name);const entry=answerPress(s,name,el.dataset.question,el.dataset.answer,focus?.competition||'Liga',focus?.m?.id||null);save();toast('🎙️ '+entry.headline);render()}catch(e){toast('⚠ '+e.message)}break;
 case 'switch-medium':ui.media=el.dataset.medium;nav('prensa');break;
 case 'youth-train':try{const result=youthTrain(s,ui.team);save();toast('🌱 Mejoraron: '+result.length+' promesas');render()}catch(e){toast(e.message)}break;
 case 'youth-promote':try{const p=promoteProspect(s,ui.team,el.dataset.id);save();toast('⭐ '+p.name+' debutará en el plantel');render()}catch(e){toast(e.message)}break;
