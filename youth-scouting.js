@@ -255,7 +255,7 @@ export function signYouthCandidate(s,club,id){
  const mission=missions.find(m=>m.status==='ready'&&m.candidates.some(p=>String(p.id)===String(id)));
  if(!mission)throw Error('El informe no contiene esta promesa disponible');
  const p=mission.candidates.find(p=>p.id===id);
- if(!['available','offered'].includes(p.status))throw Error('La propuesta ya expiró o fue rechazada');
+ if(!['available','offered'].includes(p.status))throw Error('Esta promesa ya fue fichada, fue rechazada o su oferta expiró');
  t.youth??=[];if(t.youth.length>=22)throw Error('Academia completa (22 juveniles). Ascendé o liberá espacio');
  if(t.budget<p.fee)throw Error('Presupuesto insuficiente para incorporar esta promesa');
  if(Object.values(s.teams).some(team=>(team.youth||[]).some(x=>x.id===p.id)||(team.players||[]).some(x=>x.id===p.id)))throw Error('Este jugador ya pertenece a un club');
