@@ -214,3 +214,42 @@
 .lineup-reserve>div{display:flex;flex-direction:column;gap:5px;min-width:0}.lineup-reserve b{font-size:12px}.lineup-reserve span{font-size:11px;color:#b7c9d9}
 @media(max-width:950px){.lineup-layout{grid-template-columns:1fr}.lineup-pitch{max-width:550px;margin:12px auto;aspect-ratio:.9}}
 @media(max-width:650px){.lineup-hero{padding:14px}.lineup-hero .field{width:100%}.lineup-rows.bench{grid-template-columns:1fr}.lineup-reserve-list{grid-template-columns:1fr}.lineup-pitch{max-width:none;aspect-ratio:.78}.lineup-pitch-player{min-height:53px;width:22%}.lineup-pitch-shirt{min-width:28px;height:28px;font-size:12px}.lineup-pitch-name{font-size:9px}.lineup-tools .controls>*{flex:1 1 100%}.lineup-choice{font-size:16px}}
+
+
+/* NOVERIA 5.12 · Tablas pospartido con zonas de clasificación por torneo */
+.rs-after-round{display:flex;flex-direction:column;gap:13px;margin-top:20px}
+.rs-head{border-color:#a18a4f;background:linear-gradient(128deg,#20273e,#151e31 73%)}
+.rs-head .h2{font-family:Georgia,serif;color:#f4ddb2;font-size:clamp(19px,2.2vw,27px);margin:8px 0}
+.rs-head .muted{line-height:1.55}
+.rs-legend{display:flex;gap:9px 17px;align-items:center;flex-wrap:wrap;margin:15px 0 2px;font-size:11px;color:#c7d3e7}
+.rs-legend>span{display:inline-flex;gap:6px;align-items:center}
+.rs-dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:#70849d}
+.rs-dot.advance{background:#43cea1}.rs-dot.wildcard{background:#55aff1}
+.rs-dot.playoff{background:#e9bd65}.rs-dot.danger{background:#de6676}
+.rs-country{border-radius:15px;border:1px solid #42516e;background:linear-gradient(110deg,#1b293f,#161e31);overflow:hidden}
+.rs-country>summary{cursor:pointer;padding:15px 17px;color:#f1daaa;font-weight:800;font-size:14px;display:flex;justify-content:space-between;gap:8px;align-items:center;list-style:none}
+.rs-country>summary::-webkit-details-marker{display:none}
+.rs-country[open]>summary{border-bottom:1px solid #3a4964}
+.rs-count{color:#a9bed5;font-size:11px;white-space:nowrap;font-weight:600}
+.rs-panels{padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(450px,100%),1fr));gap:14px}
+.rs-panel{background:#111d30;border:1px solid #374961;border-radius:12px;padding:13px;min-width:0;overflow:hidden}
+.rs-panel h4{font-size:14px;margin:0 0 12px;color:#f4dcae;font-weight:850}
+.rs-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.rs-table th{font-size:10px;color:#a9bfd8;letter-spacing:.02em;padding:9px 7px;white-space:nowrap}
+.rs-table td{font-size:11px;padding:10px 7px;border-top:1px solid #2d3e56;text-align:center}
+.rs-table th:nth-child(2),.rs-table td:nth-child(2){text-align:left}
+.rs-table td.rs-team{max-width:240px;min-width:140px;font-weight:700}
+.rs-table td.rs-team .link{display:inline-block;max-width:100%;white-space:normal;line-height:1.4;overflow-wrap:anywhere}
+.rs-table tr.rs-advance{background:rgba(45,157,118,.17)}
+.rs-table tr.rs-wildcard{background:rgba(56,128,197,.16)}
+.rs-table tr.rs-playoff{background:rgba(204,159,71,.16)}
+.rs-table tr.rs-danger{background:rgba(188,74,93,.16)}
+.rs-table tr.highlight{outline:1px solid rgba(240,206,131,.32);outline-offset:-1px}
+.rs-status{padding:5px 7px;border-radius:6px;font-weight:800;white-space:nowrap;display:inline-block;border:1px solid transparent;font-size:10px}
+.rs-status.rs-advance{background:#175a45;border-color:#389b78;color:#c8ffe7}
+.rs-status.rs-wildcard{background:#1d4565;border-color:#4386b8;color:#d6f0ff}
+.rs-status.rs-playoff{background:#594b25;border-color:#ab8943;color:#ffdfa1}
+.rs-status.rs-danger{background:#5e2935;border-color:#ae596c;color:#ffd3dd}
+.rs-none{color:#788ba4}
+.rs-note{line-height:1.55;margin:10px 0 0}
+@media(max-width:650px){.rs-panels{grid-template-columns:1fr;padding:9px}.rs-panel{padding:10px}.rs-country>summary{padding:12px}.rs-scroll{overflow:auto}.rs-table{min-width:540px}.rs-table td,.rs-table th{padding:8px 6px}.rs-legend{gap:7px 11px}}
