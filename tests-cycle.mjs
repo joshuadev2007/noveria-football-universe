@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {freshState,simulateLeagueRound,simulateCupRound,simulatePostseasonRound,startNextSeason,getLeagueNextRound,standings,played,finishMarket} from './engine.js';
 import {ensureContinent,catchUpCountries,simulateNationalCupRound,simulateCountryFinalRound,prepareCountriesNextSeason} from './continent.js';
 import {ensureInternational,simulateInternationalStep,internationalArchiveNextSeason} from './international.js';
-import {calendarCurrent,calendarRecord,calendarSeasonComplete,calendarTimeline,calendarMatchReady} from './calendar.js';
+import {calendarCurrent,calendarRecord,calendarSeasonComplete,calendarTimeline,calendarMatchReady,calendarPostseasonOrdinal} from './calendar.js';
 import {cycleName,cycleNextName,cycleNext,cycleKey} from './season-cycle.js';
 import {FOREIGN_COUNTRIES} from './data.js';
 const s=ensureContinent(freshState());
@@ -26,7 +26,7 @@ for(const label of expected){
     if(!c.champion&&ord===e.ordinal)games.push(...simulateInternationalStep(s,type));
    }
   }else if(e.kind==='postseason'){
-   const n=p=>p.stage==='finalizada'?99:p.stage==='locked'?0:(p.stage==='final'?2:p.stage==='recopa'?4:0)+Number(p.leg||1);
+   const n=calendarPostseasonOrdinal;
    if(n(s.postseason)===e.ordinal)games.push(...simulatePostseasonRound(s));
    for(const c of FOREIGN_COUNTRIES)if(n(s.world[c].postseason)===e.ordinal)games.push(...simulateCountryFinalRound(s,c));
   }
