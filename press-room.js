@@ -2,6 +2,7 @@
    Las preguntas se basan en MARCADORES REALMENTE DISPUTADOS, no en datos históricos inventados.
    Conferencias limitadas a una por ciclo de partidos, con progreso guardado en la partida. */
 import {played,ranking} from './engine.js';
+import {calendarCurrent,calendarMatchReady} from './calendar.js';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 function hash(txt){let h=2166136261;for(const x of String(txt))h=Math.imul(h^x.charCodeAt(0),16777619);return h>>>0;}
 const val=(n,f=0)=>Number.isFinite(Number(n))?Number(n):f;
@@ -13,6 +14,41 @@ function outcome(m,club){const own=m.home===club?m.scoreH:m.scoreA,other=m.home=
 function resultText(r){return r?`${r.own}-${r.other} ante ${r.opponent}`:'Sin partidos recientes';}
 function days(mark){return mark||0}
 /** Cada competencia tiene sus propias ruedas de prensa y su progreso separado. */
+
+/** Selección automática del partido que le toca al club, sin selector de competición.
+ * Se prioriza el último partido realmente disputado en la fecha del calendario.
+ * En ausencia de uno, se prepara la previa del siguiente partido habilitado.
+ */
+function pressAllFixtures(s,name){
+ const t=s.teams[name];if(!t)return [];
+ const entries=[];
+ const add=(list,competition,kind,owner)=>{for(const m of list||[])if(m.home===name||m.away===name)entries.push({m,competition,kind,owner});};
+ add(t.country==='Veltrania'?s.fixtures:s.world?.[t.country]?.fixtures,'Liga',t.country==='Veltrania'?'league':'foreign-league',t.country==='Veltrania'?s:s.world?.[t.country]);
+ add(t.country==='Veltrania'?s.cup?.fixtures:s.world?.[t.country]?.cup?.fixtures,'Copa Nacional',t.country==='Veltrania'?'cup':'foreign-cup',t.country==='Veltrania'?s.cup:s.world?.[t.country]?.cup);
+ add(t.country==='Veltrania'?s.postseason?.fixtures:s.world?.[t.country]?.postseason?.fixtures,'Fase final y Recopa',t.country==='Veltrania'?'post':'foreign-post',t.country==='Veltrania'?s.postseason:s.world?.[t.country]?.postseason);
+ for(const c of ['champions','horizonte'])add(s.international?.[c]?.fixtures,c==='champions'?'Copa de Campeones':'Copa Horizonte','international',s.international?.[c]);
+ for(const c of s.competitions||[])add(c.fixtures,'Torneo: '+c.name,'custom',c);
+ return entries;
+}
+export function pressMatchFocus(s,name){
+ const candidates=pressAllFixtures(s,name);if(!candidates.length)return null;
+ const history=s.calendar?.history||[];
+ const rank=m=>{
+  if(m.calendarEvent){const i=history.findIndex(e=>e.id===m.calendarEvent);if(i>=0)return i+10000;}
+  if(m.calendarDate){const i=history.findIndex(e=>e.date===m.calendarDate);if(i>=0)return i+10000;}
+  return Number(m.round||0);
+ };
+ const previous=(s.ecosystem?.pressFocus||{})[name];
+ const pinned=previous&&candidates.find(x=>String(x.m.id)===String(previous));
+ if(pinned&&played(pinned.m))return {...pinned,status:'post'};
+ const done=candidates.filter(x=>played(x.m)).sort((a,b)=>rank(b.m)-rank(a.m)||String(b.m.id).localeCompare(String(a.m.id)));
+ if(done.length)return {...done[0],status:'post'};
+ const due=candidates.find(x=>!played(x.m)&&calendarMatchReady(s,x));
+ if(due)return {...due,status:'pre'};
+ const next=candidates.filter(x=>!played(x.m)).sort((a,b)=>Number(a.m.round||0)-Number(b.m.round||0))[0];
+ return next?{...next,status:'pre'}:null;
+}
+
 export function pressCompetitions(s,name){
  const t=s.teams[name];if(!t)return ['Liga'];
  const found=['Liga'];
@@ -36,27 +72,73 @@ function fixturesByFocus(s,name,focus){
  return fixtures.filter(m=>m.home===name||m.away===name);
 }
 
-export function pressSnapshot(s,name,competition='Liga'){
+export function pressSnapshot(s,name,competition='Liga',matchId=null){
  const team=s.teams[name];if(!team)throw Error('Club no encontrado');
  const fixtures=fixturesByFocus(s,name,competition);
  const recent=fixtures.filter(played).sort((a,b)=>(a.round||0)-(b.round||0)||(a.slot||0)-(b.slot||0)||String(a.id).localeCompare(String(b.id))).map(m=>outcome(m,name));
- const last=recent.at(-1)||null;
+ const pinnedMatch=matchId?pressAllFixtures(s,name).find(x=>String(x.m.id)===String(matchId)):null;
+ const pinnedOutcome=pinnedMatch&&played(pinnedMatch.m)?outcome(pinnedMatch.m,name):null;
+ const last=pinnedOutcome||recent.at(-1)||null;
  const window=recent.slice(-5),won=window.filter(x=>x.result==='G').length,lost=window.filter(x=>x.result==='P').length,draw=window.filter(x=>x.result==='E').length;let streak=0;if(last)for(let i=recent.length-1;i>=0&&recent[i].result===last.result;i--)streak++;
  const lastEvent=last?.fixture||null;
  const names=Object.values(s.teams).filter(t=>t.country===team.country&&t.division===team.division).map(t=>t.name);
  const countryFixtures=team.country==='Veltrania'?s.fixtures:s.world?.[team.country]?.fixtures||[];
  const table=ranking(countryFixtures.filter(m=>m.competition===team.division),names),rank=table.findIndex(x=>x.name===name)+1,row=table.find(x=>x.name===name)||{pts:0,gd:0,pj:0};
- const next=fixtures.filter(m=>!played(m)).sort((a,b)=>(a.round||0)-(b.round||0)||(a.slot||0)-(b.slot||0))[0]||null;
+ const next=pinnedMatch&&!played(pinnedMatch.m)?pinnedMatch.m:(fixtures.filter(m=>!played(m)).sort((a,b)=>(a.round||0)-(b.round||0)||(a.slot||0)-(b.slot||0))[0]||null);
  const injuries=(team.players||[]).filter(p=>val(p.outGames)>0),market=s.market?.status==='open';
- const signature=[s.season,name,competition,recent.length,recent.map(m=>m.fixture.id).join('|')].join('|');
+ const signature=[s.season,s.edition||'Apertura',name,competition,matchId||'',pinnedMatch?(played(pinnedMatch.m)?'post':'pre'):'',recent.length,recent.map(m=>m.fixture.id).join('|')].join('|');
  const trophies=(s.honours||[]).filter(h=>h.winner===name&&String(h.season)===String(s.season));
  const lastStage=lastEvent?.phase||lastEvent?.group||'';
- return {name,country:team.country,division:team.division,competition,season:s.season,team,results:recent,last,lastEvent,lastStage,trophies,form:window.map(x=>x.result).join(''),won,lost,draw,streak,rank,teams:table.length,row,next,injuries,market,signature,latestMatchText:resultText(last)};
+ return {name,country:team.country,division:team.division,competition,season:s.season,team,results:recent,last,lastEvent,lastStage,trophies,focusMatch:pinnedMatch?.m||null,focusStage:pinnedMatch?.status||(pinnedMatch?(played(pinnedMatch.m)?'post':'pre'):null),form:window.map(x=>x.result).join(''),won,lost,draw,streak,rank,teams:table.length,row,next,injuries,market,signature,latestMatchText:resultText(last)};
 }
 
 const choice=(id,label,quote,effects,description)=>({id,label,quote,effects,description});
 function buildTopics(c){const t=c.team,ls=c.last,next=c.next,inj=c.injuries,fmt=c.latestMatchText;const list=[];
  const add=(id,category,weight,question,responses,headline,media='El Heraldo de Noveria')=>list.push({id,category,weight,question,responses,headline,media});
+
+ if(c.focusMatch){
+  const m=c.focusMatch,pre=!played(m),opponent=m.home===c.name?m.away:m.home,home=m.home===c.name;
+  const own=home?m.scoreH:m.scoreA,other=home?m.scoreA:m.scoreH;
+  const ctx=c.competition+' · '+(m.group||m.phase||'jornada '+(m.round||''));
+  const sign=pre?null:own>other?'victoria':own<other?'derrota':'empate';
+  const kickoff=pre?'de cara al partido':'tras el '+own+'–'+other;
+  add('encuentro-'+String(m.id),'partido',260,
+   pre?`Este es el próximo partido ante ${opponent} en ${ctx}. ¿Cuál será la clave para competir?`:
+   `Tras el ${own}–${other} ante ${opponent} en ${ctx}, ¿qué lectura hacés de esta ${sign}?`,[
+    choice('analizar','Analizar el plan',`Hemos estudiado a ${opponent}. El trabajo táctico y la concentración marcan el camino.`,{morale:2,board:3,fans:1},'Análisis del partido'),
+    choice('equipo','Defender al grupo',`El grupo dejó todo y vamos a seguir creciendo ante cada rival.`,{morale:4,board:1,fans:2},'La unidad como respuesta'),
+    choice('exigencia','Exigir más',`No nos conformamos. Cada partido nos exige competir mejor.`,{morale:-1,board:3,fans:3},'Mensaje exigente desde el banquillo')
+   ],`${t.coach} analiza ${c.competition} y el duelo con ${opponent}`);
+  add('rival-'+String(m.id),'rival',220,
+   pre?`Se viene ${opponent}. ¿Cómo planeás manejar sus fortalezas en este partido?`:
+   `¿Qué fue lo más difícil del encuentro contra ${opponent} y qué cambiarías para el próximo?`,[
+    choice('respeto','Respetar al rival',`${opponent} es un rival exigente. Debemos seguir preparados y aprender.`,{morale:2,board:2,fans:1},'Respeto entre rivales'),
+    choice('intensidad','Resaltar la intensidad',`Nuestra intensidad es fundamental. Nadie puede bajar los brazos.`,{morale:3,board:1,fans:3},'Intensidad del equipo'),
+    choice('detalle','Trabajar los detalles',`Los detalles deciden encuentros así. Vamos a corregir lo necesario.`,{morale:1,board:4,fans:1},'Las claves del planteamiento')
+   ],`Rival bajo la lupa: ${opponent}`);
+  const goals=(m.events||[]).filter(e=>e.type==='goal');
+  const mine=goals.filter(e=>e.side===(home?'home':'away')&&e.p1Name);
+  const scorer=mine.find(x=>mine.filter(y=>y.p1Name===x.p1Name).length>1)||mine[0];
+  const expulsions=(m.events||[]).filter(e=>e.type==='red');
+  if(!pre&&scorer&&scorer.p1Name)add('jugador-'+String(m.id),'figura',245,
+   `${scorer.p1Name} marcó ante ${opponent}. ¿Qué importancia tuvo su actuación para el equipo?`,[
+    choice('elogio','Elogiar al goleador',`${scorer.p1Name} aprovechó su oportunidad. Estamos orgullosos de su trabajo.`,{morale:4,board:1,fans:2},'El goleador se lleva los elogios'),
+    choice('colectivo','Destacar a todos',`El gol fue importante, pero esta es una labor de equipo.`,{morale:3,board:2,fans:2},'El colectivo por encima'),
+    choice('exigente','Pedir continuidad',`Ese rendimiento marca el nivel que queremos mantener.`,{morale:1,board:3,fans:2},'El DT pide regularidad')
+   ],`${scorer.p1Name}, protagonista del encuentro`);
+  if(!pre&&expulsions.length)add('disciplina-'+String(m.id),'disciplina',235,
+   `En el partido contra ${opponent} hubo ${expulsions.length} expulsión${expulsions.length===1?'':'es'}. ¿Qué opinás de esas acciones?`,[
+    choice('calma','Mantener la calma',`Las decisiones arbitrales son parte del fútbol. Debemos enfocarnos en mejorar.`,{morale:1,board:3,fans:1},'La calma tras la polémica'),
+    choice('disciplina','Exigir disciplina',`No podemos permitir que los nervios nos condicionen. Vamos a trabajar en ello.`,{morale:2,board:4,fans:1},'Disciplina en primer plano'),
+    choice('grupo','Respaldar al vestuario',`Apoyaremos al equipo y mantendremos la concentración.`,{morale:4,board:0,fans:2},'El entrenador cuida al grupo')
+   ],'La rueda de prensa aborda las expulsiones');
+  if(pre)add('preparacion-'+String(m.id),'preparacion',205,`¿Qué mensaje recibe el vestuario antes de enfrentar a ${opponent}?`,[
+    choice('confianza','Transmitir confianza',`Creemos en lo que venimos trabajando. Vamos a salir a competir.`,{morale:4,board:1,fans:2},'Confianza previa al encuentro'),
+    choice('seriedad','Insistir en la seriedad',`Cada balón cuenta. Nos preparamos con seriedad.`,{morale:2,board:3,fans:1},'Preparación responsable'),
+    choice('ambicion','Mostrar ambición',`Queremos competir al máximo y aspirar a ganar.`,{morale:3,board:1,fans:4},'Mensaje de ambición')
+   ],'Mensaje desde el camerino');
+ }
+
  // Preguntas sobre la copa seleccionada, sin mezclar puntos de liga con eliminatorias.
  if(c.competition!=='Liga'){
   const comp=c.competition;
@@ -148,19 +230,19 @@ function buildTopics(c){const t=c.team,ls=c.last,next=c.next,inj=c.injuries,fmt=
 function selectQuestions(s,name,c,cycle){const topics=buildTopics(c),used=new Set();const result=[];const randKey=`${s.seed}|${name}|${c.signature}|${cycle}`;const ranked=topics.map(q=>({...q,sort:q.weight+(hash(randKey+q.id)%13)})).sort((a,b)=>b.sort-a.sort);for(const q of ranked){if(result.length>=3)break;if(used.has(q.category))continue;used.add(q.category);const reporter=['Martina Solís','Damián Rojas','Valeria Montes','Elías Navarro','Camila Vargas','Bruno Campos','Inés Arce','Renato Varela'][(hash(randKey+q.id))%8];result.push({id:`${cycle}-${q.id}`,topic:q.id,category:q.category,question:q.question,responses:q.responses,headline:q.headline,media:q.media,reporter});}
  return result;}
 function sessions(s){s.ecosystem??={};s.ecosystem.press??=[];s.ecosystem.pressConferenceCount??=0;s.ecosystem.pressSessions??={};return s.ecosystem.pressSessions;}
-export function getPressConference(s,name,competition='Liga'){const store=sessions(s);const c=pressSnapshot(s,name,competition);const key=competition==='Liga'?name:name+'::'+competition;let current=store[key];if(!current||current.signature!==c.signature){const cycle=(current?.cycle||0)+1;current={signature:c.signature,cycle,season:s.season,questions:selectQuestions(s,name,c,cycle),index:0,entries:[],completed:false};store[key]=current;}
+export function getPressConference(s,name,competition='Liga',matchId=null){const store=sessions(s);const c=pressSnapshot(s,name,competition,matchId);const key=matchId?name+'::partido::'+matchId:name+'::'+competition;let current=store[key];if(!current||current.signature!==c.signature){const cycle=(current?.cycle||0)+1;current={signature:c.signature,cycle,season:s.season,questions:selectQuestions(s,name,c,cycle),index:0,entries:[],completed:false};store[key]=current;}
  return {session:current,context:c,current:current.questions[current.index]||null};}
 const olderStances={calm:'Hay que trabajar sin perder el rumbo.',passion:'Nadie puede estar por encima del escudo.',defend:'Creo en este vestuario y sus futbolistas.',critic:'No podemos ocultar lo que está fallando.'};
-export function answerPress(s,name,question,answer,competition='Liga'){const team=s.teams[name];if(!team)throw Error('Club no encontrado');const {session,current}=getPressConference(s,name,competition);let response,headline,originalQuestion,media,reporter;
+export function answerPress(s,name,question,answer,competition='Liga',matchId=null){const team=s.teams[name];if(!team)throw Error('Club no encontrado');const {session,current}=getPressConference(s,name,competition,matchId);let response,headline,originalQuestion,media,reporter;
  if(current&&question===current.id){response=current.responses.find(x=>x.id===answer);if(!response)throw Error('Seleccioná una respuesta válida para esta pregunta');headline=current.headline;originalQuestion=current.question;media=current.media;reporter=current.reporter;
  }else if(typeof question==='string'&&question.startsWith('¿')&&olderStances[answer]){response={quote:olderStances[answer],effects:{morale:{calm:2,passion:1,defend:3,critic:-3}[answer],board:{calm:2,passion:0,defend:1,critic:-3}[answer],fans:{calm:0,passion:3,defend:2,critic:-1}[answer]}};headline=`${team.coach} comparece ante la prensa`;originalQuestion=question;media='El Heraldo de Noveria';reporter='Redacción';
  }else throw Error(session.completed?'Esta rueda de prensa ya terminó. Jugá otro partido para abrir una nueva.':'La pregunta cambió. Actualizá la rueda de prensa.');
  const before={morale:team.morale,board:team.board,fans:team.supporters?.mood||55};const e=response.effects||{};
  team.morale=clamp(val(team.morale,70)+val(e.morale),10,99);team.board=clamp(val(team.board,70)+val(e.board),5,99);team.supporters??={mood:55,attendance:0,lastAttendance:0,protests:0};team.supporters.mood=clamp(val(team.supporters.mood,55)+val(e.fans),3,99);
  s.ecosystem.pressConferenceCount++;
- const id=`press-${s.season}-${s.ecosystem.pressConferenceCount}`;const entry={id,name,coach:team.coach,question:originalQuestion,answer:response.quote,stance:answer,media,reporter,headline,season:s.season,impact:{morale:team.morale-before.morale,board:team.board-before.board,fans:team.supporters.mood-before.fans},round:pressSnapshot(s,name,competition).row.pj,competition};
+ const id=`press-${s.season}-${s.ecosystem.pressConferenceCount}`;const entry={id,name,coach:team.coach,question:originalQuestion,answer:response.quote,stance:answer,media,reporter,headline,season:s.season,impact:{morale:team.morale-before.morale,board:team.board-before.board,fans:team.supporters.mood-before.fans},round:pressSnapshot(s,name,competition,matchId).row.pj,competition,matchId:matchId||null};
  s.ecosystem.press.unshift(entry);if(s.ecosystem.press.length>180)s.ecosystem.press.length=180;
- s.news.unshift({id,category:'Prensa',title:headline,description:`${reporter}, ${media}: «${response.quote}»`,date:`Apertura ${s.season}`,relatedClub:name,competition});if(s.news.length>300)s.news.length=300;
+ s.news.unshift({id,category:'Prensa',title:headline,description:`${reporter}, ${media}: «${response.quote}»`,date:`${s.edition||'Apertura'} ${s.season}`,relatedClub:name,competition,matchId:matchId||null});if(s.news.length>300)s.news.length=300;
  if(s.mode==='manager'&&s.managedClub===name&&s.career)s.career.pressScore=val(s.career.pressScore)+val(e.morale);
  if(current&&question===current.id){session.entries.push(entry);session.index++;session.completed=session.index>=session.questions.length;}
  return entry;
