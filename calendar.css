@@ -1,0 +1,15 @@
+/* Noveria 5.5 — Calendario Maestro. Estilos aislados; no altera otros módulos. */
+.calendar-hero{background:linear-gradient(145deg,#152c45,#111c30 70%,#342235);border:1px solid #506487;border-radius:20px;padding:clamp(18px,3vw,30px);position:relative;overflow:hidden}
+.calendar-hero:after{content:'📅';font-size:145px;position:absolute;right:-24px;bottom:-50px;opacity:.085;pointer-events:none}
+.calendar-hero h2{font-size:clamp(21px,3.8vw,34px);margin:10px 0;color:#f9d28d;line-height:1.15;position:relative;z-index:1}
+.calendar-hero .controls{position:relative;z-index:1}.calendar-main-date{font-size:clamp(17px,2.2vw,24px);font-weight:750;color:#f1f6ff;margin:12px 0}
+.calendar-timeline{display:flex;flex-direction:column;gap:9px;max-height:660px;overflow-y:auto;overscroll-behavior:contain;padding-right:5px}
+.calendar-event{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:#162438;border:1px solid #2f4358}
+.calendar-event.on{background:#28324d;border-color:#f3c67b;box-shadow:inset 3px 0 #f3c67b}
+.calendar-event-icon{font-size:21px;width:26px;flex:none}.calendar-event-text{min-width:0;display:flex;flex-direction:column;gap:3px;flex:1}
+.calendar-event-text b{font-size:12px}.calendar-event-text span{font-size:11px;color:#b3c2d6}
+.calendar-event-status{font-size:9px;font-weight:800;color:#97a9bf;white-space:nowrap}.calendar-event.on .calendar-event-status{color:#fbd79a}
+.calendar-past-item{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid #2a394f;font-size:12px}.calendar-past-item span{color:#9fb2c8}
+.calendar-ribbon{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#132b3c;border:1px solid #395876;border-radius:13px;padding:9px 12px;margin-bottom:18px}
+.calendar-ribbon strong{font-size:12px;color:#e3c181}.calendar-ribbon span{font-size:11px;color:#b0c5d9}
+@media(max-width:720px){.calendar-hero{padding:16px}.calendar-event{gap:8px}.calendar-event-status{font-size:8px}.calendar-ribbon{align-items:flex-start}.calendar-past-item{font-size:11px}.calendar-main-date{margin:8px 0}}
