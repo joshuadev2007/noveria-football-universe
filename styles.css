@@ -253,3 +253,13 @@
 .rs-none{color:#788ba4}
 .rs-note{line-height:1.55;margin:10px 0 0}
 @media(max-width:650px){.rs-panels{grid-template-columns:1fr;padding:9px}.rs-panel{padding:10px}.rs-country>summary{padding:12px}.rs-scroll{overflow:auto}.rs-table{min-width:540px}.rs-table td,.rs-table th{padding:8px 6px}.rs-legend{gap:7px 11px}}
+
+
+/* Noveria 5.14 · siembra general para cuartos de final */
+.post-seed{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:12px 14px;border-radius:12px;border:1px solid #536279;
+  background:linear-gradient(110deg,#202942,#172336);min-width:0}
+.post-seed strong{font-size:13px;color:#f5d8a3;overflow-wrap:anywhere}
+.post-seed span{font-size:11px;color:#b8cce0;white-space:normal}
+.post-stage .post-fixture{overflow-wrap:anywhere}
+@media(max-width:650px){.post-seed{flex-direction:column;align-items:flex-start;gap:5px;padding:11px}}
