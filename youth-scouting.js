@@ -186,3 +186,8 @@ export function startYouthGraduate(s,club,id){
  [t.players[slot],t.players[i]]=[t.players[i],t.players[slot]];
  return t.players[slot];
 }
+
+export function youthProgress(p){
+ const growth=youthDevelopment(p),limit=xpLimit(p);
+ return {xp:growth.xp,needed:limit,percent:clamp(Math.round(growth.xp/limit*100),0,100),up:growth.total||0};
+}
