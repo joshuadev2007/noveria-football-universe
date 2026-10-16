@@ -17,7 +17,7 @@ while(getLeagueNextRound(s)<=18)simulateLeagueRound(s);
 assert.equal(getLeagueNextRound(s),19);assert.equal(s.fixtures.filter(x=>x.played).length,252);
 for(const g of ['A','B','S']){const rank=standings(s,g);assert(rank.every(t=>t.pj===18),g);}
 assert.equal(s.honours.filter(h=>h.title==='Escudo de Oro de Veltrania').length,1);
-assert.equal(s.postseason.stage,'semifinales');for(let i=0;i<5;i++)simulatePostseasonRound(s);assert.equal(s.postseason.stage,'finalizada');assert(s.postseason.apertura&&s.postseason.recopa);assert.equal(s.honours.length,3);
+assert.equal(s.postseason.stage,'cuartos');for(let i=0;i<7;i++)simulatePostseasonRound(s);assert.equal(s.postseason.stage,'finalizada');assert(s.postseason.apertura&&s.postseason.recopa);assert.equal(s.honours.length,3);
 let cupS=freshState();for(let i=0;i<7;i++)simulateCupRound(cupS);assert(cupS.cup.champion);assert.equal(cupS.honours.length,1);
 let custom=freshState(),id=createCompetition(custom,'Copa Experimental',['Unión Popular Aurena','Atlético Aurena','Real Monteluz'],'cup');while(!custom.competitions[0].champion)simulateCustomRound(custom,id);assert.equal(custom.honours.length,1);
 const old=custom.teams['Unión Popular Aurena'].coach;changeCoach(custom,'Unión Popular Aurena','Marcos del Río');assert.notEqual(custom.teams['Unión Popular Aurena'].coach,old);
