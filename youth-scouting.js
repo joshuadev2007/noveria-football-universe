@@ -139,6 +139,9 @@ export function seniorYouthDevelopment(s,match){
    const xp=Math.max(1,Math.round((starters?4:2)+(rating-6.3)*3+bonus))*modifier;
    const old=p.ovr;
    gainXP(s,p,Math.round(xp),'Primer equipo',key);
+   // El desarrollo de cientos de clubes no debe inflar el guardado: solo
+   // conservamos las doce actuaciones recientes; el acumulado de XP permanece.
+   const log=youthDevelopment(p).history;if(log.length>12)log.splice(0,log.length-12);
    const edition=s.season+'-'+(s.edition||'Apertura');
    if(rating>=7.2&&development.strong>=6&&age<=28&&p.pot<99){
     const before=Number(development.potentialGains[edition]||0);
