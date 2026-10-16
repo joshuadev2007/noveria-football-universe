@@ -5,10 +5,19 @@ import {countryStandings} from './continent.js';
 const COUNTRIES=['Veltrania',...FOREIGN_COUNTRIES];
 function match(id,round,home,away,group,phase){return {id,competition:'ARCALIS',round,home,away,group,phase,played:false,scoreH:null,scoreA:null};}
 function roundRobin(id,group,names,offset=0){let a=names.slice();if(a.length%2)a.push(null);const n=a.length,results=[];for(let r=0;r<n-1;r++){for(let k=0;k<n/2;k++){let x=a[k],y=a[n-1-k];if(!x||!y)continue;const h=(r+k)%2?y:x,v=h===x?y:x;results.push(match(`${id}-${group}-${r+1}-${k}`,r+1+offset,h,v,group,'groups'));}a=[a[0],a[n-1],...a.slice(1,n-1)];}return results;}
-function qualifier(s,c){return c==='Veltrania'?standings(s,'annual'):countryStandings(s,c,'annual');}
+function qualifier(s,c){
+ const prev=Number(s.season)-1;
+ if(c==='Veltrania'){
+  const archive=(s.archive||[]).find(a=>Number(a.season)===prev);
+  return archive?.annual?.length>=13?archive.annual:standings(s,'annual');
+ }
+ const old=(s.world?.[c]?.archive||[]).find(a=>Number(a.season)===prev);
+ return old?.annual?.length>=13?old.annual:countryStandings(s,c,'annual');
+}
 function continentalOne(name,id,participants,season){const groups=Array.from({length:9},(_,i)=>({id:String.fromCharCode(65+i),teams:[]}));participants.forEach((name,j)=>{const countryIdx=j%9,rank=Math.floor(j/9);groups[(countryIdx+rank)%9].teams.push(name)});return {id,name,season,phase:'groups',round:1,groups,fixtures:groups.flatMap(g=>roundRobin(id,g.id,g.teams)),champion:null,finalists:[],knockout:[]};}
 export function ensureInternational(s){if(s.international?.season===s.season)return s.international;
- if(!COUNTRIES.every(c=>c==='Veltrania'?s.fixtures.filter(f=>f.competition==='LSV'&&!played(f)).length===0:s.world?.[c]?.round===18))return null;
+ // Las Copas de Arcalis se juegan entre semana durante la liga nacional.
+ if(!s.world||COUNTRIES.slice(1).some(c=>!s.world[c]))return null;
  const entries=COUNTRIES.map(c=>qualifier(s,c));const horizon=[];for(let j=0;j<5;j++)for(let i=0;i<9;i++)horizon.push(entries[i][7+j].name);
  const champions={id:'champions',name:'Copa de Campeones de Arcalis',season:s.season,phase:'playoff',round:0,groups:[],fixtures:[],champion:null,finalists:[],direct:[],playIns:[]};
  for(let j=0;j<6;j++)for(let i=0;i<9;i++)champions.direct.push(entries[i][j].name);
