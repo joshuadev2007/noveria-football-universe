@@ -6,3 +6,18 @@
 .lv5-goal-replay{text-align:center;padding:12px 0}.lv5-goal-replay h2{font-size:clamp(26px,6vw,44px);color:#ffdd92}.lv5-goal-art{height:145px;border-radius:12px;border:2px solid #b5eacb;background:repeating-linear-gradient(90deg,#1b6547 0 90px,#276f51 90px 180px);display:flex;align-items:center;justify-content:space-around;overflow:hidden}.lv5-goal-ball{font-size:38px;animation:lvShot 1.35s ease-in-out infinite}.lv5-goal-net{font-size:80px}@keyframes lvShot{0%{transform:translate(-60px,28px) scale(.65)}70%{transform:translate(190px,-15px) scale(.9)}100%{transform:translate(200px,-18px) scale(.8)}}
 
 .lv5-svg{transition:transform .6s ease,filter .5s}.lv5-svg[data-camera='angle']{transform:perspective(850px) rotateX(19deg) scale(.96);filter:saturate(1.15)}.lv5-svg[data-camera='close']{transform:scale(1.12);filter:contrast(1.08)}.lv5-pitch-wrap{isolation:isolate}
+
+
+/* Noveria Live 6.0 · Movimiento fiel a los eventos, no aleatorio. */
+.lv5-svg .lv5-player{will-change:transform}
+.lv5-svg .lv5-player circle{transition:stroke-width .14s ease,stroke .14s ease,filter .14s ease}
+.lv5-svg .lv5-player.lv5-ballcarrier circle{stroke:#ffdf72;stroke-width:3.5;filter:drop-shadow(0 0 8px #ffe685)}
+.lv5-svg .lv5-player.lv5-keeper-save circle{stroke:#9de6ff;stroke-width:3.6;filter:drop-shadow(0 0 9px #a5f2fc)}
+.lv5-svg #lv5-ball{will-change:transform;pointer-events:none}
+.lv5-svg #lv5-ball.lv5-ball-flight circle:first-child{filter:drop-shadow(0 0 5px #ffe2ac)}
+.lv5-svg #lv5-ball.lv5-ball-goal circle:first-child{filter:drop-shadow(0 0 13px #fff5a5)}
+.lv5-svg #lv5-pass-trail,.lv5-svg #lv5-play-indicator{pointer-events:none}
+.lv5-svg #lv5-play-indicator{letter-spacing:1px;filter:drop-shadow(0 2px 4px #06180e)}
+.lv5-svg #lv5-play-indicator.lv5-action-goal{fill:#ffe47a;font-size:20px;filter:drop-shadow(0 0 9px #ffc769)}
+@media(max-width:600px){.lv5-svg #lv5-play-indicator{font-size:12px;letter-spacing:.3px}.lv5-svg #lv5-play-indicator.lv5-action-goal{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.lv5-svg .lv5-player circle{transition:none}}
