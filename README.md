@@ -1,3 +1,22 @@
+# Noveria 5.14 · Cuartos con clasificación global 1.º–8.º 🏆⚽
+
+**Reforma oficial del torneo de liga en las nueve federaciones de Arcalis.**
+
+1. Cada grupo (A y B) disputa su fase regular normal. **Clasifican los cuatro mejores de cada grupo: ocho equipos.**
+2. Los ocho clasificados se colocan en **una sola tabla general**, ordenados por **puntos, diferencia de goles, goles a favor, victorias y posición obtenida dentro de su grupo**; último desempate, nombre de club para que no haya empates indeterminados.
+3. **Cuartos de final:** siembra 1 vs 8, 2 vs 7, 3 vs 6 y 4 vs 5. **Ida en casa del peor sembrado y vuelta en casa del mejor sembrado.**
+4. **Semifinales:** los cuatro vencedores mantienen su siembra original; se vuelven a ordenar como mejor vs peor, segundo mejor vs tercero mejor. También ida y vuelta.
+5. **Final:** los dos finalistas juegan ida y vuelta; el mejor sembrado disputa el segundo partido en su estadio.
+6. **Marcador global:** se suman los goles de ambas piernas. Si hay empate global después de la vuelta, se resuelve con prórroga y tanda de penales como ya hace el motor de Noveria. **La Recopa permanece a partido único.**
+7. **Calendario maestro:** siete turnos para la fase final (cuartos ida/vuelta, semifinales ida/vuelta, final ida/vuelta y Recopa). Los nueve países avanzan a la vez y no se salta ninguna fecha.
+8. **Historial intacto:** los Apertura y Clausura que ya terminaron y las eliminatorias iniciadas se mantienen exactamente como estaban. **La nueva clasificación se aplica al generar una fase final que todavía está bloqueada**, nunca se reescriben resultados.
+9. **Visual:** dentro de **Fase final y Recopa** se muestra una tabla con los ocho sembrados, su grupo de origen, puesto, puntos y diferencia de gol. Los marcadores globales se muestran en los partidos correspondientes.
+10. **Alineación y banca:** el apartado **📋 Alineación y banca** ya está disponible; podés elegir los once titulares, siete suplentes, formación, táctica y capitán. El simulador y Live 2D respetan esos cambios en los próximos partidos.
+
+Pruebas: `node tests-postseason-8.mjs` verifica los ocho clasificados, los cuatro cruces exactos, la localía de vuelta, las semifinales, la final y la Recopa en las nueve federaciones.
+
+---
+
 # Noveria 5.13 · Fase final local de ocho equipos 🏆⚽
 
 **Nuevo reglamento de las ligas nacionales en las nueve federaciones de Arcalis.** La fase regular sigue disputando las mismas 18 jornadas, la Copa Nacional y las copas internacionales no cambian, y la Recopa sigue a partido único.
