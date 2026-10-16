@@ -1,3 +1,31 @@
+# NOVERIA 5.11 · Dirección de alineaciones y banca 📋⚽
+
+Noveria incorpora un apartado **📋 Alineación y banca**, disponible en el menú lateral y desde **Directivas y DT**.
+
+## Cómo dirigir tu equipo
+
+1. Abrí **📋 Alineación y banca**. En modo presidente elegís el club que querés editar; en modo DT trabajás con el equipo que dirigís.
+2. Encontrarás una **cancha con once futbolistas**, sus dorsales, demarcaciones y OVR; debajo y al lado están las listas de titulares, siete suplentes y reservas.
+3. Para modificar un puesto, abrí su lista desplegable y elegí otro futbolista. Se **intercambian**: si el elegido estaba en la banca, el titular anterior va a esa posición de la banca; si estaba en reservas, se intercambian sin borrar a nadie.
+4. Elegí la formación **4-3-3, 4-4-2, 4-2-3-1, 3-5-2 o 5-3-2**, el estilo táctico y el **capitán**, que debe pertenecer al once.
+5. **🧠 Elegir mejor XI** genera una alineación automática según OVR, posiciones y bajas. **↶ Restablecer** recupera el orden original de la plantilla, previa confirmación.
+6. Los jugadores fuera de los dieciocho convocados quedan como **reservas**; con **A la banca** podés convocarlos.
+7. Los cambios se guardan **automáticamente** como `team.lineup`, junto con tu partida en el navegador o Joshua Cloud. Los partidos anteriores permanecen intactos.
+
+## Efecto real en los partidos
+
+- Las próximas **simulaciones de liga, copa y torneos internacionales** toman los once elegidos, en lugar de elegir siempre los primeros once del plantel.
+- El OVR del once, ponderado por la posición en tu formación, **influye en la fuerza del equipo** y puede cambiar las probabilidades de gol. No garantiza un resultado.
+- El motor registra los **titulares, siete suplentes, capitán, formación y entrenador** en el acta de cada partido; las apariciones y los goles se contabilizan a los jugadores que correspondan.
+- En **Live 2D**, únicamente los futbolistas convocados en la banca están habilitados para entrar como suplentes. La selección queda congelada al iniciar un partido en directo para que no cambie a mitad de transmisión.
+- Si algún titular está lesionado o sancionado, se le busca un reemplazo disponible de la convocatoria. La alineación que configuraste no se borra.
+- Los fichajes nuevos permanecen como reservas hasta que los incorpores al once o a la banca.
+- Si ya tenías una partida en curso, **no hay migración destructiva**: el sistema empieza con el once y la banca que usaba el plantel de esa partida. Podés editarlo cuando quieras.
+
+Prueba añadida: `node tests-lineup.mjs`. Conviene exportar JSON desde **Palmarés y partida** antes de hacer modificaciones grandes.
+
+---
+
 # Noveria 5.10 · Academia de talentos y ojeadores internacionales 🌱🌍
 
 **Disponible desde el menú Cantera sub-20.** Se mantiene el progreso del club y la partida guardada; no se modifican campeones ni resultados anteriores.
