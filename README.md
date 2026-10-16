@@ -1,3 +1,20 @@
+# Noveria 5.12 · Tablas de posiciones tras cada jornada simulada 📊🏆
+
+Después de pulsar **Jugar fecha del calendario**, el juego conserva su pantalla clásica de **Resultados y periódicos**. Ahora, justo debajo de los marcadores y periódicos, aparece **«Así quedan las tablas de posiciones»**.
+
+- **Liga Suprema:** Zona A y Zona B con los dos puestos de semifinales destacados, más tabla anual (Campeones, Horizonte y repechajes) y Liga de Plata (ascensos y descenso).
+- **Copa Nacional:** clasificación individual de todos sus grupos. Marca a los **dos primeros de cada grupo y los dos mejores terceros** para octavos. El distintivo es provisional hasta que termine la fase.
+- **Arcalis:** grupos de Copa de Campeones y Copa Horizonte; destaca los **nueve líderes de grupo y siete mejores segundos**. Cuando llegan eliminatorias, muestra los clubes que avanzan según su acta.
+- **Finales, Recopas y eliminatorias:** en vez de inventar puntos, muestra las series jugadas, clubes que siguen en disputa y clasificados confirmados. Para ida/vuelta no atribuye clasificación por el resultado de una sola pierna.
+- **Torneos personalizados:** tablas para ligas, zonas y grupos, más fases eliminatorias según el formato.
+- **Países:** se conserva el selector de Veltrania, los otros ocho países o **TODOS**. En TODOS las tablas quedan agrupadas por federación y se pueden desplegar, para no saturar el móvil.
+- **Colores de clasificación:** verde para avance, azul para mejores segundos/terceros o Horizonte, dorado para repechaje y rojo para descenso. Las etiquetas aclaran cuándo una plaza es provisional.
+- El módulo es **de solo lectura**: no modifica los resultados, campeones, calendarios ni la partida en Joshua Cloud.
+
+Prueba nueva: `node tests-round-standings.mjs` junto al resto de `npm test`.
+
+---
+
 # NOVERIA 5.11 · Dirección de alineaciones y banca 📋⚽
 
 Noveria incorpora un apartado **📋 Alineación y banca**, disponible en el menú lateral y desde **Directivas y DT**.
