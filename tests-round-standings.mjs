@@ -8,10 +8,10 @@ const set=(m,i)=>{m.played=true;m.scoreH=(i*7)%4;m.scoreA=(i*3)%3;return m;};
 const national=s.fixtures.filter(m=>m.round===7);national.forEach(set);
 const league=standingsForResults(s,national,{kind:'league'},'Veltrania');
 assert.equal(league.length,4,'Deben aparecer A, B, Liga de Plata y anual');
-assert.equal(league.filter(p=>p.key.endsWith(':A')||p.key.endsWith(':B')).flatMap(p=>p.rows).filter(r=>r.spot==='advance').length,4);
+assert.equal(league.filter(p=>p.key.endsWith(':A')||p.key.endsWith(':B')).flatMap(p=>p.rows).filter(r=>r.spot==='advance').length,8);
 assert.equal(league.find(p=>p.key.endsWith(':annual')).rows.filter(r=>r.spot==='advance').length,6);
 assert.equal(league.find(p=>p.key.endsWith(':annual')).rows.filter(r=>r.spot==='playoff').length,2);
-assert.match(roundTablesHTML(s,national,{kind:'league'},'Veltrania'),/Semifinales/);
+assert.match(roundTablesHTML(s,national,{kind:'league'},'Veltrania'),/Cuartos/);
 const allCountries=[];
 for(const c of ['Veltrania',...Object.keys(s.world)]){const games=(c==='Veltrania'?s.fixtures:s.world[c].fixtures).filter(m=>m.round===7);games.forEach(set);allCountries.push(...games);}
 assert.equal(standingsForResults(s,allCountries,{kind:'league'},'Todos').length,36,'Las nueve federaciones tienen cuatro tablas');
