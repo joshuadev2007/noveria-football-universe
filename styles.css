@@ -102,3 +102,25 @@
 @keyframes noveria-cup{from{transform:translateY(2px) rotate(-3deg)}to{transform:translateY(-5px) rotate(3deg)}}
 @media(max-width:600px){.aggregate-tag{padding:8px}.aggregate-tag strong{font-size:12px}.champion-feature{padding:23px 15px}.champion-cup{font-size:50px}}
 @media(prefers-reduced-motion:reduce){.champion-cup{animation:none}}
+
+
+/* NOVERIA 5.7 · Periódicos individuales y resultados clásicos */
+.paper-feature{border-color:#9b7d43;background:linear-gradient(140deg,#302a2b,#131f32 70%);position:relative;overflow:hidden}
+.paper-feature::before{content:'EXTRA';font:900 56px Georgia,serif;position:absolute;right:-8px;top:-24px;opacity:.05;transform:rotate(-9deg);pointer-events:none}
+.paper-feature h2{font-family:Georgia,serif;color:#f3d4a1;font-size:clamp(21px,2.3vw,29px);line-height:1.25}
+.paper-feature .between{flex-wrap:wrap;margin-top:12px}
+.results-filter{display:flex;flex-direction:column;gap:8px}.results-filter select{max-width:470px}
+.match-newspaper{box-shadow:inset 0 0 0 1px #d9ccad;overflow-wrap:anywhere}
+.match-newspaper .paper-eyebrow{color:#676052;font:800 10px Arial,sans-serif;letter-spacing:.16em;margin:14px 0 0;text-align:center}
+.match-newspaper .paper-lead{font:600 clamp(15px,2vw,18px)/1.55 Georgia,serif;border-left:3px solid #a67b39;padding-left:14px;margin:22px 0}
+.match-newspaper .paper-narrative p:not(.paper-lead){column-span:none}.match-newspaper .paper-narrative{column-count:2;column-gap:25px}
+.match-newspaper .paper-narrative h3{column-span:all}
+.match-newspaper .paper-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.match-newspaper .paper-tags span{border:1px solid #baab85;background:#e7dfc9;color:#5b462b;border-radius:3px;padding:6px 8px;font:800 9px Arial,sans-serif;letter-spacing:.05em}
+.match-newspaper .paper-star{padding:14px;border-top:2px solid #a58652;border-bottom:2px solid #a58652;background:#ece4ce;font:13px Arial,sans-serif;margin:18px 0}
+.match-newspaper .paper-archive{background:#e6dfcc;border:1px solid #b4a789;padding:15px;margin:20px 0;font:13px Arial,sans-serif}
+.match-newspaper .paper-archive strong{letter-spacing:.04em}.match-newspaper .paper-penalties{font-weight:750;border-left:4px solid #9d784a;padding:10px;background:#ebe0c9}
+.match-newspaper .paper-footer{border-top:4px double #706a60;margin-top:24px;padding-top:12px;color:#716757;font:10px Arial,sans-serif;letter-spacing:.06em}
+.match-newspaper .paperstats>div{min-width:0}.match-newspaper.tone-dramatic h1,.match-newspaper.tone-rout h1{color:#6f2330}
+@media(max-width:690px){.match-newspaper .paper-narrative{column-count:1}.match-newspaper .paperScore{gap:4px}.match-newspaper .paperScore span{font-size:12px}.paper-feature .between{align-items:flex-start}.match-newspaper .paperstats{grid-template-columns:1fr}}
+@media print{.match-newspaper .paper-narrative{column-count:2}.match-newspaper .paper-tags span{print-color-adjust:exact}.match-newspaper .paper-atmosphere{print-color-adjust:exact}}
