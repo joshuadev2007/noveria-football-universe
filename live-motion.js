@@ -1,0 +1,150 @@
+/**
+ * Noveria Live Motion 6.0 — animación 2D ligada a los eventos ya registrados.
+ * IMPORTANTE: devuelve solo coordenadas y efectos. No modifica el partido,
+ * las estadísticas, el cronómetro, los goles, la partida ni Supabase.
+ * La reconstrucción visual representa el TIPO de jugada, no movimientos reales.
+ */
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const lerp=(a,b,t)=>a+(b-a)*clamp(t,0,1);
+const hash=value=>{let h=2166136261;for(const c of String(value))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
+const rnd=(key)=>hash(key)/4294967295;
+const ease=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
+const xy=(a,b,t)=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t)});
+const eventTime=(ev)=>Number(ev.min)>90?120+(Number(ev.min)-90)*2/3:Number(ev.min)*4/3;
+const marker=(p,type)=>type==='goal'?0:type==='save'?1:type==='shot'?2:type==='corner'?3:type==='var'?4:6;
+const activity=new Set(['goal','save','shot','corner','yellow','red','injury','sub','var','tactic']);
+const sideOf=e=>e?.side==='away'?'away':'home';
+const indexes=(b,side,ev)=>{
+ const lineup=b.preview?.lineups?.[side]||[];
+ const locate=id=>lineup.findIndex(p=>String(p)===String(id));
+ const scorer=ev?.p1!=null?locate(ev.p1):-1;
+ const assister=ev?.p2!=null?locate(ev.p2):-1;
+ const finish=scorer>=0?scorer:8+(hash(b.id+side+(ev?.min||0))%3);
+ const mid=assister>=0&&assister!==finish?assister:5+(hash(b.id+side+'mid'+(ev?.min||0))%3);
+ const first=mid===6?5:6;
+ return {first,mid,finish};
+};
+function formation(side,ball,seconds,tag){
+ const home=side==='home',baseX=[65,230,235,230,235,393,402,393,560,570,560];
+ const baseY=[270,88,200,345,452,133,270,407,130,270,409];
+ return Array.from({length:11},(_,i)=>{
+  const keeper=i===0,role=i<=4?1:i<=7?2:3;
+  let x=home?baseX[i]:960-baseX[i],y=baseY[i];
+  // El bloque acompaña la pelota y los defensores cierran líneas de pase.
+  const direction=home?1:-1;
+  const advance=(ball.x-480)*.20;
+  x+=keeper?direction*(ball.x>(home?480:0)&&ball.x<(home?960:480)?7:0):advance*(role===3?1.2:role===2?1.0:.66);
+  const rowShift=clamp((ball.y-270)*.1,-25,25);
+  y+=keeper?clamp((ball.y-270)*.13,-38,38):rowShift*(role===1?.55:1);
+  if(!keeper){const step=seconds*2.1+hash(tag+side+i)%23;
+   x+=Math.sin(step*.63+i)*3.5;y+=Math.cos(step*.47+i*1.31)*3.6;}
+  return {x:clamp(x,keeper?48:78,keeper?912:882),y:clamp(y,keeper?201:49,keeper?339:491)};
+ });
+}
+function chooseEvent(b,t){
+ const entries=(b.preview?.events||[]).filter(e=>activity.has(e.type)&&Number.isFinite(Number(e.min))).map((e,i)=>({e,i,time:eventTime(e)}));
+ const relevant=entries.filter(x=>t>=x.time-4.8&&t<=x.time+1);
+ relevant.sort((a,b)=>Math.abs(t-a.time)-Math.abs(t-b.time)||marker(a.e,a.e.type)-marker(b.e,b.e.type)||a.i-b.i);
+ return relevant[0]||null;
+}
+function possessionMotion(b,seconds){
+ const key=b.id+'|'+Math.floor(seconds/6.4);
+ const home=rnd(key+'pos')>.48,side=home?'home':'away',base=hash(key+'lane');
+ const progress=(seconds%6.4)/6.4;
+ const left=home?285:675,right=home?580:380;
+ const lane=105+(base%330);
+ const drift=lerp(left,right,progress);
+ const y=clamp(lane+Math.sin(progress*5+base)*29,69,471);
+ return {side,ball:{x:drift,y,arc:0},label:progress<.55?'Conducción':'Circulación de pelota',
+  actor:5+(base%6),phase:'control',moment:null};
+}
+function eventMotion(b,t,selected){
+ const {e,time}=selected,side=sideOf(e),home=side==='home',direction=home?1:-1;
+ const number=e.min||0,key=b.id+'|'+e.type+'|'+number+'|'+selected.i;
+ const lane=135+(hash(key+'lane')%260);
+ const small=(rnd(key+'cross')-.5)*80;
+ const attacking=(x,y)=>({x:home?x:960-x,y:clamp(y,54,486)});
+ const a=attacking(318,lane);
+ const c=attacking(470,clamp(lane+small,110,425));
+ const d=attacking(648,clamp(lane*.55+150,125,405));
+ const shooter=attacking(791,clamp(235+(rnd(key+'shoot')-.5)*100,180,345));
+ const goalY=clamp(270+(rnd(key+'target')-.5)*74,232,309);
+ const keepY=clamp(goalY+(rnd(key+'save')-.5)*20,221,318);
+ let target,kind=e.type;
+ switch(kind){
+ case 'goal':target={x:home?943:17,y:goalY};break;
+ case 'save':target={x:home?888:72,y:keepY};break;
+ case 'shot':target={x:home?940:20,y:rnd(key+'miss')>.5?166:382};break;
+ case 'corner':target={x:home?921:39,y:rnd(key+'corner')>.5?45:495};break;
+ case 'red':case 'yellow':case 'injury':case 'sub':case 'tactic':case 'var':
+   target=d;break;
+ default:target=d;
+ }
+ const start=time-4.7;
+ const progress=clamp((t-start)/4.7,0,1);
+ const points=[a,c,d,shooter,target];
+ const knots=[0,.26,.53,.77,1];
+ let at=0;for(let j=0;j<knots.length-1;j++)if(progress>=knots[j])at=j;
+ at=Math.min(at,3);
+ const amount=ease((progress-knots[at])/(knots[at+1]-knots[at]));
+ let point=xy(points[at],points[at+1],amount),arc=0;
+ const flight=at===3&&(kind==='goal'||kind==='shot'||kind==='save'||kind==='corner');
+ if(flight)arc=Math.sin(Math.PI*amount)*(kind==='corner'?9:12);
+ const after=Math.max(0,t-time);
+ if(kind==='save'&&after>0){point.x=lerp(target.x,target.x-direction*42,Math.min(1,after*1.8));point.y=lerp(target.y,keepY+23,Math.min(1,after*1.8))}
+ const players=indexes(b,side,e);
+ const actor=progress<.26?players.first:progress<.53?players.mid:players.finish;
+ const label=kind==='goal'?(progress>=.77?'¡Remate y GOL!':'Ataque hacia el arco'):
+ kind==='save'?(progress>=.77?'¡Atajada del portero!':'Remate al arco'):
+ kind==='shot'?(progress>=.77?'¡Remate desviado!':'Ocasión de peligro'):
+ kind==='corner'?'Balón hacia el banderín':
+ kind==='yellow'?'Falta y amarilla':kind==='red'?'Expulsión':kind==='injury'?'Juego detenido':kind==='sub'?'Cambio de futbolista':kind==='tactic'?'Indicaciones tácticas':'Revisión de jugada';
+ return {side,ball:{...point,arc},phase:kind,label,actor,event:e,actors:players,positions:points,
+  eventTime:time,progress,flight,goalFlash:kind==='goal'&&t>=time-.12&&t<=time+.75,
+  keeperDive:(kind==='goal'||kind==='save'||kind==='shot')&&progress>.78,
+  after,trail:flight?shooter:null};
+}
+/** Fotograma puro, reconstruible al pausar, reanudar, cambiar velocidad o recargar. */
+export function motionFrame(b){
+ const t=clamp(Number(b?.elapsed)||0,0,Number(b?.duration)||120);
+ if(!b?.preview)return null;
+ const selected=b.legacy?null:chooseEvent(b,t);
+ const scene=selected?eventMotion(b,t,selected):possessionMotion(b,t);
+ const {side,ball}=scene;
+ const players={
+  home:formation('home',ball,t,b.id),
+  away:formation('away',ball,t,b.id)
+ };
+ if(selected){
+  const {actors,positions,progress}=scene;
+  const attacking=players[side];
+  const back=side==='home'?'away':'home';
+  const defending=players[back];
+  // Receptores se ofrecen, pasadores apoyan, finalizador pisa el área.
+  const snap=(i,target)=>{if(attacking[i])attacking[i]={...target};};
+  snap(actors.first,positions[0]);
+  snap(actors.mid,positions[1]);
+  snap(actors.finish,progress>.56?positions[3]:positions[2]);
+  if(progress>.26&&progress<.53)snap(actors.mid,positions[1]);
+  if(progress>=.53)snap(actors.finish,progress>.77?positions[3]:positions[2]);
+  // Marcador más cercano presiona al portador, resto mantiene el bloque.
+  const press=1+(hash(b.id+String(scene.event.min))%4);
+  const p=defending[press];
+  if(p&&progress<.79){p.x=lerp(p.x,ball.x,0.46);p.y=lerp(p.y,ball.y,0.46)}
+  // El arquero defensor reacciona al remate, sin abandonar el área.
+  if(scene.keeperDive){
+   const gk=defending[0];
+   gk.y=clamp(lerp(gk.y,scene.positions[4].y,.7),218,322);
+   gk.x=back==='home'?68:892;
+  }
+ }else{
+  // Conducción visible: una bolita real acompaña la pelota.
+  const j=scene.actor;
+  const p=players[side][j];p.x=clamp(ball.x-(side==='home'?13:-13),75,885);p.y=ball.y+9;
+  const back=side==='home'?'away':'home';
+  const n=1+(hash(b.id+String(Math.floor(t/6.4)))%4);
+  players[back][n].x=lerp(players[back][n].x,ball.x,.38);
+  players[back][n].y=lerp(players[back][n].y,ball.y,.38);
+ }
+ return {...scene,players,elapsed:t,ball:{x:clamp(ball.x,9,951),y:clamp(ball.y,30,510),arc:ball.arc||0}};
+}
