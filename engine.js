@@ -249,12 +249,44 @@ export function simulateCustomRound(s,id){
 export function validateImport(data){if(!data||data.version!==1||typeof data.teams!=='object'||!Array.isArray(data.fixtures)||!data.cup||!Array.isArray(data.competitions))throw Error('Archivo de partida incompatible');if(!data.teams['Unión Popular Aurena'])throw Error('La partida no contiene los clubes de Veltrania');return data;}
 
 function finalFixture(s,stage,leg,a,b,extra=''){return {id:`POST-${cycleKey(s)}-${stage}-${leg}-${a.slice(0,4)}-${b.slice(0,4)}`,competition:'POST',group:stage,round:leg,slot:0,home:a,away:b,scoreH:null,scoreA:null,played:false,legacy:false,extra};}
-export function setupPostseason(s){if(s.postseason?.stage!=='locked')return;const winners=[...standings(s,'A').slice(0,2),...standings(s,'B').slice(0,2)].sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);s.postseason.stage='semifinales';s.postseason.leg=1;s.postseason.seeds=winners.map(t=>t.name);s.postseason.fixtures=[];for(const [a,b] of [[winners[0].name,winners[3].name],[winners[1].name,winners[2].name]]){s.postseason.fixtures.push(finalFixture(s,'semifinales',1,b,a));s.postseason.fixtures.push(finalFixture(s,'semifinales',2,a,b));}}
+export function setupPostseason(s){
+ if(s.postseason?.stage!=='locked')return;
+ // Ocho clasificados: cuatro de cada zona. Los cruces siempre enfrentan
+ // grupos opuestos y el mejor posicionado cierra de local.
+ const A=standings(s,'A').slice(0,4),B=standings(s,'B').slice(0,4);
+ const seedRank=[...A.map((r,i)=>({...r,group:'A',place:i+1})),...B.map((r,i)=>({...r,group:'B',place:i+1}))].sort(
+  (x,y)=>x.place-y.place||y.pts-x.pts||y.gd-x.gd||y.gf-x.gf||x.name.localeCompare(y.name,'es'));
+ const pairs=[[A[0].name,B[3].name],[B[0].name,A[3].name],[A[1].name,B[2].name],[B[1].name,A[2].name]];
+ const p=s.postseason;p.stage='cuartos';p.leg=1;p.format='cuartos8';p.seeds=seedRank.map(x=>x.name);p.fixtures=[];
+ for(let i=0;i<pairs.length;i++){
+  const [higher,lower]=pairs[i],id='q'+(i+1);
+  p.fixtures.push(finalFixture(s,'cuartos',1,lower,higher,id),finalFixture(s,'cuartos',2,higher,lower,id));
+ }
+}
 function legWinner(s,fixtures){const [first,second]=fixtures;const a=first.home,b=first.away,ga=first.scoreH+second.scoreA,gb=first.scoreA+second.scoreH;if(ga!==gb)return ga>gb?a:b;const rng=seeded('post-pen-'+first.id+'-'+s.seed);second.penalties=rng()<.5?'5-4':'4-5';second.extraTime=true;return second.penalties==='5-4'?second.home:second.away;}
 export function simulatePostseasonRound(s){const p=s.postseason;if(!p||p.stage==='locked'||p.stage==='finalizada')throw Error('Todavía no está disponible la fase final');const games=p.fixtures.filter(f=>f.group===p.stage&&f.round===p.leg);if(!games.length)throw Error('No hay partidos pendientes');games.forEach(m=>{if(!played(m))simulateMatch(s,m)});
- if(p.stage==='semifinales'){
-  if(p.leg===1)p.leg=2;else{
-   const rounds=p.fixtures.filter(f=>f.group==='semifinales');const winners=[legWinner(s,rounds.slice(0,2)),legWinner(s,rounds.slice(2,4))];const order=standings(s,'annual').map(x=>x.name);winners.sort((a,b)=>order.indexOf(a)-order.indexOf(b));const high=winners[0],low=winners[1];p.fixtures.push(finalFixture(s,'final',1,low,high),finalFixture(s,'final',2,high,low));p.stage='final';p.leg=1;
+ if(p.stage==='cuartos'){
+  if(p.leg===1)p.leg=2;
+  else{
+   const fixtures=p.fixtures.filter(f=>f.group==='cuartos');
+   const qualified=[];
+   for(let i=0;i<fixtures.length;i+=2)qualified.push(legWinner(s,fixtures.slice(i,i+2)));
+   qualified.sort((a,b)=>p.seeds.indexOf(a)-p.seeds.indexOf(b));
+   const pairs=[[qualified[0],qualified[3]],[qualified[1],qualified[2]]];
+   for(let i=0;i<pairs.length;i++){
+    const [higher,lower]=pairs[i],id='s'+(i+1);
+    p.fixtures.push(finalFixture(s,'semifinales',1,lower,higher,id),finalFixture(s,'semifinales',2,higher,lower,id));
+   }
+   p.stage='semifinales';p.leg=1;
+  }
+ }else if(p.stage==='semifinales'){  if(p.leg===1)p.leg=2;else{
+   const rounds=p.fixtures.filter(f=>f.group==='semifinales');
+   const winners=[legWinner(s,rounds.slice(0,2)),legWinner(s,rounds.slice(2,4))];
+   const order=p.seeds?.length?p.seeds:standings(s,'annual').map(x=>x.name);
+   winners.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+   const high=winners[0],low=winners[1];
+   p.fixtures.push(finalFixture(s,'final',1,low,high),finalFixture(s,'final',2,high,low));
+   p.stage='final';p.leg=1;
   }
  }else if(p.stage==='final'){
   if(p.leg===1)p.leg=2;else{const finals=p.fixtures.filter(f=>f.group==='final');const winner=legWinner(s,finals);p[cyclePhase(s).toLowerCase()]=winner;s.honours.push({title:cycleName(s),winner,season:String(s.season),edition:cyclePhase(s)});s.teams[winner].trophies.push(cycleName(s));s.teams[winner].budget+=.01;addNews(s,'Campeones',`${winner} es campeón de ${cycleName(s)}`,`Conquista la Liga Suprema Veltrana en ${cycleName(s)}.`);const annual=standings(s,'annual').map(t=>t.name),opponent=annual[0]===winner?annual[1]:annual[0];p.fixtures.push(finalFixture(s,'recopa',1,winner,opponent,'Sede neutral · Estadio Nacional de Veltrania'));p.stage='recopa';p.leg=1;}
