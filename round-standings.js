@@ -94,9 +94,12 @@ function matchWinner(m){
 function knockoutPanels(s,title,fixtures,prefix,area,champion){
  const ko=(fixtures||[]).filter(m=>played(m)&&(!isGroup(m.group)||m.phase==='playoff'||m.phase==='knockout')&&m.group!=='liga'&&m.phase!=='regular');
  if(!ko.length)return [];
- const stages=[...new Set(ko.map(m=>String(m.group||m.phase||'eliminatoria')))];
+ const latest=Math.max(...ko.map(m=>Number(m.round)||0));
+ const recent=ko.filter(m=>Number(m.round||0)===latest);
+ const label=m=>m.group==='KO'?'Ronda '+m.round:String(m.group||m.phase||'eliminatoria');
+ const stages=[...new Set(recent.map(label))];
  return stages.map(stage=>{
-  const matches=ko.filter(m=>String(m.group||m.phase||'eliminatoria')===stage),names=[...new Set(matches.flatMap(m=>[m.home,m.away]))];
+  const matches=recent.filter(m=>label(m)===stage),names=[...new Set(matches.flatMap(m=>[m.home,m.away]))];
   // Doble partido: sin clasificado hasta terminar ida y vuelta.
   const qualified=matches.filter(m=>!m.leg||m.leg===2||m.phase==='playoff'||m.phase==='knockout').map(matchWinner).filter(Boolean);
   const winnerSet=new Set(qualified),rows=names.map(name=>{
@@ -148,7 +151,22 @@ function customPanels(s,matches){
     ranking(c.fixtures.filter(m=>m.group===g.id),g.teams).map((r,i)=>({...r,spot:i<2?'advance':'none',status:i<2?'Clasifica':'—',confirmed:c.fixtures.filter(m=>m.group===g.id).every(played)})),
     'Dos clubes por grupo pasan a eliminación directa.'));
   }
-  panels.push(...knockoutPanels(s,c.name,c.fixtures,c.id+':ko','Personalizado',c.champion));
+  // El Apertura personalizado usa ida y vuelta: el ganador de un partido
+  // no equivale necesariamente al clasificado de la serie completa.
+  if(c.type==='apertura'){
+   const stage=c.stage==='recopa'||c.champion?'recopa':c.stage==='final'?'final':c.stage==='semifinal'?'semifinal':null;
+   if(stage){
+    const stageFixtures=c.fixtures.filter(m=>m.group===stage),participants=[...new Set(stageFixtures.flatMap(m=>[m.home,m.away]))];
+    const finalists=[...new Set(c.fixtures.filter(m=>m.group==='final').flatMap(m=>[m.home,m.away]))];
+    const winners=stage==='semifinal'?finalists:stage==='final'?(c.apertura?[c.apertura]:[]):c.champion?[c.champion]:[];
+    panels.push(common('knockout',c.id+':series:'+stage,c.name+' · '+stage,'Personalizado',participants.map(n=>{
+     const games=stageFixtures.filter(m=>played(m)&&[m.home,m.away].includes(n));
+     const gf=games.reduce((v,m)=>v+(m.home===n?m.scoreH:m.scoreA),0),gc=games.reduce((v,m)=>v+(m.home===n?m.scoreA:m.scoreH),0);
+     return {name:n,pj:games.length,gf,gc,gd:gf-gc,pts:null,spot:winners.includes(n)?'advance':'none',
+      status:winners.includes(n)?stage==='semifinal'?'Finalista':'Campeón':'En disputa',confirmed:winners.includes(n)};
+    }), 'La clasificación se decide por marcador global de ida y vuelta, no por el resultado de una sola pierna.'));
+   }
+  }else panels.push(...knockoutPanels(s,c.name,c.fixtures,c.id+':ko','Personalizado',c.champion));
  }
  return panels;
 }
