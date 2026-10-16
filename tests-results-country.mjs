@@ -15,10 +15,10 @@ const matches=[
 ];
 const E=x=>String(x??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
 const button=(text,action,attrs='')=>'<button data-action="'+action+'" '+attrs+'>'+text+'</button>';
-const render=new Function('ui','s','COUNTRIES','E','button','lookupMatch','played','leagueSummary','rndLabel','head','stat','matchEditorial','reportItem',
+const render=new Function('ui','s','COUNTRIES','E','button','lookupMatch','played','leagueSummary','rndLabel','head','stat','matchEditorial','reportItem','roundTablesHTML',
  body('resultsCountryPicker')+'\n'+body('resultsPage')+'\nreturn resultsPage;')(
  ui,s,COUNTRIES,E,button,id=>matches.find(m=>m.id===id),m=>m.played,()=>({round:1}),()=>'',a=>'<h1>'+a+'</h1>',
- (a,b)=>'<div data-stat="'+a+'">'+b+'</div>',m=>({headline:'Noticia '+m.id,lead:'Historia '+m.id}),m=>'<article data-match="'+m.id+'"></article>');
+ (a,b)=>'<div data-stat="'+a+'">'+b+'</div>',m=>({headline:'Noticia '+m.id,lead:'Historia '+m.id}),m=>'<article data-match="'+m.id+'"></article>',()=>'<section data-standings="stub"></section>');
 const cards=country=>{ui.reportCountry=country;const html=render();const actual=[...html.matchAll(/data-match="([^"]+)"/g)].map(x=>x[1]);
  assert.ok(html.includes('id="reportCountrySelect"'),'El filtro debe aparecer en los resultados');
  assert.ok(html.indexOf('id="reportCountrySelect"')<html.indexOf('report-hero'),'El filtro debe estar arriba de los marcadores');
