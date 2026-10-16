@@ -1,6 +1,19 @@
-# NOVERIA FOOTBALL UNIVERSE 5.0 · ¡EN VIVO 2D! ⚽📺
+# NOVERIA FOOTBALL UNIVERSE 5.1 · Prensa contextual 🎙️⚽
 
 Noveria es un universo ficticio de fútbol con **nueve países**, **252 clubes**, ligas, copas nacionales, copas continentales, mercado de pases, modos DT y federación, cantera, estadio, prensa, archivo histórico y partidas guardadas en local/Supabase.
+
+## 🆕 Noveria 5.1: ¡periodistas que siguen tus resultados!
+
+- **Preguntas basadas en el rendimiento real**: último marcador, rival, rachas, posición en la liga de cada país, riesgo de descenso, pelea por el liderato, lesionados, próximos partidos, clásico interzonal, moral, directiva, mercado y cantera.
+- **Tres periodistas por conferencia**, con preguntas y enfoques diversos. Cada una ofrece **tres respuestas específicas y distintas**, no cuatro frases que sirven para todo.
+- Cada elección publica una declaración auténtica en los periódicos y modifica, según el mensaje, la **moral del vestuario**, la **confianza de la directiva** y el **ánimo de la afición**. En pantalla se muestran los efectos antes de responder.
+- **Sin repetir infinitamente una entrevista**: tras las tres preguntas, la conferencia finaliza hasta que el club dispute otro encuentro o avance a otra temporada. El progreso, el historial y las consecuencias se guardan en el mismo JSON de la partida y Supabase si ya se configuró la nube.
+- Compatibilidad con los **nueve países**, las seis jornadas históricas originales (sin inventar datos de jugadores), la Jornada 7 pendiente, Noveria Live 2D y todos los sistemas previos.
+- NUEVO archivo `press-room.js`; la versión de caché del Service Worker cambia para que GitHub Pages muestre la nueva pantalla.
+
+### Actualizar desde Noveria 5.0
+
+Usar `Noveria_V5_1_SOLO_MODIFICADOS.zip`, extraer su contenido y subirlo a la **raíz del repositorio GitHub**, reemplazando los nombres existentes. **No** reemplazar `cloud-config.js` ni ejecutar SQL. Exportar JSON antes de subir. Preservar los demás archivos de Noveria 5.0.
 
 ## 🆕 Noveria 5.0: partidos en vivo 2D
 

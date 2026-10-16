@@ -1,28 +1,32 @@
-# NOVERIA 5.0 · LIVE 2D — Actualizar tu GitHub Pages
+# NOVERIA 5.1 · La sala de prensa cobra vida 🎙️⚽
 
-1. Antes de actualizar, abrí **Palmarés y partida → Descargar copia JSON** y guardá ese respaldo.
-2. Descargá `Noveria_V5_SOLO_ARCHIVOS_MODIFICADOS.zip` y extraé sus archivos.
-3. En tu repositorio `joshuadev2007/noveria-football-universe`, subí los archivos extraídos **a la raíz**, sustituyendo las versiones anteriores. Respetá nombres y carpetas.
-4. Hacé **Commit changes**, esperá a que GitHub Pages termine y abrí la página. Si ves la versión anterior, probá `Ctrl + F5` (o cerrá/reabrí la PWA).
-5. Entrá a **🔴 VER EN VIVO 2D**, seleccioná país y partido (Jornada 7 para empezar), pulsá **Reproducir**.
+## Actualizar GitHub Pages desde Noveria 5.0
 
-**¡IMPORTANTE!** La actualización parcial deliberadamente **NO** incluye `cloud-config.js`, `SUPABASE_SETUP.sql` ni claves: mantené tu configuración actual de **Joshua Cloud** intacta. No ejecutés SQL de nuevo.
+1. Abrí **Palmarés y partida** y descargá el respaldo JSON de tu partida **antes de actualizar**.
+2. Descargá y descomprimí `Noveria_V5_1_SOLO_MODIFICADOS.zip`.
+3. Entrá a tu repositorio `joshuadev2007/noveria-football-universe`.
+4. Subí **todos los archivos del ZIP a la raíz del repositorio**, reemplazando los anteriores: entre ellos `app.js`, `ecosystem.js`, `styles.css`, `index.html`, `service-worker.js` y el **nuevo** `press-room.js`. Conservá las demás carpetas y scripts anteriores.
+5. Hacé **Commit changes**, esperá que GitHub Pages actualice y recargá con `Ctrl + F5` en PC. En celular, cerrá y reabrí la PWA para actualizar el caché.
 
-### Cómo funciona el directo
+### ¡Importante sobre Joshua Cloud!
 
-- Para partidos sin disputar, el resultado se calcula internamente pero **se confirma en la liga solo al finalizar el directo**. Se muestran goles y otras acciones minuto a minuto sin anticipar el marcador.
-- Una jornada puede verse partido por partido. Si luego pulsás “Simular jornada”, el motor juega únicamente los encuentros pendientes y conserva los ya vistos.
-- Un partido de liga dura **120 segundos reales a velocidad x1**. Si es un choque eliminatorio que requiere tiempo adicional, podrá extenderse **20 segundos** para representar la prórroga.
-- En modo DT y con tu propio equipo podés cambiar táctica y hasta cinco jugadores. Algunas decisiones pueden alterar el resultado; no siempre te beneficiarán.
-- La repetición de un partido terminado **nunca cambia su resultado**. J1–J6 se muestran como historia sin inventar sus goles individuales.
-- Pausá para guardar la transmisión y reanudar desde el mismo navegador. Las partidas siguen guardándose localmente y, si ya configuraste Supabase, en la nube.
-- En el celular, tocá **☷ Más → 🔴 VER EN VIVO 2D**.
+La actualización **NO incluye `cloud-config.js`** ni modifica el SQL, las políticas de Supabase o las claves de tu proyecto. Si tu nube ya funcionaba, debería seguir funcionando tal como estaba. El nuevo historial de conferencias forma parte de la partida JSON y de la sincronización que ya existía.
 
-### Archivos añadidos
+### Qué encontrar en Noveria
 
-`live2d.js` (motor), `live-ui.js` (visualización y marcador), `live2d.css` (arena de fútbol). Los archivos actualizados son `app.js`, `engine.js`, `continent.js`, `international.js`, `index.html`, `styles.css`, `service-worker.js`, `README.md`, `package.json`, `NOVERIA-ABRIR.html`.
+- Menú: **🎙️ Rueda de prensa**.
+- Selector de club, posición, últimos cinco resultados, puntos y moral.
+- Tres preguntas distintas basadas en los marcadores y circunstancias *reales* del equipo; los titulares cambian según país, club y jornada.
+- Tres opciones por pregunta con declaraciones diferentes y variación visible de ánimo del vestuario, directiva y afición.
+- Historial de declaraciones y noticias en El Heraldo / La Tribuna / Radar.
+- Solo una conferencia de tres preguntas por ciclo de partidos del club. Se reabre después de disputar un nuevo partido.
 
-### Verificación
+Se conservan todos los partidos, el modo DT, nueve países, 252 clubes, temporadas, mercado y transmisiones en vivo 2D. La Jornada 7 de Veltrania sigue pendiente si no la simulaste antes de actualizar. **La actualización no genera resultados**.
 
-- Ejecutá `npm test` desde el repositorio si tenés Node.js.
-- Incluye `tests-live2d.mjs` con prueba de una jornada parcialmente televisada, fases finales, fichas, modo DT y archivos históricos.
+### Probar fuera de GitHub
+
+`NOVERIA-ABRIR.html` funciona como versión autónoma de prueba. Para que el guardado global funcione desde GitHub Pages, tu `cloud-config.js` publicado debe conservar URL y clave pública correctas de Joshua Cloud.
+
+### Ejecutar pruebas (opcional)
+
+Con Node.js: `npm test`. La suite incluye las pruebas de la rueda de prensa y el resto del simulador.
