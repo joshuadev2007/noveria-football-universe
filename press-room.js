@@ -40,10 +40,16 @@ export function pressMatchFocus(s,name){
  };
  const previous=(s.ecosystem?.pressFocus||{})[name];
  const pinned=previous&&candidates.find(x=>String(x.m.id)===String(previous));
- if(pinned&&played(pinned.m))return {...pinned,status:'post'};
- const done=candidates.filter(x=>played(x.m)).sort((a,b)=>rank(b.m)-rank(a.m)||String(b.m.id).localeCompare(String(a.m.id)));
- if(done.length)return {...done[0],status:'post'};
  const due=candidates.find(x=>!played(x.m)&&calendarMatchReady(s,x));
+ if(pinned&&played(pinned.m)){
+  const answered=s.ecosystem?.pressSessions?.[name+'::partido::'+pinned.m.id]?.completed;
+  return answered&&due?{...due,status:'pre'}:{...pinned,status:'post'};
+ }
+ const done=candidates.filter(x=>played(x.m)).sort((a,b)=>rank(b.m)-rank(a.m)||String(b.m.id).localeCompare(String(a.m.id)));
+ if(done.length){
+  const most=done[0],answered=s.ecosystem?.pressSessions?.[name+'::partido::'+most.m.id]?.completed;
+  return answered&&due?{...due,status:'pre'}:{...most,status:'post'};
+ }
  if(due)return {...due,status:'pre'};
  const next=candidates.filter(x=>!played(x.m)).sort((a,b)=>Number(a.m.round||0)-Number(b.m.round||0))[0];
  return next?{...next,status:'pre'}:null;
