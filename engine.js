@@ -90,8 +90,10 @@ export function simulateMatch(s,match,options={}){
   if(!options.silent)addNews(s,match.competition,match.headline,match.summary,match.id);
   return match;
 }
-export function simulateLeagueRound(s){const round=getLeagueNextRound(s);if(round>18)throw Error('El campeonato ya completó sus 18 jornadas');const matches=s.fixtures.filter(f=>f.round===round&&['LSV','LPV'].includes(f.competition));const newly=matches.filter(f=>!played(f));s.leagueRound=round;for(const m of newly)simulateMatch(s,m);reviewCoaches(s,round);
+export function finalizeLeagueRound(s,round){if(s.leagueRound>=round)return false;const games=s.fixtures.filter(f=>f.round===round&&['LSV','LPV'].includes(f.competition));if(!games.length||games.some(f=>!played(f)))return false;s.leagueRound=round;reviewCoaches(s,round);
   if(round===18){const annual=standings(s,'annual');setupPostseason(s);if(ensureMarket(s).market.status!=='open')openMarket(s,`Mercado de verano · tras el Apertura ${s.season}`);s.honours.push({title:'Escudo de Oro de Veltrania',winner:annual[0].name,season:String(s.season||2026)});s.teams[annual[0].name].trophies.push(`Escudo de Oro · ${s.season}`);addNews(s,'Campeonato',`${annual[0].name}, primer campeón del Escudo de Oro`,`${annual[0].name} termina en el primer lugar de la tabla general tras 18 partidos.`);}
+  return true;}
+export function simulateLeagueRound(s){const round=getLeagueNextRound(s);if(round>18)throw Error('El campeonato ya completó sus 18 jornadas');const matches=s.fixtures.filter(f=>f.round===round&&['LSV','LPV'].includes(f.competition));const newly=matches.filter(f=>!played(f));for(const m of newly)simulateMatch(s,m);finalizeLeagueRound(s,round);
   return {round,matches:newly};}
 export function scorers(s,limit=18){return Object.values(s.teams).flatMap(t=>t.players.map(p=>({...p,club:t.name}))).filter(p=>p.goals||p.assists).sort((a,b)=>b.goals-a.goals||b.assists-a.assists).slice(0,limit)}
 export function changeCoach(s,name,newCoach){const t=s.teams[name];if(!t||!newCoach?.trim())throw Error('Datos inválidos');const old=t.coach;t.coachHistory.unshift({out:old,in:newCoach.trim(),round:s.leagueRound});t.coach=newCoach.trim();t.board=within(t.board-7,10,100);addNews(s,'Directivas',`${name} cambia de entrenador`,`La directiva destituye a ${old} y anuncia a ${newCoach.trim()} como nuevo DT.`);return old;}
@@ -101,7 +103,7 @@ export function isCupGroupComplete(s){return s.cup.fixtures.filter(f=>f.group?.l
 function cupQualifierNames(s){const rows=CUP_GROUPS.map((g,i)=>ranking(s.cup.fixtures,g).map(x=>({...x,group:String.fromCharCode(65+i)})));
  const direct=rows.flatMap(r=>r.slice(0,2));const thirds=rows.map(r=>r[2]).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf).slice(0,2);return [...direct,...thirds].sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf).map(x=>x.name);}
 function knockoutRound(id,participants,number,stage,clubs){const n=participants.length;const fixtures=[];for(let i=0;i<n/2;i++){const high=participants[i],low=participants[n-1-i],a=clubs[high],b=clubs[low];const lower=a?.division==='LPV'&&b?.division==='LSV'?high:b?.division==='LPV'&&a?.division==='LSV'?low:high;const other=lower===high?low:high;fixtures.push({id:`${id}-${stage}-${i}`,competition:id,group:stage,round:number,slot:0,home:lower,away:other,played:false,legacy:false,scoreH:null,scoreA:null});}return fixtures;}
-export function simulateCupRound(s){const cup=s.cup;if(cup.champion)throw Error('La Copa ya tiene campeón');let upcoming=cup.fixtures.filter(f=>f.round===cup.round&&!played(f));if(!upcoming.length)throw Error('No quedan encuentros pendientes');for(const m of upcoming)simulateMatch(s,m);if(cup.phase==='groups'){
+export function simulateCupRound(s){const cup=s.cup;if(cup.champion)throw Error('La Copa ya tiene campeón');let upcoming=cup.fixtures.filter(f=>f.round===cup.round);if(!upcoming.length)throw Error('No quedan encuentros pendientes');for(const m of upcoming)if(!played(m))simulateMatch(s,m);if(cup.phase==='groups'){
  if(cup.round<3)cup.round++;else{cup.phase='octavos';cup.round=4;cup.fixtures.push(...knockoutRound('CUP',cupQualifierNames(s),4,'octavos',s.teams));}
  }else{
    const winners=upcoming.map(m=>{if(m.scoreH===m.scoreA){const r=seeded(m.id+'-pen-'+s.seed);m.penalties=r()<.5?`${4+Math.floor(r()*2)}-${2+Math.floor(r()*2)}`:`${2+Math.floor(r()*2)}-${4+Math.floor(r()*2)}`;m.winner=Number(m.penalties.split('-')[0])>Number(m.penalties.split('-')[1])?m.home:m.away;}else m.winner=m.scoreH>m.scoreA?m.home:m.away;return m.winner;});
@@ -178,8 +180,8 @@ export function createCompetition(s,name,clubNames,format='league'){
 }
 export function simulateCustomRound(s,id){
  const c=s.competitions.find(x=>x.id===id);if(!c||c.champion)throw Error('Competición no disponible');
- const pending=c.fixtures.filter(f=>f.round===c.round&&!played(f));if(!pending.length)throw Error('No hay partidos programados');
- for(const m of pending)simulateMatch(s,m);
+ const pending=c.fixtures.filter(f=>f.round===c.round);if(!pending.length)throw Error('No hay partidos programados');
+ for(const m of pending)if(!played(m))simulateMatch(s,m);
  if(c.type==='apertura'){
   if(c.stage==='regular'){
     if(c.round<18)c.round++;
@@ -237,7 +239,7 @@ export function validateImport(data){if(!data||data.version!==1||typeof data.tea
 function finalFixture(s,stage,leg,a,b,extra=''){return {id:`POST-${stage}-${leg}-${a.slice(0,4)}-${b.slice(0,4)}`,competition:'POST',group:stage,round:leg,slot:0,home:a,away:b,scoreH:null,scoreA:null,played:false,legacy:false,extra};}
 export function setupPostseason(s){if(s.postseason?.stage!=='locked')return;const winners=[...standings(s,'A').slice(0,2),...standings(s,'B').slice(0,2)].sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);s.postseason.stage='semifinales';s.postseason.leg=1;s.postseason.seeds=winners.map(t=>t.name);s.postseason.fixtures=[];for(const [a,b] of [[winners[0].name,winners[3].name],[winners[1].name,winners[2].name]]){s.postseason.fixtures.push(finalFixture(s,'semifinales',1,b,a));s.postseason.fixtures.push(finalFixture(s,'semifinales',2,a,b));}}
 function legWinner(s,fixtures){const [first,second]=fixtures;const a=first.home,b=first.away,ga=first.scoreH+second.scoreA,gb=first.scoreA+second.scoreH;if(ga!==gb)return ga>gb?a:b;const rng=seeded('post-pen-'+first.id+'-'+s.seed);second.penalties=rng()<.5?'5-4':'4-5';second.extraTime=true;return second.penalties==='5-4'?second.home:second.away;}
-export function simulatePostseasonRound(s){const p=s.postseason;if(!p||p.stage==='locked'||p.stage==='finalizada')throw Error('Todavía no está disponible la fase final');const games=p.fixtures.filter(f=>f.group===p.stage&&f.round===p.leg&&!played(f));if(!games.length)throw Error('No hay partidos pendientes');games.forEach(m=>simulateMatch(s,m));
+export function simulatePostseasonRound(s){const p=s.postseason;if(!p||p.stage==='locked'||p.stage==='finalizada')throw Error('Todavía no está disponible la fase final');const games=p.fixtures.filter(f=>f.group===p.stage&&f.round===p.leg);if(!games.length)throw Error('No hay partidos pendientes');games.forEach(m=>{if(!played(m))simulateMatch(s,m)});
  if(p.stage==='semifinales'){
   if(p.leg===1)p.leg=2;else{
    const rounds=p.fixtures.filter(f=>f.group==='semifinales');const winners=[legWinner(s,rounds.slice(0,2)),legWinner(s,rounds.slice(2,4))];const order=standings(s,'annual').map(x=>x.name);winners.sort((a,b)=>order.indexOf(a)-order.indexOf(b));const high=winners[0],low=winners[1];p.fixtures.push(finalFixture(s,'final',1,low,high),finalFixture(s,'final',2,high,low));p.stage='final';p.leg=1;

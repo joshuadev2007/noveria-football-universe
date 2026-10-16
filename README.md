@@ -1,6 +1,33 @@
-# NOVERIA Football Universe 4.0 — ARCALIS
+# NOVERIA FOOTBALL UNIVERSE 5.0 · ¡EN VIVO 2D! ⚽📺
 
-Simulador de fútbol ficticio en español, estático y compatible con GitHub Pages. Sin frameworks ni instalación de dependencias: `index.html`, `app.js`, `engine.js`, `data.js`, módulos de mundo, CSS, activos locales y guardado local.
+Noveria es un universo ficticio de fútbol con **nueve países**, **252 clubes**, ligas, copas nacionales, copas continentales, mercado de pases, modos DT y federación, cantera, estadio, prensa, archivo histórico y partidas guardadas en local/Supabase.
+
+## 🆕 Noveria 5.0: partidos en vivo 2D
+
+- Podés abrir la sección **🔴 VER EN VIVO 2D**, elegir país y cualquier partido programado que esté habilitado por su jornada. También aparece el botón **Ver en vivo 2D** junto a los marcadores.
+- Un partido de 90 minutos dura **dos minutos reales** a velocidad x1. Los empates decisivos de copas pueden agregar una breve prórroga visual.
+- Cancha vista desde arriba, 22 jugadores en movimiento, balón animado, marcador, narración, tiros, atajadas, córners, VAR, amarillas, rojas, cambios, lesiones y estadísticas finales.
+- Controles para **pausar**, **velocidad x1/x2/x4**, **sonido de estadio**, **cámaras**, **repetir gol** y **repetir el partido**. Al final, un acceso directo a **El Heraldo de Noveria**.
+- **Modo DT** con órdenes tácticas ofensivas/defensivas y hasta **5 sustituciones** que pueden influir en el desenlace. No garantizan resultados.
+- La vista es una **representación táctica 2D de la simulación**, no un videojuego de fútbol con física completa. Los remates, córners y acciones provienen de la ficha creada por el motor.
+- Los resultados futuros **no se anotan en las tablas hasta terminar la transmisión**. Si salís antes, el directo queda pausado en la partida.
+- Los partidos ya disputados se reproducen sin volver a jugarlos. Las seis jornadas históricas importadas de 2026 **no tienen goleadores o jugadas inventados**.
+- Compatible con el guardado local, respaldos JSON y la sincronización Supabase ya configurada.
+
+## Instalar o actualizar
+
+1. Descargá el ZIP. Extraé los archivos directamente en la raíz de tu repositorio GitHub Pages.
+2. Los archivos principales de la web son `index.html`, `app.js`, `engine.js`, `live2d.js`, `live-ui.js`, `styles.css`, `live2d.css` y otros módulos auxiliares.
+3. **No reemplaces `cloud-config.js` si ya configuraste Joshua Cloud.** El ZIP de actualización parcial no lo incluye.
+4. Publicá en GitHub y recargá. No se modifica ningún dato histórico existente.
+
+Ver `COMO_ACTUALIZAR.md` para las instrucciones detalladas. La versión `NOVERIA-ABRIR.html` sirve para abrir una demostración autónoma sin instalar herramientas.
+
+## Pruebas
+
+Con Node.js: `npm test`. Incluye tests de ligas, jornadas históricas, mercado, Supabase, temporadas y modo en vivo 2D.
+
+---
 
 ## El universo
 
