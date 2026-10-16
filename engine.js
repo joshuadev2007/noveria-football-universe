@@ -1,4 +1,5 @@
 import {TEAMS,FIXTURES,FOREIGN_COUNTRIES} from './data.js';
+import {cyclePhase,cycleKey,cycleName,cycleNext,cycleIsAnnualFinal,annualMatches} from './season-cycle.js';
 
 export const STORAGE_KEY='noveria-universe-save-v1';
 export const FIRST_NAMES=['Mateo','Thiago','Damián','Emiliano','Bruno','Santiago','Noah','Iker','Adrián','Gael','Elian','Nicolás','Alexis','Kevin','Samuel','Héctor','Marco','Iván','Gabriel','Luca','Enzo','Erik','Lucas','Rafael','Daniel','Jesús','Oliver','Aaron','Raúl','Diego','Joel','Néstor','Emanuel','Ángel','Axel','Esteban','Julián','Leandro','Hugo','Luis','Pablo','Leonardo','Sergio','Matías','Darío','Jairo','Rubén','Ariel','Elías','Benjamín','Sebastián'];
@@ -22,18 +23,18 @@ export function createRoster(team){const r=seeded('squad-'+team.name);return POS
 export function defaultTeam(seed){const r=seeded(seed.name);const coach=pick(FIRST_NAMES,r)+' '+pick(LAST_NAMES,r);return {...seed,coach,president:pick(FIRST_NAMES,r)+' '+pick(LAST_NAMES,r),director:pick(FIRST_NAMES,r)+' '+pick(LAST_NAMES,r),formation:'4-3-3',tactic:pick(['Equilibrado','Posesión','Presión alta','Contraataque'],r),morale:64+Math.floor(r()*21),board:55+Math.floor(r()*30),kits:[{p:seed.primary,s:seed.secondary,pattern:'stripes',sponsor:'NOVERIA'},{p:seed.secondary,s:seed.primary,pattern:'plain',sponsor:'NOVERIA'},{p:'#172438',s:seed.primary,pattern:'diagonal',sponsor:'NOVERIA'}],players:createRoster(seed),trophies:[],coachHistory:[]};}
 function makeGroupFixtures(teams,group,comp){const rounds=[[ [0,3],[1,2] ],[[0,2],[3,1]],[[0,1],[2,3]]];return rounds.flatMap((pairs,rd)=>pairs.map(([i,j],k)=>({id:`${comp}-${group}-${rd+1}-${k}`,competition:comp,group,round:rd+1,slot:0,home:teams[rd===1?j:i],away:teams[rd===1?i:j],played:false,legacy:false,scoreH:null,scoreA:null})));}
 function initialCup(){return {phase:'groups',round:1,fixtures:CUP_GROUPS.flatMap((g,i)=>makeGroupFixtures(g,String.fromCharCode(65+i),'CUP')),champion:null};}
-export function freshState(){return {version:1,seed:Math.floor(Math.random()*1e8),leagueRound:6,season:2026,archive:[],slotMap:Object.fromEntries(TEAMS.filter(t=>t.division!=='EXT').map(t=>[t.name,t.name])),mode:'president',managedClub:'Unión Popular Aurena',teams:Object.fromEntries(TEAMS.map(t=>[t.name,defaultTeam(t)])),fixtures:structuredClone(FIXTURES),cup:initialCup(),postseason:{stage:'locked',leg:1,fixtures:[],apertura:null,recopa:null},competitions:[],news:[{id:'welcome',category:'Universo',title:'Noveria inaugura su primera era futbolística',description:'Todos los clubes comienzan con cero títulos. Se han incorporado las seis primeras jornadas del Apertura 2026.',date:'Fundación del universo'}],transfers:[],market:{status:'closed',cycle:0,day:0,maxDays:12,title:'Mercado de Noveria',offers:[],shortlist:[],log:[],lastReport:null,training:[]},honours:[],settings:{sound:true}};}
+export function freshState(){return {version:1,seed:Math.floor(Math.random()*1e8),leagueRound:6,season:2026,edition:'Apertura',archive:[],slotMap:Object.fromEntries(TEAMS.filter(t=>t.division!=='EXT').map(t=>[t.name,t.name])),mode:'president',managedClub:'Unión Popular Aurena',teams:Object.fromEntries(TEAMS.map(t=>[t.name,defaultTeam(t)])),fixtures:structuredClone(FIXTURES),cup:initialCup(),postseason:{stage:'locked',leg:1,fixtures:[],apertura:null,recopa:null},competitions:[],news:[{id:'welcome',category:'Universo',title:'Noveria inaugura su primera era futbolística',description:'Todos los clubes comienzan con cero títulos. Se han incorporado las seis primeras jornadas del Apertura 2026.',date:'Fundación del universo'}],transfers:[],market:{status:'closed',cycle:0,day:0,maxDays:12,title:'Mercado de Noveria',offers:[],shortlist:[],log:[],lastReport:null,training:[]},honours:[],settings:{sound:true}};}
 export function load(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY));if(s?.version===1&&s.teams&&Array.isArray(s.fixtures)&&s.cup)return ensureMarket(s);}catch(e){console.warn('No se pudo cargar la partida',e)}return freshState()}
 export function persist(s){localStorage.setItem(STORAGE_KEY,JSON.stringify(s))}
 export const isKnownTeam=(s,name)=>Boolean(s.teams[name]);
 export const played=(f)=>f.played&&Number.isInteger(f.scoreH)&&Number.isInteger(f.scoreA);
 export function ranking(matches,names){const set=new Set(names);const rows=Object.fromEntries(names.map(name=>[name,{name,pj:0,w:0,d:0,l:0,gf:0,gc:0,gd:0,pts:0}]));for(const f of matches){if(!played(f)||(!set.has(f.home)&&!set.has(f.away)))continue;const h=rows[f.home],a=rows[f.away];if(h){h.pj++;h.gf+=f.scoreH;h.gc+=f.scoreA;if(f.scoreH>f.scoreA){h.w++;h.pts+=3}else if(f.scoreH<f.scoreA)h.l++;else{h.d++;h.pts++;}}if(a){a.pj++;a.gf+=f.scoreA;a.gc+=f.scoreH;if(f.scoreA>f.scoreH){a.w++;a.pts+=3}else if(f.scoreA<f.scoreH)a.l++;else{a.d++;a.pts++;}}}return Object.values(rows).map(x=>({...x,gd:x.gf-x.gc})).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||a.name.localeCompare(b.name,'es'));}
-export function standings(s,group){const names=Object.values(s.teams).filter(t=>t.country==='Veltrania'&&(group==='annual'?t.division==='LSV':t.group===group)).map(t=>t.name);const matches=group==='S'?s.fixtures.filter(f=>f.competition==='LPV'):s.fixtures.filter(f=>f.competition==='LSV');return ranking(matches,names)}
+export function standings(s,group){const names=Object.values(s.teams).filter(t=>t.country==='Veltrania'&&(group==='annual'?t.division==='LSV':t.group===group)).map(t=>t.name);const matches=group==='S'?s.fixtures.filter(f=>f.competition==='LPV'):group==='annual'?annualMatches(s):s.fixtures.filter(f=>f.competition==='LSV');return ranking(matches,names)}
 export function leagueMatches(s,round,division='LSV'){return s.fixtures.filter(f=>f.round===round&&f.competition===division).sort((a,b)=>(a.slot||0)-(b.slot||0)||a.id.localeCompare(b.id))}
 export function getLeagueNextRound(s){for(let rd=1;rd<=18;rd++){const f=s.fixtures.filter(m=>m.round===rd&&['LSV','LPV'].includes(m.competition));if(f.some(m=>!played(m)))return rd;}return 19}
 function poisson(lambda,r){let l=Math.exp(-lambda),p=1,k=0;do{p*=r();k++}while(p>l&&k<9);return Math.min(6,k-1)}
 function weightedPlayer(team,r,eleven){const candidates=(eleven||team.players.slice(0,11)).filter(p=>p.pos!=='POR');const weighted=candidates.map(p=>({p,w:['DC','ED','EI','MCO','MP'].includes(p.pos)?7:['MC','MI','MD'].includes(p.pos)?3:1}));const tot=weighted.reduce((sum,v)=>sum+v.w,0);let v=r()*tot;for(const x of weighted){v-=x.w;if(v<0)return x.p}return candidates[0];}
-function addNews(s,category,title,description,related){s.news.unshift({id:'n-'+s.seed+'-'+(s.news.length+1),category,title,description,related,date:'Apertura '+(s.season||2026)+' · Jornada '+Math.max(s.leagueRound,1)});if(s.news.length>240)s.news=s.news.slice(0,240)}
+function addNews(s,category,title,description,related){s.news.unshift({id:'n-'+s.seed+'-'+(s.news.length+1),category,title,description,related,date:cycleName(s)+' · Jornada '+Math.max(s.leagueRound,1)});if(s.news.length>240)s.news=s.news.slice(0,240)}
 function rate(team){const first=team.players.slice(0,11);const avg=first.reduce((sum,p)=>sum+p.ovr,0)/first.length;return (team.rating*.65+avg*.35);}
 export function simulateMatch(s,match,options={}){
   if(played(match))return match;
@@ -91,7 +92,7 @@ export function simulateMatch(s,match,options={}){
   return match;
 }
 export function finalizeLeagueRound(s,round){if(s.leagueRound>=round)return false;const games=s.fixtures.filter(f=>f.round===round&&['LSV','LPV'].includes(f.competition));if(!games.length||games.some(f=>!played(f)))return false;s.leagueRound=round;reviewCoaches(s,round);
-  if(round===18){const annual=standings(s,'annual');setupPostseason(s);if(ensureMarket(s).market.status!=='open')openMarket(s,`Mercado de verano · tras el Apertura ${s.season}`);s.honours.push({title:'Escudo de Oro de Veltrania',winner:annual[0].name,season:String(s.season||2026)});s.teams[annual[0].name].trophies.push(`Escudo de Oro · ${s.season}`);addNews(s,'Campeonato',`${annual[0].name}, primer campeón del Escudo de Oro`,`${annual[0].name} termina en el primer lugar de la tabla general tras 18 partidos.`);}
+  if(round===18){setupPostseason(s);if(ensureMarket(s).market.status!=='open')openMarket(s,`Mercado tras ${cycleName(s)}`);if(cycleIsAnnualFinal(s)&&!s.honours.some(h=>h.title==='Escudo de Oro de Veltrania'&&Number(h.season)===s.season)){const annual=standings(s,'annual');s.honours.push({title:'Escudo de Oro de Veltrania',winner:annual[0].name,season:String(s.season),edition:cyclePhase(s)});s.teams[annual[0].name].trophies.push(`Escudo de Oro · ${s.season}`);addNews(s,'Campeonato',`${annual[0].name} conquista el Escudo de Oro ${s.season}`,`Lidera la tabla anual acumulada de ${s.season}.`);}}
   return true;}
 export function simulateLeagueRound(s){const round=getLeagueNextRound(s);if(round>18)throw Error('El campeonato ya completó sus 18 jornadas');const matches=s.fixtures.filter(f=>f.round===round&&['LSV','LPV'].includes(f.competition));const newly=matches.filter(f=>!played(f));for(const m of newly)simulateMatch(s,m);finalizeLeagueRound(s,round);
   return {round,matches:newly};}
@@ -102,13 +103,13 @@ export function leagueSummary(s){const total=s.fixtures.filter(f=>played(f)&&['L
 export function isCupGroupComplete(s){return s.cup.fixtures.filter(f=>f.group?.length===1).every(played)}
 function cupQualifierNames(s){const rows=CUP_GROUPS.map((g,i)=>ranking(s.cup.fixtures,g).map(x=>({...x,group:String.fromCharCode(65+i)})));
  const direct=rows.flatMap(r=>r.slice(0,2));const thirds=rows.map(r=>r[2]).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf).slice(0,2);return [...direct,...thirds].sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf).map(x=>x.name);}
-function knockoutRound(id,participants,number,stage,clubs){const n=participants.length;const fixtures=[];for(let i=0;i<n/2;i++){const high=participants[i],low=participants[n-1-i],a=clubs[high],b=clubs[low];const lower=a?.division==='LPV'&&b?.division==='LSV'?high:b?.division==='LPV'&&a?.division==='LSV'?low:high;const other=lower===high?low:high;fixtures.push({id:`${id}-${stage}-${i}`,competition:id,group:stage,round:number,slot:0,home:lower,away:other,played:false,legacy:false,scoreH:null,scoreA:null});}return fixtures;}
+function knockoutRound(id,participants,number,stage,clubs,cycle=''){const n=participants.length;const fixtures=[];for(let i=0;i<n/2;i++){const high=participants[i],low=participants[n-1-i],a=clubs[high],b=clubs[low];const lower=a?.division==='LPV'&&b?.division==='LSV'?high:b?.division==='LPV'&&a?.division==='LSV'?low:high;const other=lower===high?low:high;fixtures.push({id:`${id}-${stage}-${i}${cycle?'-'+cycle:''}`,competition:id,group:stage,round:number,slot:0,home:lower,away:other,played:false,legacy:false,scoreH:null,scoreA:null});}return fixtures;}
 export function simulateCupRound(s){const cup=s.cup;if(cup.champion)throw Error('La Copa ya tiene campeón');let upcoming=cup.fixtures.filter(f=>f.round===cup.round);if(!upcoming.length)throw Error('No quedan encuentros pendientes');for(const m of upcoming)if(!played(m))simulateMatch(s,m);if(cup.phase==='groups'){
- if(cup.round<3)cup.round++;else{cup.phase='octavos';cup.round=4;cup.fixtures.push(...knockoutRound('CUP',cupQualifierNames(s),4,'octavos',s.teams));}
+ if(cup.round<3)cup.round++;else{cup.phase='octavos';cup.round=4;cup.fixtures.push(...knockoutRound('CUP',cupQualifierNames(s),4,'octavos',s.teams,cycleKey(s)));}
  }else{
    const winners=upcoming.map(m=>{if(m.scoreH===m.scoreA){const r=seeded(m.id+'-pen-'+s.seed);m.penalties=r()<.5?`${4+Math.floor(r()*2)}-${2+Math.floor(r()*2)}`:`${2+Math.floor(r()*2)}-${4+Math.floor(r()*2)}`;m.winner=Number(m.penalties.split('-')[0])>Number(m.penalties.split('-')[1])?m.home:m.away;}else m.winner=m.scoreH>m.scoreA?m.home:m.away;return m.winner;});
-   if(winners.length===1){cup.champion=winners[0];cup.phase='finalizada';s.honours.push({title:'Copa de las Provincias',winner:winners[0],season:String(s.season||2026)});s.teams[winners[0]].trophies.push(`Copa de las Provincias · ${s.season}`);addNews(s,'Copa',`¡${winners[0]} conquista la Copa de las Provincias!`,'Se corona el primer campeón copero de la historia de Veltrania.');}
-   else{const stages={octavos:'cuartos',cuartos:'semifinales',semifinales:'final'};cup.phase=stages[cup.phase]||'final';cup.round++;cup.fixtures.push(...knockoutRound('CUP',winners,cup.round,cup.phase,s.teams));}
+   if(winners.length===1){cup.champion=winners[0];cup.phase='finalizada';s.honours.push({title:s.season===2026?'Copa de las Provincias':`Copa de las Provincias · ${cycleName(s)}`,winner:winners[0],season:String(s.season),edition:cyclePhase(s)});s.teams[winners[0]].trophies.push(`Copa de las Provincias · ${cycleName(s)}`);addNews(s,'Copa',`¡${winners[0]} gana la Copa en ${cycleName(s)}!`,'La edición copera tiene nuevo campeón.');}
+   else{const stages={octavos:'cuartos',cuartos:'semifinales',semifinales:'final'};cup.phase=stages[cup.phase]||'final';cup.round++;cup.fixtures.push(...knockoutRound('CUP',winners,cup.round,cup.phase,s.teams,cycleKey(s)));}
  }
  return upcoming;
 }
@@ -236,7 +237,7 @@ export function simulateCustomRound(s,id){
 }
 export function validateImport(data){if(!data||data.version!==1||typeof data.teams!=='object'||!Array.isArray(data.fixtures)||!data.cup||!Array.isArray(data.competitions))throw Error('Archivo de partida incompatible');if(!data.teams['Unión Popular Aurena'])throw Error('La partida no contiene los clubes de Veltrania');return data;}
 
-function finalFixture(s,stage,leg,a,b,extra=''){return {id:`POST-${stage}-${leg}-${a.slice(0,4)}-${b.slice(0,4)}`,competition:'POST',group:stage,round:leg,slot:0,home:a,away:b,scoreH:null,scoreA:null,played:false,legacy:false,extra};}
+function finalFixture(s,stage,leg,a,b,extra=''){return {id:`POST-${cycleKey(s)}-${stage}-${leg}-${a.slice(0,4)}-${b.slice(0,4)}`,competition:'POST',group:stage,round:leg,slot:0,home:a,away:b,scoreH:null,scoreA:null,played:false,legacy:false,extra};}
 export function setupPostseason(s){if(s.postseason?.stage!=='locked')return;const winners=[...standings(s,'A').slice(0,2),...standings(s,'B').slice(0,2)].sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);s.postseason.stage='semifinales';s.postseason.leg=1;s.postseason.seeds=winners.map(t=>t.name);s.postseason.fixtures=[];for(const [a,b] of [[winners[0].name,winners[3].name],[winners[1].name,winners[2].name]]){s.postseason.fixtures.push(finalFixture(s,'semifinales',1,b,a));s.postseason.fixtures.push(finalFixture(s,'semifinales',2,a,b));}}
 function legWinner(s,fixtures){const [first,second]=fixtures;const a=first.home,b=first.away,ga=first.scoreH+second.scoreA,gb=first.scoreA+second.scoreH;if(ga!==gb)return ga>gb?a:b;const rng=seeded('post-pen-'+first.id+'-'+s.seed);second.penalties=rng()<.5?'5-4':'4-5';second.extraTime=true;return second.penalties==='5-4'?second.home:second.away;}
 export function simulatePostseasonRound(s){const p=s.postseason;if(!p||p.stage==='locked'||p.stage==='finalizada')throw Error('Todavía no está disponible la fase final');const games=p.fixtures.filter(f=>f.group===p.stage&&f.round===p.leg);if(!games.length)throw Error('No hay partidos pendientes');games.forEach(m=>{if(!played(m))simulateMatch(s,m)});
@@ -245,9 +246,9 @@ export function simulatePostseasonRound(s){const p=s.postseason;if(!p||p.stage==
    const rounds=p.fixtures.filter(f=>f.group==='semifinales');const winners=[legWinner(s,rounds.slice(0,2)),legWinner(s,rounds.slice(2,4))];const order=standings(s,'annual').map(x=>x.name);winners.sort((a,b)=>order.indexOf(a)-order.indexOf(b));const high=winners[0],low=winners[1];p.fixtures.push(finalFixture(s,'final',1,low,high),finalFixture(s,'final',2,high,low));p.stage='final';p.leg=1;
   }
  }else if(p.stage==='final'){
-  if(p.leg===1)p.leg=2;else{const finals=p.fixtures.filter(f=>f.group==='final');const winner=legWinner(s,finals);p.apertura=winner;s.honours.push({title:`Apertura ${s.season}`,winner,season:String(s.season||2026)});s.teams[winner].trophies.push(`Apertura · ${s.season}`);s.teams[winner].budget+=.01;addNews(s,'Campeones',`${winner} es campeón del Apertura ${s.season}`,`Primer monarca de la Liga Suprema Veltrana y ganador de 10.000 VLR.`);const annual=standings(s,'annual').map(t=>t.name),opponent=annual[0]===winner?annual[1]:annual[0];p.fixtures.push(finalFixture(s,'recopa',1,winner,opponent,'Sede neutral · Estadio Nacional de Veltrania'));p.stage='recopa';p.leg=1;}
+  if(p.leg===1)p.leg=2;else{const finals=p.fixtures.filter(f=>f.group==='final');const winner=legWinner(s,finals);p[cyclePhase(s).toLowerCase()]=winner;s.honours.push({title:cycleName(s),winner,season:String(s.season),edition:cyclePhase(s)});s.teams[winner].trophies.push(cycleName(s));s.teams[winner].budget+=.01;addNews(s,'Campeones',`${winner} es campeón de ${cycleName(s)}`,`Conquista la Liga Suprema Veltrana en ${cycleName(s)}.`);const annual=standings(s,'annual').map(t=>t.name),opponent=annual[0]===winner?annual[1]:annual[0];p.fixtures.push(finalFixture(s,'recopa',1,winner,opponent,'Sede neutral · Estadio Nacional de Veltrania'));p.stage='recopa';p.leg=1;}
  }else if(p.stage==='recopa'){
- const final=games[0];if(final.scoreH===final.scoreA){const r=seeded(final.id+'-recopa-'+s.seed);final.extraTime=true;final.penalties=r()<.5?'5-4':'4-5';}const champ=final.scoreH>final.scoreA?final.home:final.scoreH<final.scoreA?final.away:final.penalties==='5-4'?final.home:final.away;p.recopa=champ;p.stage='finalizada';s.honours.push({title:'Recopa Veltrana',winner:champ,season:String(s.season||2026)});s.teams[champ].trophies.push(`Recopa Veltrana · ${s.season}`);addNews(s,'Campeones',`${champ} levanta la Recopa Veltrana`,'Primer campeón de la Recopa en un encuentro a partido único.');
+ const final=games[0];if(final.scoreH===final.scoreA){const r=seeded(final.id+'-recopa-'+s.seed);final.extraTime=true;final.penalties=r()<.5?'5-4':'4-5';}const champ=final.scoreH>final.scoreA?final.home:final.scoreH<final.scoreA?final.away:final.penalties==='5-4'?final.home:final.away;p.recopa=champ;p.stage='finalizada';s.honours.push({title:s.season===2026?'Recopa Veltrana':`Recopa Veltrana · ${cycleName(s)}`,winner:champ,season:String(s.season),edition:cyclePhase(s)});s.teams[champ].trophies.push(`Recopa Veltrana · ${cycleName(s)}`);addNews(s,'Campeones',`${champ} levanta la Recopa de ${cycleName(s)}`,'Título oficial definido a partido único.');
  }return games;
 }
 
@@ -385,38 +386,40 @@ export function recruitAcademyPlayer(s,name){
 
 // NUEVAS TEMPORADAS: calendario renovado, ascensos/descensos e historia intacta.
 export function startNextSeason(s){
- ensureMarket(s);
- if(s.postseason?.stage!=='finalizada')throw Error('Primero hay que terminar las semifinales, final y Recopa');
- if(s.market.status==='open')throw Error('Primero cerrá el mercado de pases actual');
- const fallenA=standings(s,'A').at(-1).name,fallenB=standings(s,'B').at(-1).name;
- const promoted=standings(s,'S').slice(0,2).map(x=>x.name);
- const archive={season:s.season,fixtures:s.fixtures,postseason:s.postseason,cup:s.cup,annual:standings(s,'annual').map(r=>({...r})),A:standings(s,'A'),B:standings(s,'B'),second:standings(s,'S'),relegated:[fallenA,fallenB],promoted:[...promoted]};
- s.archive.unshift(archive);
- // La estructura oficial original tiene 9 plazas A, 9 B y 10 S.
- // Cada ascendido ocupa exactamente la plaza del descendido; las 9 localías
- // y 9 visitas del calendario original se mantienen cada temporada.
- const keys=Object.keys(s.slotMap);
- function swapNames(a,b){const k1=keys.find(k=>s.slotMap[k]===a),k2=keys.find(k=>s.slotMap[k]===b);
-  if(!k1||!k2)throw Error('No se encontraron plazas de clasificación para '+a+' / '+b);
-  [s.slotMap[k1],s.slotMap[k2]]=[s.slotMap[k2],s.slotMap[k1]];
- }
- swapNames(fallenA,promoted[0]);swapNames(fallenB,promoted[1]);
- for(const t of TEAMS.filter(t=>t.division!=='EXT')){
-  const team=s.teams[s.slotMap[t.name]];team.group=t.group;team.division=t.division;
+ ensureMarket(s);if(s.postseason?.stage!=='finalizada')throw Error('Terminá la final y la Recopa antes de cambiar de torneo');
+ if(s.market.status==='open')throw Error('Cerrá el mercado de pases antes del siguiente torneo');
+ const complete=cycleIsAnnualFinal(s),old=s.season,next=cycleNext(s),newKey=next.season+'-'+next.edition;
+ const fallenA=complete?standings(s,'A').at(-1).name:null,fallenB=complete?standings(s,'B').at(-1).name:null,
+ promoted=complete?standings(s,'S').slice(0,2).map(r=>r.name):[];
+ const oldArchive={season:s.season,edition:cyclePhase(s),key:cycleKey(s),fixtures:s.fixtures,cup:s.cup,
+  postseason:s.postseason,annual:standings(s,'annual').map(r=>({...r})),A:standings(s,'A'),B:standings(s,'B'),
+  second:standings(s,'S'),relegated:complete?[fallenA,fallenB]:[],promoted:[...promoted],calendar:s.calendar||null};
+ s.archive.unshift(oldArchive);
+ if(complete){
+  const keys=Object.keys(s.slotMap);
+  function swapNames(a,b){const k1=keys.find(k=>s.slotMap[k]===a),k2=keys.find(k=>s.slotMap[k]===b);
+   if(!k1||!k2)throw Error('No se hallaron las plazas para '+a+' / '+b);
+   [s.slotMap[k1],s.slotMap[k2]]=[s.slotMap[k2],s.slotMap[k1]];}
+  swapNames(fallenA,promoted[0]);swapNames(fallenB,promoted[1]);
+  for(const t of TEAMS.filter(t=>t.division!=='EXT')){const team=s.teams[s.slotMap[t.name]];team.group=t.group;team.division=t.division;}
  }
  for(const t of Object.values(s.teams)){
-  for(const yp of t.youth||[]){yp.age++;yp.ovr=Math.min(yp.pot,yp.ovr+(yp.age<19?1:0));}t.youth=(t.youth||[]).filter(p=>p.age<=21);for(const p of t.players){p.age++;if(Number.isInteger(p.contractYears)&&p.contractYears>1)p.contractYears--;p.outGames=0;}
-  if(t.division==='LSV')t.budget=+(t.budget+2.3).toFixed(3);
-  else if(t.division==='LPV')t.budget=+(t.budget+1.2).toFixed(3);
+  if(next.season!==old){for(const p of t.youth||[]){p.age++;p.ovr=Math.min(p.pot,p.ovr+(p.age<19?1:0));}
+   t.youth=(t.youth||[]).filter(p=>p.age<=21);
+   for(const p of t.players){p.age++;if(Number.isInteger(p.contractYears)&&p.contractYears>1)p.contractYears--;}}
+  for(const p of t.players)p.outGames=0;
+  if(t.division==='LSV')t.budget=+(t.budget+1.4).toFixed(3);
+  else if(t.division==='LPV')t.budget=+(t.budget+.8).toFixed(3);
  }
- s.season++;
- s.fixtures=FIXTURES.map(f=>({id:f.id+'-'+s.season,competition:f.competition,group:f.group,round:f.round,slot:f.slot,seq:f.seq,home:s.slotMap[f.home],away:s.slotMap[f.away],scoreH:null,scoreA:null,played:false,legacy:false}));
- s.cup=initialCup();s.cup.fixtures.forEach(f=>f.id=f.id+'-'+s.season);
- s.postseason={stage:'locked',leg:1,fixtures:[],apertura:null,recopa:null};s.leagueRound=0;
- s.market.status='closed';s.market.offers=[];s.market.log=[];
- s.market.title='Mercado de Noveria';
- // Reiniciar exclusivamente el cursor de fechas; no modificar el archivo histórico.
- delete s.calendar;
- addNews(s,'Nueva temporada',`¡Comienza el Apertura ${s.season}!`,`${promoted.join(' y ')} ascienden. ${fallenA} y ${fallenB} disputarán la Liga de Plata.`);
- return {season:s.season,promoted,relegated:[fallenA,fallenB]};
+ s.season=next.season;s.edition=next.edition;
+ s.fixtures=FIXTURES.map(f=>({id:f.id+'-'+newKey,competition:f.competition,group:f.group,round:f.round,slot:f.slot,seq:f.seq,
+  home:s.slotMap[f.home],away:s.slotMap[f.away],scoreH:null,scoreA:null,played:false,legacy:false}));
+ s.cup=initialCup();s.cup.fixtures.forEach(f=>f.id+='-'+newKey);
+ s.postseason={stage:'locked',leg:1,fixtures:[],apertura:null,clausura:null,recopa:null};s.leagueRound=0;
+ s.market.status='closed';s.market.offers=[];s.market.log=[];s.market.title='Mercado de Noveria';
+ delete s.calendar;delete s.broadcast;
+ addNews(s,'Nueva temporada',`¡Comienza ${cycleName(s)}!`,
+  complete?`${promoted.join(' y ')} ascienden y ${fallenA}, ${fallenB} descienden.`
+   :'Comienza otro torneo corto. La tabla anual sumará Clausura y Apertura.');
+ return {season:s.season,edition:s.edition,name:cycleName(s),promoted,relegated:oldArchive.relegated};
 }
