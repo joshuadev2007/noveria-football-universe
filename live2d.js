@@ -2,6 +2,7 @@
  * No altera partidos históricos ni estadísticas hasta que termina la transmisión.
  */
 import {simulateMatch,played} from './engine.js';
+import {calendarMatchReady} from './calendar.js';
 export const LIVE_SECONDS=120;
 const hash=(str)=>{let h=2166136261;for(const c of String(str))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
 const pct=(str)=>hash(str)/4294967295;
@@ -19,6 +20,7 @@ export function findBroadcastFixture(s,id){return fixtureSources(s).find(x=>x.m.
 export function matchIsAvailable(s,entry){
  if(!entry)return false;
  const {m,kind,owner}=entry;if(played(m))return true;
+ if(!calendarMatchReady(s,entry))return false;
  switch(kind){
  case 'league':return m.round===Math.min(18,Math.max(1,(()=>{for(let r=1;r<=18;r++)if(s.fixtures.some(f=>f.round===r&&!played(f)))return r;return 19})()));
  case 'foreign-league':return m.round===owner.round+1;
