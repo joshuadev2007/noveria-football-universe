@@ -39,7 +39,7 @@ graduate.ovr=Math.min(99,graduate.ovr+15);graduate.pot=Math.max(graduate.pot,gra
 assert.ok(teamOverall(s,team)>oldOverall);
 graduate.ovr=oldOvr;
 const lead=matchLineup(team).starters.find(p=>p.pos!=='POR');
-lead.pot=lead.ovr+1;const oldPot=lead.pot;
+lead.age=21;lead.pot=lead.ovr+1;const oldPot=lead.pot;
 for(let i=0;i<14;i++){
  const m={id:'career-form-'+i,home:teamName,away:rival,played:true,scoreH:3,scoreA:0,
  lineups:{home:matchLineup(team).starters.map(p=>p.id),away:matchLineup(s.teams[rival]).starters.map(p=>p.id)},
