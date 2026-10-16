@@ -211,7 +211,7 @@ function resultsPage(){
  const rr=ui.report;let matches=[],label='',sub='';
  if(Array.isArray(rr?.ids)){matches=rr.ids.map(lookupMatch).filter(Boolean);label=rr.comp||'Fecha disputada';sub='La fecha que acabás de simular: todos los resultados y un periódico diferente para cada partido.';}
  else{const round=rr?.round||leagueSummary(s).round||6;matches=s.fixtures.filter(m=>m.round===round&&['LSV','LPV'].includes(m.competition));label=rndLabel(round);sub='Abrí cada marcador para leer la crónica del encuentro.';}
- const done=matches.filter(played),goals=done.reduce((sum,m)=>sum+m.scoreH+m.scoreA,0);
+ const done=matches.filter(played);
  const matchCountries=m=>[s.teams[m.home]?.country,s.teams[m.away]?.country].filter(Boolean);
  const counts=Object.fromEntries(['Todos',...COUNTRIES].map(c=>[c,c==='Todos'?done.length:done.filter(m=>matchCountries(m).includes(c)).length]));
  const selected=['Todos',...COUNTRIES].includes(ui.reportCountry)?ui.reportCountry:'Todos';
@@ -223,11 +223,11 @@ function resultsPage(){
  const feature=[...relevant].sort((a,b)=>drama(b)-drama(a)||String(a.id).localeCompare(String(b.id)))[0]||null;
  const wrap=(items,heading)=>items.length?`<section class="card reportsection"><div class="between"><h2 class="h2">${E(heading)}</h2><span class="tag">${items.length} partidos</span></div><div class="resultgrid">${items.map(reportItem).join('')}</div></section>`:'';
  return `<div class="stack">${head('📰 Resultados y periódicos',sub,button('📅 Volver al calendario','nav','data-target="calendario"','btn'))}
+ <div class="card results-filter">${resultsCountryPicker('reportCountrySelect',selected,counts)}<div class="muted small">Mostrando ${visible.length} de ${relevant.length} partidos para ${selected==='Todos'?'todos los países':E(selected)}. Podés cambiar el país sin simular de nuevo. Tu elección se guarda para la próxima fecha.</div></div>
  <div class="report-hero stadium-photo"><span class="tag goldtag">EL HERALDO DE NOVERIA · EDICIÓN DEPORTIVA ${s.season}</span><h2>${E(label)}</h2><p>${relevant.length} partidos de ${selected==='Todos'?'los nueve países':E(selected)} · ${filteredGoals} goles · ${done.length} resultados globales</p></div>
  <div class="grid three">${stat('Marcadores',relevant.length,selected==='Todos'?'Todos los países':selected)}${stat('Goles',filteredGoals,'En la selección')}${stat('Periódicos',relevant.length,'Disponibles para leer')}</div>
  ${favorite?`<div class="union-focus"><div>🔴⚫ <b>La Unión en esta fecha</b><p>${E(favorite.home)} ${favorite.scoreH}–${favorite.scoreA} ${E(favorite.away)} · ${E(matchEditorial(favorite).headline)}</p></div>${button('📰 Leer la crónica','match',`data-id="${E(favorite.id)}"`,'btn sm')}</div>`:''}
  ${feature?`<section class="card paper-feature"><div class="eyebrow">🗞️ PARTIDO DESTACADO DE LA FECHA</div><h2 class="h2">${E(matchEditorial(feature).headline)}</h2><p class="muted small">${E(matchEditorial(feature).lead)}</p><div class="between"><b>${E(feature.home)} ${feature.scoreH}–${feature.scoreA} ${E(feature.away)}</b>${button('Abrir periódico completo','match',`data-id="${E(feature.id)}"`,'btn primary sm')}</div></section>`:''}
- <div class="card results-filter">${resultsCountryPicker('reportCountrySelect',selected,counts)}<div class="muted small">Mostrando ${visible.length} de ${relevant.length} partidos para ${selected==='Todos'?'todos los países':E(selected)}. Podés cambiar el país sin simular de nuevo. Tu elección se guarda para la próxima fecha.</div></div>
  ${wrap(league,'⚽ Ligas nacionales')}${wrap(cup,'🏆 Copas, Arcalis y fases finales')}
  ${visible.length<relevant.length?button('➕ Mostrar más partidos ('+(relevant.length-visible.length)+' pendientes)','report-more','','btn primary'):''}
  ${relevant.length===0?'<div class="notice">Todavía no hay encuentros disputados para este filtro.</div>':''}
