@@ -44,7 +44,7 @@ function leaguePanels(s,country){
   const reg=g==='annual'?'Tabla anual · Escudo de Oro':g==='S'?'Liga de Plata · Ascensos':'Primera · Zona '+g;
   const desc=g==='annual'?'1.º–6.º: Campeones · 7.º: repechaje · 8.º–12.º: Horizonte · 13.º: repechaje · 14.º–18.º: sin plaza':
     g==='S'?'1.º y 2.º: ascenso a Primera al cerrar el Apertura':
-    '1.º y 2.º: semifinales · último: zona de descenso al cerrar el Apertura';
+    '1.º–4.º: cuartos de final · último: zona de descenso al cerrar el Apertura';
   const activeFixtures=country==='Veltrania'?s.fixtures:(s.world?.[country]?.fixtures||[]);
   // Los clásicos interzonales también suman a A y B: no confirmar plazas antes del último partido.
   const members=new Set(rows.map(r=>r.name));
@@ -52,7 +52,7 @@ function leaguePanels(s,country){
   return common('league','league:'+country+':'+g,reg,country,
    rows.map((r,i)=>{
     let spot='none',status='—';
-    if(g==='A'||g==='B'){if(i<2){spot='advance';status='Semifinales'}else if(i===rows.length-1){spot='danger';status='Descenso';}}
+    if(g==='A'||g==='B'){if(i<4){spot='advance';status='Cuartos de final'}else if(i===rows.length-1){spot='danger';status='Descenso';}}
     if(g==='S'&&i<2){spot='advance';status='Ascenso';}
     if(g==='annual'){
      if(i<6){spot='advance';status='Campeones';}
@@ -119,13 +119,14 @@ function knockoutPanels(s,title,fixtures,prefix,area,champion){
 function postseasonPanels(s,country){
  const p=country==='Veltrania'?s.postseason:s.world?.[country]?.postseason;
  if(!p?.fixtures?.length)return [];
- const pools=['semifinales','semifinal','final','recopa'];
+ const pools=['cuartos','semifinales','semifinal','final','recopa'];
  const matches=p.fixtures.filter(played);
  const panels=[];
  for(const stage of pools){
   const all=matches.filter(m=>m.group===stage);if(!all.length)continue;
   let winners=[];
   if(stage==='final'&&(p.apertura||p.clausura))winners=[p.apertura||p.clausura];
+  else if(stage==='cuartos'&&p.fixtures.some(m=>m.group==='semifinal'||m.group==='semifinales'))winners=[...new Set(p.fixtures.filter(m=>m.group==='semifinal'||m.group==='semifinales').flatMap(m=>[m.home,m.away]))];
   else if(stage==='recopa'&&p.recopa)winners=[p.recopa];
   else if((stage==='semifinales'||stage==='semifinal')&&p.fixtures.some(m=>m.group==='final'))
    winners=[...new Set(p.fixtures.filter(m=>m.group==='final').flatMap(m=>[m.home,m.away]))];
@@ -136,7 +137,7 @@ function postseasonPanels(s,country){
    spot:winners.includes(n)?'advance':'none',status:winners.includes(n)?stage==='recopa'||stage==='final'?'Campeón':'Finalista':'En disputa',confirmed:winners.includes(n)}));
   rows.forEach(r=>{r.gd=r.gf-r.gc;r.pts=null;});
   rows.sort((a,b)=>Number(b.spot==='advance')-Number(a.spot==='advance')||b.gf-a.gf);
-  panels.push(common('knockout','post:'+country+':'+stage,(stage==='recopa'?'Recopa':stage==='final'?'Final':'Semifinales')+' · '+country,country,rows,
+  panels.push(common('knockout','post:'+country+':'+stage,(stage==='recopa'?'Recopa':stage==='final'?'Final':stage==='cuartos'?'Cuartos de final':'Semifinales')+' · '+country,country,rows,
     'Serie de eliminación directa. Los clasificados se confirman al terminar ambos partidos, cuando corresponde.'));
  }
  return panels;
