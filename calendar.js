@@ -7,17 +7,22 @@ const LABELS={
  league:'🏟️ Liga Suprema y ligas nacionales',
  cup:'🏆 Copa Nacional · fecha copera',
  international:'🌍 Copas de Arcalis · jornada continental',
- postseason:'⭐ Semifinales, finales y Recopas',
+ postseason:'⭐ Cuartos, semifinales, finales y Recopas',
  custom:'🎟️ Torneos personalizados'
 };
 const icons={league:'⚽',cup:'🏆',international:'🌍',postseason:'⭐',custom:'🎟️'};
-const stageNumber=p=>{
+export const calendarPostseasonOrdinal=p=>{
  if(!p)return 0;
  if(p.stage==='finalizada')return 99;
  if(p.stage==='locked')return 0;
- const base=p.stage==='semifinales'||p.stage==='semifinal'?0:p.stage==='final'?2:p.stage==='recopa'?4:0;
+ // Mantener las semifinales de series históricas en sus fechas originales.
+ const newBracket=p.format==='cuartos8'||p.stage==='cuartos'||(p.fixtures||[]).some(f=>f.group==='cuartos');
+ const base=newBracket?
+  p.stage==='cuartos'?0:p.stage==='semifinales'||p.stage==='semifinal'?2:p.stage==='final'?4:p.stage==='recopa'?6:0:
+  p.stage==='semifinales'||p.stage==='semifinal'?0:p.stage==='final'?2:p.stage==='recopa'?4:0;
  return base+Number(p.leg||1);
 };
+const stageNumber=calendarPostseasonOrdinal;
 const cupNumber=c=>!c?1:c.champion?99:Number(c.round||1);
 const intlNumber=(c,id)=>!c?1:c.champion?99:c.phase==='playoff'?1:Number(c.round||1)+(id==='champions'?1:0);
 const localNextRound=s=>{
@@ -48,7 +53,7 @@ export function calendarTimeline(state){
   if(league<=18 && (week%5!==0||cup>7))kind='league';
   else if(cup<=7 && league<=18)kind='cup';
   else if(league<=18)kind='league';
-  else if(post<=5)kind='postseason';
+  else if(post<=7)kind='postseason';
   else if(cup<=7)kind='cup';
   else if(intl<=12)kind='international';
   else kind='custom';
