@@ -12,7 +12,12 @@ function qualifier(s,c){
   return archive?.annual?.length>=13?archive.annual:standings(s,'annual');
  }
  const old=(s.world?.[c]?.archive||[]).find(a=>Number(a.season)===prev);
- return old?.annual?.length>=13?old.annual:countryStandings(s,c,'annual');
+ if(old?.fixtures?.length){
+  const league=old.fixtures.filter(f=>f.competition==='LSV');
+  const names=[...new Set(league.flatMap(f=>[f.home,f.away]))];
+  if(names.length>=13)return ranking(league,names);
+ }
+ return countryStandings(s,c,'annual');
 }
 function continentalOne(name,id,participants,season){const groups=Array.from({length:9},(_,i)=>({id:String.fromCharCode(65+i),teams:[]}));participants.forEach((name,j)=>{const countryIdx=j%9,rank=Math.floor(j/9);groups[(countryIdx+rank)%9].teams.push(name)});return {id,name,season,phase:'groups',round:1,groups,fixtures:groups.flatMap(g=>roundRobin(id,g.id,g.teams)),champion:null,finalists:[],knockout:[]};}
 export function ensureInternational(s){if(s.international?.season===s.season)return s.international;
