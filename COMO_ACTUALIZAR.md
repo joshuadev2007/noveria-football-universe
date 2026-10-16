@@ -1,25 +1,15 @@
-# ACTUALIZACIÓN NOVERIA 3.1 — Guardado de partidas
+# ACTUALIZAR DE NOVERIA 3.1 A NOVERIA 4.0
 
-## Antes de instalar
-1. Entrá a tu Noveria actual en **el mismo navegador donde jugás**.
-2. Abrí **Palmarés y partida → Descargar copia JSON**. Guardá el archivo antes de cambiar código.
-3. No borres los datos del navegador ni la caché de almacenamiento del sitio.
+**Antes de actualizar:** abrí tu web actual y elegí `Palmarés y partida → Descargar copia JSON`. Guardá ese archivo en tu computadora.
 
-## Actualizar GitHub Pages
-El ZIP COMPLETO es el recomendado (el repositorio público podría seguir con archivos V2).
+1. Descargá `Noveria_V4_SOLO_ARCHIVOS_MODIFICADOS.zip`.
+2. Extraé su contenido. No hace falta crear otro repositorio.
+3. Entrá a `https://github.com/joshuadev2007/noveria-football-universe` y subí los archivos nuevos y modificados al directorio raíz de `main`. Si GitHub solicita confirmación, reemplazá los archivos existentes. Si preferís PowerShell, sobrescribí los archivos dentro de tu copia local y ejecutá `git add .`, `git commit -m "Noveria 4.0 - Arcalis"`, `git push origin main`.
+4. Cuando Pages publique, entrá al **mismo enlace anterior**. Si continúa la versión vieja, recargá con Ctrl+F5 o cerrá/reabrí la app instalada.
+5. Revisá `Palmarés y partida` y verificá que tu partida esté conservada. Si no aparece, importá la copia JSON que guardaste.
 
-1. Descomprimí `Noveria_Football_Universe_V3_1_COMPLETO.zip`.
-2. Entrá al repositorio `joshuadev2007/noveria-football-universe`.
-3. Subí a la raíz **todo el contenido del ZIP**, incluyendo `save-system.js`, `app.js`, `styles.css`, `service-worker.js`, `index.html`, `engine.js`, `data.js` y `assets/`. Reemplazá los archivos existentes.
-4. Confirmá con **Commit changes**. Si usás PowerShell/Git, poné los archivos en tu clon y ejecutá `git add .`, `git commit -m "Noveria 3.1: guardado automático y recuperación"` y `git push origin main`.
-5. Abrí la web publicada. Si ves una edición anterior, recargá la página. GitHub Pages publica el código, no tu progreso.
+**No debes subir:** los ZIP cerrados, directorios de scripts de desarrollo ni la carpeta exterior que contiene los archivos. Subí su contenido.
 
-## Después de instalar
-- El guardado es **automático** al jugar o gestionar clubes.
-- Revisá el aviso «✓ Partida guardada».
-- **Palmarés y partida** también permite: Guardar ahora, crear un punto seguro, restaurarlo, pedir protección del almacenamiento y exportar/importar JSON.
-- Cuando vuelvas a abrir **la misma web en el mismo navegador**, tu progreso estará disponible, salvo que se hayan borrado datos del sitio o el navegador haya limpiado el almacenamiento.
-- Para pasar a otro dispositivo, **exportá la partida en JSON e importala** allí. Esta edición **NO sincroniza** entre dispositivos ni escribe en tu repositorio automáticamente.
+**NUEVO:** `continent.js`, `international.js`, `ecosystem.js`, `market-extra.js`. Se requiere mantener `data.js`, `save-system.js` y `assets` existentes.
 
-## Seguridad
-No compartás tu archivo de guardado si no querés divulgar tu progreso. No modifiques `STORAGE_KEY`: sigue siendo `noveria-universe-save-v1` por compatibilidad.
+**El guardado es local:** GitHub Pages no almacena automáticamente tu progreso remoto. IndexedDB proporciona más capacidad, pero cambiar de navegador requiere exportar/importar JSON. Los 78 resultados históricos y la Jornada 7 pendiente están incorporados en la partida base. No se inventan goleadores individuales de esas seis primeras jornadas.
