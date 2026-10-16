@@ -1,6 +1,7 @@
 import {TEAMS,FIXTURES,FOREIGN_COUNTRIES} from './data.js';
 import {cyclePhase,cycleKey,cycleName,cycleNext,cycleIsAnnualFinal,annualMatches} from './season-cycle.js';
 import {seniorYouthDevelopment} from './youth-scouting.js';
+import {matchLineup,lineupStrength} from './lineup.js';
 
 export const STORAGE_KEY='noveria-universe-save-v1';
 export const FIRST_NAMES=['Mateo','Thiago','Damián','Emiliano','Bruno','Santiago','Noah','Iker','Adrián','Gael','Elian','Nicolás','Alexis','Kevin','Samuel','Héctor','Marco','Iván','Gabriel','Luca','Enzo','Erik','Lucas','Rafael','Daniel','Jesús','Oliver','Aaron','Raúl','Diego','Joel','Néstor','Emanuel','Ángel','Axel','Esteban','Julián','Leandro','Hugo','Luis','Pablo','Leonardo','Sergio','Matías','Darío','Jairo','Rubén','Ariel','Elías','Benjamín','Sebastián'];
@@ -36,41 +37,50 @@ export function getLeagueNextRound(s){for(let rd=1;rd<=18;rd++){const f=s.fixtur
 function poisson(lambda,r){let l=Math.exp(-lambda),p=1,k=0;do{p*=r();k++}while(p>l&&k<9);return Math.min(6,k-1)}
 function weightedPlayer(team,r,eleven){const candidates=(eleven||team.players.slice(0,11)).filter(p=>p.pos!=='POR');const weighted=candidates.map(p=>({p,w:['DC','ED','EI','MCO','MP'].includes(p.pos)?7:['MC','MI','MD'].includes(p.pos)?3:1}));const tot=weighted.reduce((sum,v)=>sum+v.w,0);let v=r()*tot;for(const x of weighted){v-=x.w;if(v<0)return x.p}return candidates[0];}
 function addNews(s,category,title,description,related){s.news.unshift({id:'n-'+s.seed+'-'+(s.news.length+1),category,title,description,related,date:cycleName(s)+' · Jornada '+Math.max(s.leagueRound,1)});if(s.news.length>240)s.news=s.news.slice(0,240)}
-function rate(team){const first=team.players.slice(0,11);const avg=first.reduce((sum,p)=>sum+p.ovr,0)/first.length;return (team.rating*.65+avg*.35);}
+function rate(team,lineup=matchLineup(team)){const avg=lineupStrength(team,lineup);return (team.rating*.65+avg*.35);}
 export function simulateMatch(s,match,options={}){
   if(played(match))return match;
   const home=s.teams[match.home],away=s.teams[match.away];if(!home||!away)throw Error('Club desconocido');
   const r=seeded('match-'+match.id+'-'+s.seed);
-  const hRating=rate(home),aRating=rate(away);
+  const selectedH=matchLineup(home),selectedA=matchLineup(away);
+  const startersH=selectedH.starters,startersA=selectedA.starters;
+  const hRating=rate(home,selectedH),aRating=rate(away,selectedA);
   const attackBonus=t=>t.tactic==='Presión alta'?.13:t.tactic==='Contraataque'?.08:t.tactic==='Posesión'?.10:0;
   const expH=within(1.24+(hRating-aRating)*.036+.18+attackBonus(home)+(home.morale-70)*.003,.36,3.0);
   const expA=within(1.18+(aRating-hRating)*.036+attackBonus(away)+(away.morale-70)*.003,.36,3.0);
   let sh=poisson(expH,r),sa=poisson(expA,r);
   const events=[];
-  const chooseStarters=team=>{const available=team.players.filter(p=>(p.outGames||0)<=0);return [...available,...team.players.filter(p=>(p.outGames||0)>0)].slice(0,11)};
-  const startersH=chooseStarters(home),startersA=chooseStarters(away);
   for(const t of [home,away])for(const p of t.players)if((p.outGames||0)>0)p.outGames--;
   const addEvent=(min,type,side,p1=null,p2=null)=>events.push({min,type,side,p1:p1?.id??null,p1Name:p1?.name??null,p2:p2?.id??null,p2Name:p2?.name??null});
   for(const [count,side,team] of [[sh,'home',home],[sa,'away',away]]){
     for(let i=0;i<count;i++){const eleven=side==='home'?startersH:startersA;const scorer=weightedPlayer(team,r,eleven),assist=r()<.72?weightedPlayer(team,r,eleven):null;addEvent(3+Math.floor(r()*90),'goal',side,scorer,assist?.id!==scorer.id?assist:null);}
   }
   const yellowH=Math.floor(r()*4),yellowA=Math.floor(r()*4);
-  for(const [count,side,team] of [[yellowH,'home',home],[yellowA,'away',away]])for(let i=0;i<count;i++)addEvent(10+Math.floor(r()*80),'yellow',side,pick(team.players.slice(2,18),r));
-  if(r()<.10){const side=r()<.5?'home':'away';addEvent(45+Math.floor(r()*47),'red',side,pick((side==='home'?home:away).players.slice(3,17),r));}
-  for(const [side,team] of [['home',home],['away',away]]){
-   addEvent(54+Math.floor(r()*18),'sub',side,pick(team.players.slice(3,11),r),pick(team.players.slice(11),r));
-   addEvent(74+Math.floor(r()*16),'sub',side,pick(team.players.slice(3,11),r),pick(team.players.slice(11),r));
+  for(const [count,side,starters] of [[yellowH,'home',startersH],[yellowA,'away',startersA]])for(let i=0;i<count;i++)addEvent(10+Math.floor(r()*80),'yellow',side,pick(starters.filter(p=>p.pos!=='POR'),r));
+  if(r()<.10){const side=r()<.5?'home':'away';const roster=side==='home'?startersH:startersA;addEvent(45+Math.floor(r()*47),'red',side,pick(roster.filter(p=>p.pos!=='POR'),r));}
+  const usedSubs={home:new Set(),away:new Set()};
+  for(const [side,chosen] of [['home',selectedH],['away',selectedA]]){
+   const outgoing=chosen.starters.slice(1);
+   for(const min of [54+Math.floor(r()*18),74+Math.floor(r()*16)]){
+    const bench=chosen.bench.filter(p=>!usedSubs[side].has(p.id));
+    if(!bench.length||!outgoing.length)break;
+    const out=pick(outgoing,r),incoming=pick(bench,r);
+    if(out&&incoming){addEvent(min,'sub',side,out,incoming);usedSubs[side].add(incoming.id);outgoing.splice(outgoing.indexOf(out),1);}
+   }
   }
-  if(r()<.14){const side=r()<.5?'home':'away';addEvent(25+Math.floor(r()*60),'injury',side,pick((side==='home'?home:away).players.slice(3,19),r));}
+  if(r()<.14){const side=r()<.5?'home':'away';addEvent(25+Math.floor(r()*60),'injury',side,pick((side==='home'?startersH:startersA).filter(p=>p.pos!=='POR'),r));}
   events.sort((a,b)=>a.min-b.min|| (a.type==='goal'?-1:1));
   const shotsH=Math.max(sh+1,Math.floor(6+r()*11+sh)),shotsA=Math.max(sa+1,Math.floor(5+r()*10+sa));
   let poss=within(Math.round(50+(hRating-aRating)*.4+(r()-.5)*23),30,70);
   match.scoreH=sh;match.scoreA=sa;match.played=true;match.legacy=false;match.events=events;match.stats={posH:poss,posA:100-poss,shotsH,shotsA,onH:within(sh+Math.floor(r()*6),sh,shotsH),onA:within(sa+Math.floor(r()*6),sa,shotsA),cornersH:Math.floor(2+r()*9),cornersA:Math.floor(2+r()*9),foulsH:7+Math.floor(r()*13),foulsA:7+Math.floor(r()*13),xgH:+(expH+(r()-.5)*.6).toFixed(2),xgA:+(expA+(r()-.5)*.6).toFixed(2)};
   match.lineups={home:startersH.map(p=>p.id),away:startersA.map(p=>p.id)};
+  match.bench={home:selectedH.bench.map(p=>p.id),away:selectedA.bench.map(p=>p.id)};
+  match.captains={home:selectedH.captain,away:selectedA.captain};
   match.lineupDetails={home:startersH.map(p=>({name:p.name,number:p.number,pos:p.pos,form:p.form})),away:startersA.map(p=>({name:p.name,number:p.number,pos:p.pos,form:p.form}))};
-  match.coachAtKickoff={home:home.coach,away:away.coach,homeFormation:home.formation,awayFormation:away.formation,homeTactic:home.tactic,awayTactic:away.tactic};
+  match.coachAtKickoff={home:home.coach,away:away.coach,homeFormation:selectedH.formation,awayFormation:selectedA.formation,homeTactic:home.tactic,awayTactic:away.tactic};
   for(const [side,team,score,concede] of [['home',home,sh,sa],['away',away,sa,sh]]){
-    const starters=team.players.slice(0,11);for(const p of starters){p.apps++;p.form=+(within(6.1+(score-concede)*.24+(r()-.5)*2,4,9.9)).toFixed(1)}
+    const starters=team===home?startersH:startersA;for(const p of starters){p.apps++;p.form=+(within(6.1+(score-concede)*.24+(r()-.5)*2,4,9.9)).toFixed(1)}
+    const used=team===home?usedSubs.home:usedSubs.away;for(const id of used){const sub=team.players.find(p=>p.id===id);if(sub)sub.apps++;}
     const outcome=score>concede?3:score===concede?1:-3;team.morale=within(team.morale+outcome,20,99);team.board=within(team.board+Math.sign(outcome),10,100);
   }
   for(const ev of events){const team=ev.side==='home'?home:away;const p=team.players.find(x=>x.id===ev.p1);const p2=team.players.find(x=>x.id===ev.p2);if(ev.type==='goal'){if(p)p.goals++;if(p2)p2.assists++;}else if(ev.type==='yellow'&&p)p.yellows++;else if(ev.type==='red'&&p)p.reds++;else if(ev.type==='injury'&&p){p.injuries++;p.outGames=Math.max(1,2+Math.floor(r()*4)-Math.floor((team.facility?.medical||1)/2));}}
