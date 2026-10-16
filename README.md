@@ -1,3 +1,21 @@
+# Noveria 5.5 · Calendario maestro 📅🏆
+
+**Todas las competiciones oficiales avanzan por fecha cronológica.** Entrá a **📅 Calendario maestro** desde el menú; en el celular aparece también en **Más**.
+
+- Los **sábados** suelen disputarse la Liga Suprema y las ligas de todos los países. Algunos fines de semana se reservan a la **Copa Nacional** en vez de la liga.
+- Entre semana hay **Copa de Campeones**, **Copa Horizonte**, copas nacionales y espacio para torneos personalizados.
+- La **fase final**, las finales de ida/vuelta y las **Recopas** se disputan al completar las 18 jornadas ligueras. Las Ligas Sub-20 acompañan las primeras fechas nacionales.
+- Un calendario único permite jugar **solo la fecha marcada como activa**. Los botones antiguos llevan al mismo calendario y no permiten adelantar una liga, copa o partido 2D que todavía no corresponda.
+- El botón **▶ Jugar fecha del calendario** simula los partidos de ese turno en las nueve federaciones, mueve las competiciones al siguiente paso y desbloquea la próxima fecha. Podés observar un partido habilitado por Noveria Live 2D antes de completar el turno.
+- Las fechas de torneos personalizados se asignan al crearlos; el calendario conserva copas y formatos especiales y permite jugar sus rondas cuando llegue el turno.
+- **Las partidas anteriores no se reinician**. Las seis primeras jornadas históricas de 2026 y los campeonatos ya conquistados siguen intactos. Al empezar una temporada nueva se construye su propio calendario.
+- Las Copas de Arcalis usan la **clasificación de la temporada anterior** desde 2027; en el primer año 2026 usan la clasificación histórica disponible hasta ese momento.
+- Nada cambia en la base de datos de Joshua Cloud, las contraseñas, el mercado ni los guardados existentes.
+
+> Nota: las fechas son **virtuales dentro del universo futbolístico** de Noveria: avanzan cuando completás partidos del calendario, no según la hora real del dispositivo. Antes de instalar una actualización importante, respaldá tu partida JSON.
+
+---
+
 # Noveria 5.4 · El Gran Mercado 24 📺⚽
 
 **Actualización publicada el 15 de octubre de 2026.** Accedé a **📺 Mercado 24 · Fichajes** desde el menú; en celular aparece en **Más**.
