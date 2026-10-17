@@ -75,6 +75,7 @@ export function simulateMatch(s,match,options={}){
   events.sort((a,b)=>a.min-b.min|| (a.type==='goal'?-1:1));
   const shotsH=Math.max(sh+1,Math.floor(6+r()*11+sh)),shotsA=Math.max(sa+1,Math.floor(5+r()*10+sa));
   let poss=within(Math.round(50+(hRating-aRating)*.4+(r()-.5)*23),30,70);
+  match.weather=preparation.weather.name;
   match.scoreH=sh;match.scoreA=sa;match.played=true;match.legacy=false;match.events=events;match.qualityAtKickoff={home:hRating,away:aRating};match.stats={posH:poss,posA:100-poss,shotsH,shotsA,onH:within(sh+Math.floor(r()*6),sh,shotsH),onA:within(sa+Math.floor(r()*6),sa,shotsA),cornersH:Math.floor(2+r()*9),cornersA:Math.floor(2+r()*9),foulsH:7+Math.floor(r()*13),foulsA:7+Math.floor(r()*13),xgH:+(expH+(r()-.5)*.6).toFixed(2),xgA:+(expA+(r()-.5)*.6).toFixed(2)};
   match.lineups={home:startersH.map(p=>p.id),away:startersA.map(p=>p.id)};
   match.bench={home:selectedH.bench.map(p=>p.id),away:selectedA.bench.map(p=>p.id)};
