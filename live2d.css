@@ -21,3 +21,26 @@
 .lv5-svg #lv5-play-indicator.lv5-action-goal{fill:#ffe47a;font-size:20px;filter:drop-shadow(0 0 9px #ffc769)}
 @media(max-width:600px){.lv5-svg #lv5-play-indicator{font-size:12px;letter-spacing:.3px}.lv5-svg #lv5-play-indicator.lv5-action-goal{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.lv5-svg .lv5-player circle{transition:none}}
+
+
+/* Noveria LIVE 5.16 · Rendimiento adaptable + banquillo interactivo */
+.lv5-dt-advice{padding:11px 13px;margin:12px 0;border-radius:11px;border:1px solid #4d6f80;background:#17374b;color:#d5f2e5;font-size:12px;line-height:1.55;font-weight:650}
+.lv5-dt-pause{width:100%;margin-bottom:12px;border:1px solid #a89059;color:#f7dca3;background:#2b3546}
+.lv5-dt-pause:hover{background:#354c63}
+.lv5-svg[data-quality='low']{filter:none!important;transition:none!important;box-shadow:none}
+.lv5-svg[data-quality='low'] .lv5-player circle{transition:none!important;filter:none!important}
+.lv5-svg[data-quality='low'] .lv5-player.lv5-ballcarrier circle,.lv5-svg[data-quality='low'] .lv5-player.lv5-keeper-save circle{filter:none!important;stroke-width:3}
+.lv5-svg[data-quality='low'] #lv5-ball.lv5-ball-flight circle:first-child,.lv5-svg[data-quality='low'] #lv5-ball.lv5-ball-goal circle:first-child{filter:none!important}
+.lv5-pitch-wrap:has(.lv5-svg[data-quality='low']) .lv5-fans span{animation:none}
+@media(max-width:700px){
+ .lv5-svg{box-shadow:none}
+ .lv5-player circle{filter:none!important}
+ .lv5-pitch-wrap .lv5-fans span{animation:none}
+ .lv5-svg .lv5-player.lv5-ballcarrier circle,.lv5-svg .lv5-player.lv5-keeper-save circle{filter:none!important;stroke-width:3}
+ .lv5-stadium{box-shadow:0 10px 25px #0005}
+ .lv5-pitch-wrap{isolation:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .lv5-svg{transition:none}
+ .lv5-pitch-wrap .lv5-fans span{animation:none}
+}
