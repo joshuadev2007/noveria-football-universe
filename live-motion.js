@@ -96,9 +96,9 @@ function possessionMotion(b,seconds){
  const section=Math.min(2,Math.floor(phase*3)),progress=(phase*3)-section;
  let ball=xy(segment.p[section],segment.p[section+1],ease(progress));
  // Cambio de posesión continuo: se aproxima desde donde terminó la jugada anterior.
- if(index>0&&phase<.12){
+ if(index>0&&phase<.26){
   const prev=possessionNodes(b,index-1);
-  ball=xy(prev.p[3],ball,ease(phase/.12));
+  ball=xy(prev.p[3],ball,ease(phase/.26));
  }
  const actor=segment.actors[section],nextActor=segment.actors[section+1];
  return {side:segment.side,ball:{...ball,arc:Math.sin(Math.PI*progress)*((progress>.04&&progress<.96)?4.5:0)},
@@ -138,6 +138,8 @@ function eventMotion(b,t,selected){
  let point=xy(points[at],points[at+1],amount),arc=0;
  const flight=at===3&&(kind==='goal'||kind==='shot'||kind==='save'||kind==='corner');
  if(flight)arc=Math.sin(Math.PI*amount)*(kind==='corner'?9:12);
+ // La transición desde circulación de balón hasta la jugada no se teletransporta.
+ if(progress<.19){const flow=possessionMotion(b,start);point=xy(flow.ball,point,ease(progress/.19));}
  const after=Math.max(0,t-time);
  if(kind==='save'&&after>0){point.x=lerp(target.x,target.x-direction*42,Math.min(1,after*1.8));point.y=lerp(target.y,keepY+23,Math.min(1,after*1.8))}
  const players=indexes(b,side,e);
@@ -176,10 +178,11 @@ export function motionFrame(b){
   snap(actors.mid,progress>=.26&&progress<.53?carry:positions[1]);
   snap(actors.finish,progress>=.53&&progress<.77?carry:progress>.77?positions[3]:positions[2]);
 
-  // Marcador más cercano presiona al portador, resto mantiene el bloque.
-  const press=1+(hash(b.id+String(scene.event.min))%4);
-  const p=defending[press];
-  if(p&&progress<.79){p.x=lerp(p.x,ball.x,0.46);p.y=lerp(p.y,ball.y,0.46)}
+  // Presiona el defensor que esté realmente mejor colocado, no uno aleatorio.
+  let marker=-1,distance=Infinity;
+  for(let k=1;k<11;k++){const dp=defending[k],dx=dp.x-ball.x,dy=dp.y-ball.y,dist=dx*dx+dy*dy;if(dist<distance){marker=k;distance=dist;}}
+  const p=defending[marker];
+  if(p&&progress<.79){p.x=lerp(p.x,ball.x,0.39);p.y=lerp(p.y,ball.y,0.39)}
   // El arquero defensor reacciona al remate, sin abandonar el área.
   if(scene.keeperDive){
    const gk=defending[0];
@@ -192,9 +195,10 @@ export function motionFrame(b){
   const p=players[side][j];p.x=clamp(ball.x-(side==='home'?11:-11),75,885);p.y=ball.y+6;
   const target=players[side][scene.receiver];if(target&&scene.receiver!==j){target.x=lerp(target.x,scene.receiverPos.x,.68);target.y=lerp(target.y,scene.receiverPos.y,.68);}
   const back=side==='home'?'away':'home';
-  const n=1+(hash(b.id+String(Math.floor(t/6.4)))%4);
-  players[back][n].x=lerp(players[back][n].x,ball.x,.38);
-  players[back][n].y=lerp(players[back][n].y,ball.y,.38);
+  let nearest=1,best=Infinity;
+  for(let k=1;k<11;k++){const candidate=players[back][k],dx=candidate.x-ball.x,dy=candidate.y-ball.y,d2=dx*dx+dy*dy;if(d2<best){best=d2;nearest=k;}}
+  players[back][nearest].x=lerp(players[back][nearest].x,ball.x,.30);
+  players[back][nearest].y=lerp(players[back][nearest].y,ball.y,.30);
  }
  return {...scene,players,elapsed:t,ball:{x:clamp(ball.x,9,951),y:clamp(ball.y,30,510),arc:ball.arc||0}};
 }
