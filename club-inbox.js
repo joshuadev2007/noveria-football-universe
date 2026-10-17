@@ -157,7 +157,7 @@ export function syncClubInbox(s,{club=managed(s),eventId=null,matches=[],routine
   if(!b.lastDates)b.lastDates=[];
   if(!b.lastDates.includes(marker)){
    b.lastDates.push(marker);if(b.lastDates.length>180)b.lastDates=b.lastDates.slice(-180);b.dates++;
-   const playedMatches=matches.filter(m=>m?.played&&(m.home===club||m.away===club));
+   const playedMatches=matches.filter(m=>m?.played&&m.competition&&!String(m.id||'').startsWith('youth-')&&(m.home===club||m.away===club));
    for(const m of playedMatches)for(const evt of fixtureMessage(s,club,m))offer(evt);
    for(const p of promisesAfterMatches(s,club,b,playedMatches))offer(p);
    for(const evt of regularMessages(s,club))offer(evt);
@@ -186,7 +186,7 @@ export function answerClubInbox(s,club,id,reply){
  const fit=(n)=>{if(p){apply(p,'fitness',n,8,100);benefits.fitness+=n;}};
  const sharp=(n)=>{if(p){apply(p,'sharpness',n,15,100);benefits.sharpness+=n;}};
  const pay=n=>{spend(t,n);benefits.cost+=n;};
- if(['support','ambition','staff','steady'].includes(reply)){
+ if((m.key.startsWith('welcome-')||m.key.startsWith('confidence-')||m.key.startsWith('winfinal-'))&&['support','ambition','staff','steady'].includes(reply)){
   if(reply==='support'){bo(3);mo(1);}
   if(reply==='ambition'){bo(4);mo(-1);}
   if(reply==='staff'){pay(.10);bo(5);mo(2);}
