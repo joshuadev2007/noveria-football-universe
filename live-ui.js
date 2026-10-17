@@ -18,6 +18,35 @@ function displayED(b){return `EN DIRECTO · ${displayedMinute(b)}′`}
 export function liveArenaMarkup(s,b){let m=b.preview,home=s.teams[m.home],away=s.teams[m.away],own=managerSide(s,b);const text=b.legacy?'Archivo histórico: no se inventan jugadas ni goleadores individuales. Los movimientos son ilustrativos.':b.replay?'Recreación visual ilustrativa de un encuentro disputado, basada en eventos guardados. El resultado no se modifica.':'Los pases y movimientos reconstruyen el tipo y momento de las jugadas; no representan posiciones exactas. Goles y estadísticas oficiales se registran al finalizar.';
  return `<div class="lv5-shell"><div class="lv5-stadium"><div class="lv5-skyline"><span>✦ EL FÚTBOL DE ARCALIS</span><b>LA NOCHE ES NUESTRA</b></div><div class="lv5-header"><div class="lv5-teams"><div class="lv5-team"><span class="lv5-kit" style="background:${E(home.primary)}"></span><strong>${E(m.home)}</strong><small>LOCAL · ${E(home.tactic||'')}</small></div><div class="lv5-result" id="lv5-result">0 <i>:</i> 0</div><div class="lv5-team right"><span class="lv5-kit" style="background:${E(away.primary)}"></span><strong>${E(m.away)}</strong><small>VISITANTE · ${E(away.tactic||'')}</small></div></div><div class="lv5-meta"><span id="lv5-status">${stageLabel(b)}</span><span id="lv5-clock">00′</span><span>⏱ <b id="lv5-real">${b.duration===120?'02:00':'02:20'}</b></span></div></div><div class="lv5-pitch-wrap">${pitchMarkup(home,away,b,s)}<div class="lv5-fans lv5-fans-top">${Array.from({length:53},(_,i)=>`<span style="--c:${i%4===0?'#d4bd72':i%3===0?'#eaeaea':E(i%2===0?home.primary:away.primary)};--d:${(i*13)%11}00ms"></span>`).join('')}</div><div class="lv5-spotlight" id="lv5-spotlight"></div></div><div class="lv5-caption" aria-live="polite"><span class="lv5-caption-icon" id="lv5-caption-icon">🎙️</span><span id="lv5-commentary">¡Los equipos se preparan para salir al campo!</span></div><div class="lv5-bar-track"><div id="lv5-bar" style="width:${Math.min(100,b.elapsed/b.duration*100)}%"></div></div><div class="lv5-controls"><button data-action="live-toggle" class="btn primary" id="lv5-play">${b.paused?'▶ Reproducir':'⏸ Pausar'}</button><button data-action="live-speed" class="btn">⏩ <span id="lv5-speed">x${b.speed}</span></button><button data-action="live-quality" class="btn" title="Elegí la fluidez: automático, alta o ahorro para equipos modestos">⚙️ <span id="lv5-quality">${b.quality==='low'?'Fluidez':b.quality==='high'?'Alta':'Auto'}</span></button><button data-action="live-sound" class="btn" id="lv5-sound">${b.sound?'🔊 Sonido':'🔇 Silencio'}</button><button data-action="live-goal-replay" class="btn">⚽ Repetir gol</button><button data-action="live-camera" class="btn">📹 Cámara</button><button data-action="live-reset" class="btn" ${!b.replay&&!b.finished?'disabled title="No se puede reiniciar un partido oficial en curso"':''}>⟲ Repetir</button></div><p class="lv5-disclaimer">${E(text)}</p></div><div class="lv5-right"><div class="card"><div class="between"><h3 class="h3">🎙️ Narración minuto a minuto</h3><span class="tag" id="lv5-badge">${b.replay?'REPETICIÓN':'DIRECTO'}</span></div><div class="lv5-feed" id="lv5-feed" aria-live="polite"><p class="muted small">El balón espera en el círculo central.</p></div></div><div class="card"><h3 class="h3">📊 Estadísticas del partido</h3><div class="lv5-stat"><span>Posesión</span><b id="lv5-pos">— : —</b></div><div class="lv5-stat"><span>Remates</span><b id="lv5-shots">— : —</b></div><div class="lv5-stat"><span>Remates al arco</span><b id="lv5-ontarget">— : —</b></div><div class="lv5-stat"><span>Goles esperados (xG)</span><b id="lv5-xg">— : —</b></div><p class="muted tiny">Estadísticas oficiales visibles al final del partido.</p></div><div class="card"><h3 class="h3">🧑‍💼 Banquillos</h3><p class="small">${E(home.coach)} <span class="muted">vs</span> ${E(away.coach)}</p><p class="muted tiny">Activá el modo DT para dirigir a cualquiera de los equipos participantes sin cambiar tu carrera. Podés ordenar tácticas y sustituciones.</p>${!own&&!b.replay&&!b.finished&&!b.legacy?`<div class="lv5-coach-entry"><strong>🎩 ¿Querés dirigir este encuentro?</strong><p class="muted small">Tomá el control del equipo, hacé cambios y ordená tácticas durante el partido.</p><div class="lv5-coach-choices">${['home','away'].map(side=>`<button class="btn primary sm" data-action="live-take-dt" data-club="${E(side==='home'?m.home:m.away)}">🎩 Dirigir a ${E(side==='home'?m.home:m.away)}</button>`).join('')}</div></div>`:''}${own&&!b.replay&&!b.finished?`<div class="lv5-tactics"><div class="lv5-coach-header"><strong>🎩 MODO DT · ${E(own==='home'?m.home:m.away)}</strong><span class="tag">${displayedMinute(b)}′</span></div>${b.elapsed===0?`<button class="btn sm" data-action="live-prepare-lineup">📋 Preparar el XI y banca antes de jugar</button>`:''}<h4>🎯 Órdenes de ${E(own==='home'?m.home:m.away)}</h4><div class="lv5-tactic-buttons">${['Equilibrado','Posesión','Presión alta','Contraataque','A todo ataque','Bloque bajo','Perder tiempo'].map(z=>`<button class="btn sm" data-action="live-tactic" data-tactic="${E(z)}" ${((b.decisions||[]).filter(x=>x.kind==='tactic'&&x.side===own).at(-1)?.tactic||b.startTactics?.[own])===z?'aria-pressed="true"':''}>${E(z)}</button>`).join('')}</div><h4>🔁 Sustituciones (${(m.events||[]).filter(ev=>ev.type==='sub'&&ev.side===own&&Number(ev.min)<=displayedMinute(b)).length}/5)</h4><div class="lv5-selectors"><select id="lv5-out" aria-label="Jugador a sustituir">${initialLineups(b,s,own).map(p=>`<option value="${E(p.id)}">Sale: ${E(p.name)} (${E(p.pos)})</option>`).join('')}</select><select id="lv5-in" aria-label="Suplente que ingresará">${s.teams[own==='home'?m.home:m.away].players.filter(p=>(b.preview.bench?.[own]||[]).some(id=>String(id)===String(p.id))&&!initialLineups(b,s,own).some(q=>String(q.id)===String(p.id))&&!(m.events||[]).some(ev=>ev.type==='sub'&&ev.side===own&&String(ev.p2)===String(p.id)&&Number(ev.min)<=displayedMinute(b))).map(p=>`<option value="${E(p.id)}">Entra: ${E(p.name)} (${E(p.pos)})</option>`).join('')}</select><button data-action="live-sub" class="btn primary">Confirmar sustitución</button></div><small class="muted">Solo la banca que convocaste. Los cambios se reflejan inmediatamente en el campo.</small></div>`:''}</div><div class="card" id="lv5-final" style="display:${b.finished?'block':'none'}"><h3 class="h3">🏁 Partido terminado</h3><p class="muted small">La transmisión ha concluido. ${b.preview.penalties?'Se decidió en penales: '+E(b.preview.penalties)+'. ':''}${b.preview.extraTime?'Hubo prórroga. ':''}El resultado quedó registrado y podés consultar la crónica.</p><button class="btn primary" data-action="match" data-id="${E(b.id)}">📰 Leer periódico del partido</button></div></div></div>`;
 }
+// Suavizado de fotogramas: independiente del resultado oficial del encuentro.
+const pitchSmoothing=new WeakMap();
+function smoothedScene(root,b,scene){
+ let cache=pitchSmoothing.get(root),time=typeof performance!=='undefined'?performance.now():Date.now();
+ if(!cache||cache.id!==b.id||b.elapsed<cache.elapsed-.06||b.elapsed-cache.elapsed>1.5){
+  cache={id:b.id,elapsed:b.elapsed,wall:time,ball:{...scene.ball},players:{
+   home:scene.players.home.map(p=>({...p})),away:scene.players.away.map(p=>({...p}))
+  }};
+  pitchSmoothing.set(root,cache);return scene;
+ }
+ const dt=Math.max(.008,Math.min(.085,(time-cache.wall)/1000));
+ cache.wall=time;cache.elapsed=b.elapsed;
+ const quality=b.quality||'auto',rate=quality==='low'?10:quality==='high'?19:14;
+ const move=1-Math.exp(-rate*dt),ballRate=1-Math.exp(-(rate+9)*dt);
+ const goal=scene.goalFlash||scene.progress>.98&&scene.phase==='goal';
+ const ballAlpha=goal?1:ballRate;
+ cache.ball.x+=(scene.ball.x-cache.ball.x)*ballAlpha;
+ cache.ball.y+=(scene.ball.y-cache.ball.y)*ballAlpha;
+ cache.ball.arc+=(scene.ball.arc-cache.ball.arc)*ballAlpha;
+ const players={};
+ for(const side of ['home','away']){
+  players[side]=scene.players[side].map((p,i)=>{
+   const v=cache.players[side][i];
+   v.x+=(p.x-v.x)*move;v.y+=(p.y-v.y)*move;
+   return v;
+  });
+ }
+ return {...scene,players,ball:cache.ball};
+}
 const pitchCache=new WeakMap();
 function liveNode(root,id){
  let map=pitchCache.get(root);
@@ -46,12 +75,13 @@ export function frameUpdate(b,{hud=true,state=null}={}){
    });
   }
  }
- const scene=motionFrame(b);if(!scene)return;
+ const raw=motionFrame(b);if(!raw)return;const scene=smoothedScene(root,b,raw);
  for(const side of ['home','away'])for(let i=0;i<11;i++){
   const player=$('lv5-'+side+'-'+i);if(!player)continue;const p=scene.players[side][i];
   player.setAttribute('transform',`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)})`);
-  player.classList.toggle('lv5-ballcarrier',side===scene.side&&i===scene.actor);
-  player.classList.toggle('lv5-keeper-save',i===0&&side!==scene.side&&!!scene.keeperDive);
+  const active=side===scene.side&&i===scene.actor,keeper=i===0&&side!==scene.side&&!!scene.keeperDive;
+  if(player.dataset.carrier!==(active?'1':'0')){player.dataset.carrier=active?'1':'0';player.classList.toggle('lv5-ballcarrier',active);}
+  if(player.dataset.keeperSave!==(keeper?'1':'0')){player.dataset.keeperSave=keeper?'1':'0';player.classList.toggle('lv5-keeper-save',keeper);}
  }
  const ball=$('lv5-ball'),shadow=$('lv5-ball-shadow'),trail=$('lv5-pass-trail');
  if(ball){ball.setAttribute('transform',`translate(${scene.ball.x.toFixed(2)} ${(scene.ball.y-scene.ball.arc).toFixed(2)})`);
@@ -62,6 +92,6 @@ export function frameUpdate(b,{hud=true,state=null}={}){
   if(shown){trail.setAttribute('x1',scene.trail.x.toFixed(2));trail.setAttribute('y1',scene.trail.y.toFixed(2));
    trail.setAttribute('x2',scene.ball.x.toFixed(2));trail.setAttribute('y2',(scene.ball.y-scene.ball.arc).toFixed(2));}}
  const indicator=$('lv5-play-indicator');
- if(indicator){indicator.textContent=scene.label;indicator.classList.toggle('lv5-action-goal',!!scene.goalFlash);}
+ if(indicator){if(indicator.textContent!==scene.label)indicator.textContent=scene.label;const active=!!scene.goalFlash;if(indicator.dataset.goalFlash!==(active?'1':'0')){indicator.dataset.goalFlash=active?'1':'0';indicator.classList.toggle('lv5-action-goal',active);}}
 
 }
