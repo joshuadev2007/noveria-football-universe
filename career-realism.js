@@ -74,9 +74,10 @@ export function preCareerMatch(s,m,home,away,selectedH,selectedA){
  const chance={home:h.homeAttack-h.awayDefence,away:h.awayAttack-h.homeDefence};
  const bonusH=clamp(chance.home,-.20,.25),bonusA=clamp(chance.away,-.20,.25);
  const venue=clamp(Number(home.supporters?.mood||60)/350,0,.27);
+ const weather=matchWeather(s,m);
  return {fitnessH:fH,fitnessA:fA,chemH:prep.chemH,chemA:prep.chemA,
   homePower:-penaltyH+venue,awayPower:-penaltyA,
-  homeGoal:bonusH,awayGoal:bonusA,
+  homeGoal:bonusH+weather.attack,awayGoal:bonusA+weather.attack,weather,
   homeWork:h.homeWork,awayWork:h.awayWork,styleH:home.tactic,styleA:away.tactic,
   tip:prep.homeRisk||prep.awayRisk?'⚠ Hay un equipo fatigado. Rotar el once puede marcar la diferencia.':'Los dos equipos llegan físicamente aptos.'};
 }
@@ -99,6 +100,7 @@ export function afterCareerMatch(s,m,pregame){
   const team=s.teams[m[side]],opponent=s.teams[m[side==='home'?'away':'home']];
   if(!team)continue;
   const style=REALISM_STYLES[team.tactic]||REALISM_STYLES.Equilibrado;
+  const training=trainingPlan(team),weather=matchWeather(s,m);
   const won=side==='home'?homeGoals>awayGoals:awayGoals>homeGoals;
   const lost=side==='home'?homeGoals<awayGoals:awayGoals<homeGoals;
   const pool=team.players,playedIds=times[side],fatigue=[];
@@ -106,7 +108,7 @@ export function afterCareerMatch(s,m,pregame){
    ensureCareerPlayer(p);
    const minutes=playedIds.get(String(p.id))||0;
    if(minutes){
-    const conditionLoss=Math.ceil((minutes/90)*(13*style.work)+(p.age>=32?2:0)+(m.extraTime?4:0));
+    const conditionLoss=Math.ceil((minutes/90)*(13*style.work)+(p.age>=32?2:0)+(m.extraTime?4:0)+weather.fatigue+(training==='Intensivo'?2:training==='Recuperación'?-1:0));
     const prior=p.fitness;
     p.fitness=clamp(p.fitness-conditionLoss,8,100);
     const swing=(won?4:lost?-3:1)+(p.form>=7.5?2:0);
@@ -151,8 +153,9 @@ export function careerRecoverAfterDate(s,calendarEvent,playedMatches=[]){
  const active=new Set(playedMatches.flatMap(m=>[m.home,m.away]));
  const medical=t=>Math.max(1,Number(t.facility?.medical||1));
  for(const team of Object.values(s.teams||{})){
-  const used=active.has(team.name);const recovered=used?4:11;
-  for(const p of team.players||[]){ensureCareerPlayer(p);p.fitness=clamp(p.fitness+recovered+medical(team)*1.3,8,100);}
+  const used=active.has(team.name);const training=trainingPlan(team);
+  const recovered=(used?4:11)+(training==='Recuperación'?4:training==='Intensivo'?-2:0);
+  for(const p of team.players||[]){ensureCareerPlayer(p);p.fitness=clamp(p.fitness+recovered+medical(team)*1.3,8,100);if(training==='Intensivo')p.sharpness=clamp(p.sharpness+2,15,100);else if(training==='Recuperación')p.sharpness=clamp(p.sharpness-1,15,100);}
  }
  s.careerDates.ids.push(calendarEvent.id);if(s.careerDates.ids.length>130)s.careerDates.ids.shift();
  return true;
@@ -200,7 +203,7 @@ export function careerTeamReport(s,name){
  ...(t.board<45?['La directiva exige mejorar resultados pronto.']:[]),
  ...(t.morale<48?['El ánimo del vestuario está bajo: conviene estabilizar el equipo.']:[])];
  if(!advice.length)advice.push('Plantel preparado. Buscá mantener esta racha y rotar cuando sea necesario.');
- return {fitness:fit,chemistry:chem,tired,lowForm,suspended,alternatives:options,advice,grade:careerGrade(s,name)};
+ return {fitness:fit,chemistry:chem,tired,lowForm,suspended,alternatives:options,advice,grade:careerGrade(s,name),training:trainingPlan(t)};
 }
 
 
@@ -217,3 +220,19 @@ export function careerOffseason(s){
  }
  return true;
 }
+
+/** Condiciones ficticias del mundo Noveria: deterministas por encuentro. */
+export const WEATHER_TYPES=[
+ {name:'Despejado',attack:0,fatigue:0,description:'Césped rápido, condiciones óptimas'},
+ {name:'Lluvia',attack:-.06,fatigue:1,description:'Pelota pesada y apoyos resbaladizos'},
+ {name:'Viento',attack:-.04,fatigue:1,description:'Centros y disparos menos previsibles'},
+ {name:'Calor',attack:-.025,fatigue:3,description:'El desgaste físico aumenta'}
+];
+export const TRAINING_PLANS=['Recuperación','Equilibrado','Intensivo'];
+export function trainingPlan(t){return TRAINING_PLANS.includes(t.trainingPlan)?t.trainingPlan:'Equilibrado';}
+export function setTrainingPlan(s,club,plan){
+ const t=s.teams[club];if(!t)throw Error('Club desconocido');
+ if(!TRAINING_PLANS.includes(plan))throw Error('Plan no disponible');
+ t.trainingPlan=plan;return plan;
+}
+export function matchWeather(s,m){const n=hash((s.seed||0)+'|'+m.id+'|'+(s.edition||'Apertura'));return WEATHER_TYPES[n%WEATHER_TYPES.length];}
