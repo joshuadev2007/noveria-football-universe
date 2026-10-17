@@ -31,7 +31,7 @@ function toast(text){const d=document.createElement('div');d.className='toast';d
 let liveTimer=null,liveLast=0,liveLastPaint=0,liveLastHUD=0,liveAudio=null,liveCrowd=null,liveLastSound=-1,liveLastSave=-1;
  function stopLive(){ui.playing=false;liveLast=0;stopLiveCrowd();if(liveTimer){cancelAnimationFrame(liveTimer);liveTimer=null;}if(s.broadcast)s.broadcast.paused=true;}
  function stopLiveCrowd(){try{if(liveCrowd){liveCrowd.stop();liveCrowd.disconnect();liveCrowd=null;}}catch{liveCrowd=null;}}
- function startLiveCrowd(){try{if(!s.broadcast?.sound||liveCrowd)return;const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;liveAudio=liveAudio||new Ctx();if(liveAudio.state==='suspended')liveAudio.resume().catch(()=>{});const size=liveAudio.sampleRate*2,buf=liveAudio.createBuffer(1,size,liveAudio.sampleRate),data=buf.getChannelData(0);for(let i=0;i<size;i++)data[i]=(Math.random()*2-1)*(.55+.45*Math.sin(i/6000));const source=liveAudio.createBufferSource(),filter=liveAudio.createBiquadFilter(),gain=liveAudio.createGain();source.buffer=buf;source.loop=true;filter.type='lowpass';filter.frequency.value=540;gain.gain.value=.011;source.connect(filter).connect(gain).connect(liveAudio.destination);source.start();liveCrowd=source;}catch{}}
+ function startLiveCrowd(){try{if(!s.broadcast?.sound||liveCrowd)return;const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;liveAudio=liveAudio||new Ctx();if(liveAudio.state==='suspended')liveAudio.resume().catch(()=>{});const size=Math.floor(liveAudio.sampleRate*.42),buf=liveAudio.createBuffer(1,size,liveAudio.sampleRate),data=buf.getChannelData(0);for(let i=0;i<size;i++)data[i]=(Math.random()*2-1)*(.55+.45*Math.sin(i/6000));const source=liveAudio.createBufferSource(),filter=liveAudio.createBiquadFilter(),gain=liveAudio.createGain();source.buffer=buf;source.loop=true;filter.type='lowpass';filter.frequency.value=540;gain.gain.value=.011;source.connect(filter).connect(gain).connect(liveAudio.destination);source.start();liveCrowd=source;}catch{}}
  function liveSfx(freq=440,duration=.1){try{if(!s.broadcast?.sound)return;const Context=window.AudioContext||window.webkitAudioContext;if(!Context)return;liveAudio=liveAudio||new Context();if(liveAudio.state==='suspended')liveAudio.resume().catch(()=>{});const o=liveAudio.createOscillator(),g=liveAudio.createGain();o.type='triangle';o.frequency.setValueAtTime(freq,liveAudio.currentTime);g.gain.setValueAtTime(.06,liveAudio.currentTime);g.gain.exponentialRampToValueAtTime(.0001,liveAudio.currentTime+duration);o.connect(g).connect(liveAudio.destination);o.start();o.stop(liveAudio.currentTime+duration)}catch{}}
  function startLiveFrame(){
  if(liveTimer)cancelAnimationFrame(liveTimer);
@@ -51,7 +51,7 @@ let liveTimer=null,liveLast=0,liveLastPaint=0,liveLastHUD=0,liveAudio=null,liveC
    const hud=now-liveLastHUD>=hudInterval||b.elapsed>=b.duration;
    if(hud)liveLastHUD=now;
    liveLastPaint=now;
-   frameUpdate(b,{hud});
+   frameUpdate(b,{hud,state:s});
    if(hud){
     const currentMin=displayedMinute(b);ui.liveMinute=currentMin;
     if(b.sound){
