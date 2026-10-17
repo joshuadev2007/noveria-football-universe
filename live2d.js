@@ -56,7 +56,7 @@ export function startBroadcast(s,id){
  if(!matchIsAvailable(s,entry))throw Error('Este partido todavía no está habilitado; completá las fechas anteriores.');
  const {m}=entry;const archived=played(m);
  const preview=archived?structuredClone(m):isolatedSimulation(s,m);if(!archived)supplyMatchActionEvents(preview,s.seed);
- const b={id:m.id,season:s.season,elapsed:0,duration:extraTimePossible(entry,preview)?140:LIVE_SECONDS,speed:1,paused:true,finished:false,replay:archived,legacy:!!m.legacy,preview,decisions:[],startTactics:{home:s.teams[m.home].tactic,away:s.teams[m.away].tactic},createdAt:Date.now(),sound:true};
+ const b={id:m.id,season:s.season,elapsed:0,duration:extraTimePossible(entry,preview)?140:LIVE_SECONDS,speed:1,paused:true,finished:false,replay:archived,legacy:!!m.legacy,preview,decisions:[],startTactics:{home:s.teams[m.home].tactic,away:s.teams[m.away].tactic},createdAt:Date.now(),sound:true,quality:'auto'};
  s.broadcast=b;return b;
 }
 export function displayedMinute(b){return b.elapsed>120?Math.min(120,90+Math.floor((b.elapsed-120)*1.5)):Math.max(0,Math.min(90,Math.floor(90*Math.min(b.elapsed,LIVE_SECONDS)/LIVE_SECONDS)))}
@@ -65,7 +65,11 @@ export function runningScore(b){if(b.legacy&&!b.finished)return [0,0];const goal
 export function descriptionOf(ev,m){let label=ev.side==='home'?m.home:m.away;return ({shot:`¡Remate de ${label}! El balón se va desviado`,save:`¡ATAJADÓN! El guardameta frustra a ${label}`,corner:`Córner peligroso para ${label}`,goal:`¡GOOOOOOL de ${ev.p1Name||label}!`,yellow:`Amarilla para ${ev.p1Name||label}`,red:`¡ROJA! ${ev.p1Name||label} se marcha`,injury:`Atención médica para ${ev.p1Name||label}`,sub:`Cambio: sale ${ev.p1Name}, entra ${ev.p2Name}`,var:'📺 Revisión VAR',tactic:`El DT de ${label} ordena jugar ${ev.p1Name}`})[ev.type]||`${label} protagoniza la acción`}
 export function managerSide(s,b){const name=b?.coachClub||(s.mode==='manager'?s.managedClub:null);return name===b?.preview?.home?'home':name===b?.preview?.away?'away':null}
 /** Modo DT opcional para un solo partido, sin modificar el club de la carrera. */
-export function takeCoachControl(s,b,club){if(!b||b.finished||b.replay||b.legacy)throw Error('Elegí un partido oficial pendiente para dirigir');if(club!==b.preview.home&&club!==b.preview.away)throw Error('Ese club no participa en el partido');if(b.coachClub&&b.coachClub!==club)throw Error('Ya estás dirigiendo al otro equipo en este partido');b.coachClub=club;return managerSide(s,b)}
+export function takeCoachControl(s,b,club){if(!b||b.finished||b.replay||b.legacy)throw Error('Elegí un partido oficial pendiente para dirigir');if(club!==b.preview.home&&club!==b.preview.away)throw Error('Ese club no participa en el partido');if(b.coachClub&&b.coachClub!==club)throw Error('Ya estás dirigiendo al otro equipo en este partido');
+ const side=club===b.preview.home?'home':'away',minute=displayedMinute(b);
+ // El DT toma las decisiones que aún no sucedieron; los cambios automáticos pasados se respetan.
+ b.preview.events=(b.preview.events||[]).filter(e=>!(e.type==='sub'&&e.side===side&&!e.manual&&Number(e.min)>=minute));
+ b.coachClub=club;return managerSide(s,b)}
 function pushEvent(b,ev){b.preview.events=b.preview.events||[];b.preview.events.push(ev);b.preview.events.sort((a,c)=>a.min-c.min||String(a.type).localeCompare(String(c.type)))}
 export function coachTactic(s,b,tactic){const side=managerSide(s,b);if(!side||b.replay||b.finished)throw Error('Solo podés decidir como DT durante un partido propio');if(!['Equilibrado','Posesión','Presión alta','Contraataque','A todo ataque','Bloque bajo','Perder tiempo'].includes(tactic))throw Error('Táctica desconocida');const minute=displayedMinute(b);if(minute>=87)throw Error('Demasiado tarde para cambiar el plan de juego');
  const club=side==='home'?b.preview.home:b.preview.away;s.teams[club].tactic=tactic;const index=b.decisions.length;
@@ -76,15 +80,33 @@ export function coachTactic(s,b,tactic){const side=managerSide(s,b);if(!side||b.
  if(roll<odds){const goalMin=Math.min(90,minute+6+Math.floor(pct(b.id+index+'minute')*15));const starters=b.preview.lineups?.[side]||[],team=s.teams[club];const scorer=team.players.find(p=>p.id===starters[7])||team.players.find(p=>p.pos==='DC')||team.players[0];pushEvent(b,{min:goalMin,type:'goal',side,p1:scorer.id,p1Name:scorer.name,p2:null,p2Name:null,manual:true});b.preview[side==='home'?'scoreH':'scoreA']++;b.decisions.push({kind:'goal',min:goalMin,side,p1:scorer.id,p1Name:scorer.name});}
  return true;
 }
-export function coachSubstitution(s,b,outId,inId){const side=managerSide(s,b);if(!side||b.replay||b.finished)throw Error('Este partido no admite cambios de DT');const minute=displayedMinute(b);if(minute<1||minute>=89)throw Error('Las sustituciones se realizan entre el minuto 1 y el 88');const club=side==='home'?b.preview.home:b.preview.away;const team=s.teams[club];const previous=b.decisions.filter(x=>x.kind==='sub');if(previous.length>=5)throw Error('Ya realizaste los cinco cambios');const starts=b.preview.lineups[side].map(String);const out=team.players.find(p=>String(p.id)===String(outId)),incoming=team.players.find(p=>String(p.id)===String(inId));if(!out||!incoming||out.id===incoming.id)throw Error('Elegí dos jugadores diferentes');const usedOut=new Set(previous.map(x=>x.out)),usedIn=new Set(previous.map(x=>x.in));if(!starts.includes(String(out.id))&&!usedIn.has(out.id))throw Error('Solo podés sacar a alguien que esté en la cancha');if(usedOut.has(out.id))throw Error('Ese jugador ya salió');if(starts.includes(String(incoming.id))||usedIn.has(incoming.id)||usedOut.has(incoming.id))throw Error('El jugador entrante no está disponible');if(b.preview.bench?.[side]?.length&&!b.preview.bench[side].some(id=>String(id)===String(incoming.id)))throw Error('Ese jugador no fue convocado a la banca para este partido');const x={kind:'sub',minute,side,out:out.id,in:incoming.id};b.decisions.push(x);pushEvent(b,{min:minute,type:'sub',side,p1:out.id,p1Name:out.name,p2:incoming.id,p2Name:incoming.name,manual:true});
- // Un sustituto fresco puede desequilibrar realmente los minutos restantes.
- const quality=Math.max(0,(incoming.ovr||60)-(out.ovr||60));
- const chance=Math.min(.31,.07+quality*.014);
+export function coachSubstitution(s,b,outId,inId){
+ const side=managerSide(s,b);if(!side||b.replay||b.finished)throw Error('Este partido no admite cambios de DT');
+ const minute=displayedMinute(b);if(minute<1||minute>=89)throw Error('Podés sustituir entre los minutos 1 y 88');
+ const club=side==='home'?b.preview.home:b.preview.away,team=s.teams[club];
+ const teamEvents=(b.preview.events||[]).filter(e=>e.type==='sub'&&e.side===side&&Number(e.min)<=minute);
+ if(teamEvents.length>=5)throw Error('Ya realizaste los cinco cambios');
+ const starters=(b.preview.lineups?.[side]||[]).map(String),onField=new Set(starters);
+ const usedIn=new Set(),usedOut=new Set();
+ for(const ev of teamEvents){
+  if(ev.p1!=null){onField.delete(String(ev.p1));usedOut.add(String(ev.p1));}
+  if(ev.p2!=null){onField.add(String(ev.p2));usedIn.add(String(ev.p2));}
+ }
+ const out=team.players.find(p=>String(p.id)===String(outId)),incoming=team.players.find(p=>String(p.id)===String(inId));
+ if(!out||!incoming||out.id===incoming.id)throw Error('Elegí futbolistas diferentes');
+ if(!onField.has(String(out.id)))throw Error('El futbolista que sale no está actualmente en la cancha');
+ const bench=(b.preview.bench?.[side]||[]).map(String);
+ if(!bench.includes(String(incoming.id)))throw Error('Solo podés usar a los siete suplentes convocados');
+ if(onField.has(String(incoming.id))||usedIn.has(String(incoming.id))||usedOut.has(String(incoming.id)))throw Error('Ese suplente ya participó en el partido');
+ const x={kind:'sub',minute,side,out:out.id,in:incoming.id};b.decisions.push(x);
+ pushEvent(b,{min:minute,type:'sub',side,p1:out.id,p1Name:out.name,p2:incoming.id,p2Name:incoming.name,manual:true});
+ const quality=Math.max(0,(incoming.ovr||60)-(out.ovr||60)),chance=Math.min(.31,.07+quality*.014);
  const roll=pct(b.id+'sub'+minute+incoming.id+s.seed);
- if(roll<chance&&minute<78){const goalMin=Math.min(90,minute+6+Math.floor(pct(b.id+'subgoal'+incoming.id)*12));
- pushEvent(b,{min:goalMin,type:'goal',side,p1:incoming.id,p1Name:incoming.name,manual:true});
- b.preview[side==='home'?'scoreH':'scoreA']++;
- b.decisions.push({kind:'goal',min:goalMin,side,p1:incoming.id,p1Name:incoming.name});
+ if(roll<chance&&minute<78){
+  const goalMin=Math.min(90,minute+6+Math.floor(pct(b.id+'subgoal'+incoming.id)*12));
+  pushEvent(b,{min:goalMin,type:'goal',side,p1:incoming.id,p1Name:incoming.name,manual:true});
+  b.preview[side==='home'?'scoreH':'scoreA']++;
+  b.decisions.push({kind:'goal',min:goalMin,side,p1:incoming.id,p1Name:incoming.name});
  }
  return x;
 }
