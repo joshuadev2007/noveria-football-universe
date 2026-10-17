@@ -64,6 +64,19 @@ export function eventsUntil(b){let minute=displayedMinute(b);return (b.preview.e
 export function runningScore(b){if(b.legacy&&!b.finished)return [0,0];const goals=eventsUntil(b).filter(e=>e.type==='goal');return [goals.filter(e=>e.side==='home').length,goals.filter(e=>e.side==='away').length]}
 export function descriptionOf(ev,m){let label=ev.side==='home'?m.home:m.away;return ({shot:`¡Remate de ${label}! El balón se va desviado`,save:`¡ATAJADÓN! El guardameta frustra a ${label}`,corner:`Córner peligroso para ${label}`,goal:`¡GOOOOOOL de ${ev.p1Name||label}!`,yellow:`Amarilla para ${ev.p1Name||label}`,red:`¡ROJA! ${ev.p1Name||label} se marcha`,injury:`Atención médica para ${ev.p1Name||label}`,sub:`Cambio: sale ${ev.p1Name}, entra ${ev.p2Name}`,var:'📺 Revisión VAR',tactic:`El DT de ${label} ordena jugar ${ev.p1Name}`})[ev.type]||`${label} protagoniza la acción`}
 export function managerSide(s,b){const name=b?.coachClub||(s.mode==='manager'?s.managedClub:null);return name===b?.preview?.home?'home':name===b?.preview?.away?'away':null}
+/** Consejo del cuerpo técnico calculado solo con el marcador ya visible. */
+export function coachAdvice(s,b){
+ const side=managerSide(s,b);if(!side||!b?.preview)return null;
+ const minute=displayedMinute(b),[h,a]=runningScore(b);
+ const diff=side==='home'?h-a:a-h,subs=(b.preview.events||[]).filter(e=>e.type==='sub'&&e.side===side&&Number(e.min)<=minute).length;
+ if(minute<15)return '🗣️ Primeros minutos: respetá tu dibujo táctico y observá el ritmo del rival.';
+ if(minute>=46&&subs===0)return '🔄 Segundo tiempo: tenés '+(5-subs)+' cambios disponibles. Revisá la banca y el rendimiento del equipo.';
+ if(diff<0&&minute>=66)return '🔥 Vamos perdiendo: buscá mayor presencia ofensiva y un cambio fresco en el ataque.';
+ if(diff>0&&minute>=72)return '🛡️ Estamos ganando: reforzá el bloque, administrá la pelota y usá los cambios restantes.';
+ if(diff===0&&minute>=75)return '🎯 Empate en el tramo final: un cambio de ritmo puede abrir espacios. Priorizá el equilibrio.';
+ if(subs>=4)return '⏱️ Te queda como máximo un cambio. Elegí bien el momento.';
+ return '📋 Consejo DT: ajustá la táctica según el rival y usá la banca cuando necesités piernas frescas.';
+}
 /** Modo DT opcional para un solo partido, sin modificar el club de la carrera. */
 export function takeCoachControl(s,b,club){if(!b||b.finished||b.replay||b.legacy)throw Error('Elegí un partido oficial pendiente para dirigir');if(club!==b.preview.home&&club!==b.preview.away)throw Error('Ese club no participa en el partido');if(b.coachClub&&b.coachClub!==club)throw Error('Ya estás dirigiendo al otro equipo en este partido');
  const side=club===b.preview.home?'home':'away',minute=displayedMinute(b);
