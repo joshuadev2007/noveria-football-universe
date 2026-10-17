@@ -6,7 +6,7 @@ import {matchEditorial} from './match-editorial.js';
 import {roundTablesHTML} from './round-standings-ui.js';
 import {cyclePhase,cycleKey,cycleName,cycleNext,cycleNextName,cycleIsAnnualFinal} from './season-cycle.js';
 import {ensureCalendar,calendarCurrent,calendarUpcoming,calendarDate,calendarReady,calendarRegisterCustom,calendarCustomDue,calendarRecord,calendarSeasonComplete,calendarPostseasonOrdinal} from './calendar.js';
-import {fixtureSources,findBroadcastFixture,matchIsAvailable,startBroadcast,finishBroadcast,displayedMinute,runningScore,coachTactic,coachSubstitution,managerSide} from './live2d.js';
+import {fixtureSources,findBroadcastFixture,matchIsAvailable,startBroadcast,finishBroadcast,displayedMinute,runningScore,coachTactic,coachSubstitution,managerSide,takeCoachControl} from './live2d.js';
 import {liveArenaMarkup,frameUpdate} from './live-ui.js';
 import {ensureContinent,PROFILES,countryStandings,simulateCountryRound,catchUpCountries,simulateCountryFinalRound,simulateNationalCupRound,prepareCountriesNextSeason} from './continent.js';
 import {ensureExtraMarket,makeLoan,executeClause,releaseToMarket,signFreeAgent,returnLoans} from './market-extra.js';
@@ -28,12 +28,43 @@ const club=name=>s.teams[name];
 const rndLabel=k=>k===8||k===17?`Jornada ${k} · DOBLE`:k===9||k===18?`Jornada ${k} · CLÁSICOS`:`Jornada ${k}`;
 function crest(name,size=''){const t=club(name);if(!t)return '';const ch=(name.split(' ').filter(w=>!['de','del','la'].includes(w.toLowerCase())).map(w=>w[0]).slice(0,2).join('')||'FC');return `<span class="crest ${size}" style="background:linear-gradient(135deg,${E(t.primary)} 48%,${E(t.secondary)} 52%)" title="${E(name)}">${E(ch)}</span>`;}
 function toast(text){const d=document.createElement('div');d.className='toast';d.textContent=text;$('toasts').appendChild(d);setTimeout(()=>d.remove(),3400)}
-let liveTimer=null,liveLast=0,liveAudio=null,liveCrowd=null,liveLastSound=-1,liveLastSave=-1;
+let liveTimer=null,liveLast=0,liveLastPaint=0,liveLastHUD=0,liveAudio=null,liveCrowd=null,liveLastSound=-1,liveLastSave=-1;
  function stopLive(){ui.playing=false;liveLast=0;stopLiveCrowd();if(liveTimer){cancelAnimationFrame(liveTimer);liveTimer=null;}if(s.broadcast)s.broadcast.paused=true;}
  function stopLiveCrowd(){try{if(liveCrowd){liveCrowd.stop();liveCrowd.disconnect();liveCrowd=null;}}catch{liveCrowd=null;}}
  function startLiveCrowd(){try{if(!s.broadcast?.sound||liveCrowd)return;const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;liveAudio=liveAudio||new Ctx();if(liveAudio.state==='suspended')liveAudio.resume().catch(()=>{});const size=liveAudio.sampleRate*2,buf=liveAudio.createBuffer(1,size,liveAudio.sampleRate),data=buf.getChannelData(0);for(let i=0;i<size;i++)data[i]=(Math.random()*2-1)*(.55+.45*Math.sin(i/6000));const source=liveAudio.createBufferSource(),filter=liveAudio.createBiquadFilter(),gain=liveAudio.createGain();source.buffer=buf;source.loop=true;filter.type='lowpass';filter.frequency.value=540;gain.gain.value=.011;source.connect(filter).connect(gain).connect(liveAudio.destination);source.start();liveCrowd=source;}catch{}}
  function liveSfx(freq=440,duration=.1){try{if(!s.broadcast?.sound)return;const Context=window.AudioContext||window.webkitAudioContext;if(!Context)return;liveAudio=liveAudio||new Context();if(liveAudio.state==='suspended')liveAudio.resume().catch(()=>{});const o=liveAudio.createOscillator(),g=liveAudio.createGain();o.type='triangle';o.frequency.setValueAtTime(freq,liveAudio.currentTime);g.gain.setValueAtTime(.06,liveAudio.currentTime);g.gain.exponentialRampToValueAtTime(.0001,liveAudio.currentTime+duration);o.connect(g).connect(liveAudio.destination);o.start();o.stop(liveAudio.currentTime+duration)}catch{}}
- function startLiveFrame(){if(liveTimer)cancelAnimationFrame(liveTimer);liveLast=0;function tick(now){let b=s.broadcast;if(ui.page!=='vivo'||!b||b.paused||b.finished){liveTimer=null;return;}if(liveLast)b.elapsed=Math.min(b.duration,b.elapsed+Math.min(.15,(now-liveLast)/1000)*b.speed);liveLast=now;const currentMin=displayedMinute(b);ui.liveMinute=currentMin;frameUpdate(b);if(b.sound){const goals=(b.preview.events||[]).filter(e=>e.type==='goal'&&e.min<=currentMin).length;if(goals>liveLastSound&&liveLastSound!==-1)liveSfx(720,.4);liveLastSound=goals;}if(Math.floor(b.elapsed/8)!==liveLastSave){liveLastSave=Math.floor(b.elapsed/8);save();}if(b.elapsed>=b.duration){finishLiveMatch();return;}liveTimer=requestAnimationFrame(tick);}liveTimer=requestAnimationFrame(tick);}
+ function startLiveFrame(){
+ if(liveTimer)cancelAnimationFrame(liveTimer);
+ liveLast=0;liveLastPaint=0;liveLastHUD=0;
+ const mobile=window.matchMedia?.('(max-width: 700px)')?.matches;
+ const paintInterval=mobile?36:25; // ~28 fps en celular, ~40 en escritorio
+ const hudInterval=180;
+ function tick(now){
+  const b=s.broadcast;
+  if(ui.page!=='vivo'||!b||b.paused||b.finished){liveTimer=null;return;}
+  if(liveLast)b.elapsed=Math.min(b.duration,b.elapsed+Math.min(.15,(now-liveLast)/1000)*b.speed);
+  liveLast=now;
+  if(now-liveLastPaint>=paintInterval||b.elapsed>=b.duration){
+   const hud=now-liveLastHUD>=hudInterval||b.elapsed>=b.duration;
+   if(hud)liveLastHUD=now;
+   liveLastPaint=now;
+   frameUpdate(b,{hud});
+   if(hud){
+    const currentMin=displayedMinute(b);ui.liveMinute=currentMin;
+    if(b.sound){
+     const goals=(b.preview.events||[]).filter(e=>e.type==='goal'&&e.min<=currentMin).length;
+     if(goals>liveLastSound&&liveLastSound!==-1)liveSfx(720,.35);
+     liveLastSound=goals;
+    }
+   }
+  }
+  // Guardar con menos frecuencia evita congelaciones en equipos modestos.
+  if(Math.floor(b.elapsed/18)!==liveLastSave){liveLastSave=Math.floor(b.elapsed/18);if(liveLastSave>0)save();}
+  if(b.elapsed>=b.duration){finishLiveMatch();return;}
+  liveTimer=requestAnimationFrame(tick);
+ }
+ liveTimer=requestAnimationFrame(tick);
+}
  function finishLiveMatch(){const b=s.broadcast;if(!b||b.finished)return;stopLive();try{const info=finishBroadcast(s);if(info.first){resolveLiveRound(info.entry);s.broadcast.preview=structuredClone(info.match);s.ecosystem??={};s.ecosystem.pressFocus??={};s.ecosystem.pressFocus[info.match.home]=info.match.id;s.ecosystem.pressFocus[info.match.away]=info.match.id;toast('🏁 Final del partido · ¡resultado registrado!');}else toast('↻ Repetición finalizada');save();}catch(e){toast('⚠ '+e.message);console.error(e);}render();}
  function resolveLiveRound(entry){if(!entry)return;const {m,kind,country,owner}=entry;try{
   if(kind==='league'){const matches=s.fixtures.filter(f=>f.round===m.round&&['LSV','LPV'].includes(f.competition));if(matches.every(played)){finalizeLeagueRound(s,m.round);catchUpCountries(s,m.round);if(m.round===18){ensureInternational(s);for(const c of COUNTRIES)registerAwards(s,c,countryRows(c,'annual').map(r=>r.name));}}}
@@ -398,7 +429,7 @@ function livePage(){
  const choose=entry=>`${E(entry.country==='Veltrania'?'Veltrania':entry.country)} · ${E(entry.m.home)} ${played(entry.m)?entry.m.scoreH+'-'+entry.m.scoreA:'vs'} ${E(entry.m.away)} · ${E(entry.m.competition)} · ${entry.m.round}ª fecha`;
  const country=ui.liveCountry||'Veltrania';let games=sources.filter(x=>x.country===country&&(!ui.liveSearch||(x.m.home+' '+x.m.away+' '+x.m.competition).toLowerCase().includes(ui.liveSearch.toLowerCase()))).sort((a,b)=>Number(matchIsAvailable(s,b))-Number(matchIsAvailable(s,a))||Number(played(a.m))-Number(played(b.m))||b.m.round-a.m.round).slice(0,70);
  const b=s.broadcast;
- return `<div class="stack">${head('🔴 Centro de partido en vivo 2D','Elegí cualquier partido habilitado. 90 minutos de emoción en solo 2 minutos reales.',button('⚽ Ir a las jornadas','nav','data-target="jornadas"','btn'))}
+ return `<div class="stack">${head('🔴 Centro de partido en vivo 2D','Jugadas reconstruidas desde el acta, DT interactivo y animación optimizada. 90 minutos en dos minutos reales.',button('⚽ Ir a las jornadas','nav','data-target="jornadas"','btn'))}
  ${b?`<div class="lv5-broadcast"><div class="eyebrow">${E(choose(findBroadcastFixture(s,b.id)||{m:b.preview,country:'Veltrania'}))}</div>${liveArenaMarkup(s,b)}${aggregateBadge(b.preview)}</div>`:''}
  <details class="card lv5-picker" ${b?'':'open'}><summary>📺 Elegir otro partido · Buscar por país y equipo</summary><div class="lv5-picker-inside"><div class="eyebrow">📺 SINTONIZÁ NOVERIA LIVE</div><h2 class="h2">Elegí tu país y encuentro</h2><div class="grid two"><label class="field"><span>País o competición</span><select id="liveCountry">${['Veltrania',...FOREIGN_COUNTRIES,'champions','horizonte'].map(c=>`<option value="${E(c)}" ${c===country?'selected':''}>${E(c==='champions'?'Copa de Campeones':c==='horizonte'?'Copa Horizonte':c)}</option>`).join('')}</select></label><label class="field"><span>Buscar clubes</span><input id="liveSearch" class="input" placeholder="Nombre del equipo..." value="${E(ui.liveSearch||'')}"></label></div><div class="lv5-game-list">${games.map(x=>`<button class="lv5-game-choice ${b?.id===x.m.id?'selected':''}" data-action="live-match" data-id="${E(x.m.id)}" ${!matchIsAvailable(s,x)?'disabled title="Primero jugá las fechas anteriores"':''}><span>${E(x.m.home)} <b>${played(x.m)?x.m.scoreH+'–'+x.m.scoreA:'VS'}</b> ${E(x.m.away)}</span><small>${E(x.m.competition)} · Fecha ${x.m.round} · ${played(x.m)?'↻ REPETIR':matchIsAvailable(s,x)?'🔴 VER EN VIVO':'PRÓXIMAMENTE'}</small></button>`).join('')||'<p class="muted small">No hay partidos para esta búsqueda.</p>'}</div></div></details>
  ${!b?`<div class="hero stadium-photo"><div class="hero-copy"><span class="tag goldtag">NOVERIA TV · 120 SEGUNDOS</span><h2>EL PRÓXIMO GOL<br><span class="gold">LO VAS A VIVIR.</span></h2><p>Elegí un enfrentamiento en el listado, entrá a la cancha y presioná Reproducir. ¡No conocerás el resultado hasta el pitazo final!</p></div></div>`:''}
@@ -638,8 +669,10 @@ case 'live-match':{const id=el.dataset.id;if(s.broadcast&&!s.broadcast.finished&
  case 'live-speed':{const b=s.broadcast;if(!b)break;b.speed=b.speed===1?2:b.speed===2?4:1;const e=$('lv5-speed');if(e)e.textContent='x'+b.speed;save();break;}
  case 'live-sound':{const b=s.broadcast;if(!b)break;b.sound=!b.sound;const e=$('lv5-sound');if(e)e.textContent=b.sound?'🔊 Sonido':'🔇 Silencio';if(b.sound){liveSfx(560,.1);if(!b.paused)startLiveCrowd();}else stopLiveCrowd();save();break;}
  case 'live-reset':{const b=s.broadcast;if(!b||(!b.replay&&!b.finished))break;stopLive();b.elapsed=0;b.finished=false;b.paused=true;b.replay=true;ui.liveMinute=0;liveLastSound=-1;save();render();break;}
- case 'live-tactic':{const b=s.broadcast;if(!b)break;try{coachTactic(s,b,el.dataset.tactic);save();render();toast('🎯 Orden táctica enviada al campo');}catch(e){toast('⚠ '+e.message)}break;}
- case 'live-sub':{const b=s.broadcast;if(!b)break;try{coachSubstitution(s,b,$('lv5-out').value,$('lv5-in').value);save();render();toast('🔁 Cambio confirmado por el DT');}catch(e){toast('⚠ '+e.message)}break;}
+ case 'live-take-dt':{const b=s.broadcast;if(!b)break;try{takeCoachControl(s,b,el.dataset.club);save();render();frameUpdate(b);toast('🎩 Modo DT activado: '+b.coachClub);}catch(e){toast('⚠ '+e.message)}break;}
+ case 'live-prepare-lineup':{const b=s.broadcast;if(!b||b.elapsed>0||b.replay||b.finished){toast('⚠ La alineación solo se prepara antes del pitazo inicial.');break;}if(s.mode==='manager'&&s.managedClub!==b.coachClub){toast('⚠ En modo carrera solo podés cambiar la alineación de tu club contratado.');break;}const team=b.coachClub||s.managedClub||b.preview.home;stopLive();s.broadcast=null;ui.liveMatch=null;ui.lineupClub=team;save();nav('alineacion');toast('📋 Elegí tu XI y banca. Después volvé a Live 2D para empezar el partido.');break;}
+ case 'live-tactic':{const b=s.broadcast;if(!b)break;try{coachTactic(s,b,el.dataset.tactic);save();render();frameUpdate(b);toast('🎯 Orden táctica enviada al campo');}catch(e){toast('⚠ '+e.message)}break;}
+ case 'live-sub':{const b=s.broadcast;if(!b)break;try{coachSubstitution(s,b,$('lv5-out').value,$('lv5-in').value);save();render();frameUpdate(b);toast('🔁 Cambio confirmado por el DT');}catch(e){toast('⚠ '+e.message)}break;}
  case 'report-more':ui.reportLimit+=24;render();break;case 'more-news':ui.newsLimit+=24;render();break;case 'champion-news':close();nav('noticias');break;case 'champion-press':close();ui.team=el.dataset.name||s.managedClub;nav('prensa');break;case 'press-answer':try{const name=s.mode==='manager'&&s.managedClub?s.managedClub:(s.managedClub||ui.team),focus=pressMatchFocus(s,name);const entry=answerPress(s,name,el.dataset.question,el.dataset.answer,focus?.competition||'Liga',focus?.m?.id||null);save();toast('🎙️ '+entry.headline);render()}catch(e){toast('⚠ '+e.message)}break;
 case 'switch-medium':ui.media=el.dataset.medium;nav('prensa');break;
 case 'youth-scout':try{const result=sendYouthScout(s,ui.team,ui.youthScoutCountry||COUNTRIES.find(c=>c!==club(ui.team).country));save();toast('🌍 Ojeador enviado a '+result.country+' · '+result.stepsRemaining+' fechas');render()}catch(e){toast('⚠ '+e.message)}break;
