@@ -24,12 +24,17 @@ const indexes=(b,side,ev)=>{
  const first=mid===6?5:6;
  return {first,mid,finish};
 };
-function formation(side,ball,seconds,tag){
+function formation(side,ball,seconds,tag,b){
  const home=side==='home',baseX=[65,230,235,230,235,393,402,393,560,570,560];
  const baseY=[270,88,200,345,452,133,270,407,130,270,409];
  return Array.from({length:11},(_,i)=>{
   const keeper=i===0,role=i<=4?1:i<=7?2:3;
   let x=home?baseX[i]:960-baseX[i],y=baseY[i];
+  const minute=seconds>120?90+(seconds-120)*1.5:seconds*.75;
+  const orders=(b.decisions||[]).filter(d=>d.kind==='tactic'&&d.side===side&&Number(d.minute)<=minute);
+  const tactic=orders.at(-1)?.tactic||b.startTactics?.[side]||'Equilibrado';
+  const shift={'Presión alta':48,'A todo ataque':61,'Contraataque':6,'Posesión':18,'Equilibrado':0,'Bloque bajo':-52,'Perder tiempo':-32}[tactic]||0;
+  if(!keeper)x+=(home?1:-1)*shift*(role===3?1:role===2?.86:.63);
   // El bloque acompaña la pelota y los defensores cierran líneas de pase.
   const direction=home?1:-1;
   const advance=(ball.x-480)*.20;
@@ -143,8 +148,8 @@ export function motionFrame(b){
  const scene=selected?eventMotion(b,t,selected):possessionMotion(b,t);
  const {side,ball}=scene;
  const players={
-  home:formation('home',ball,t,b.id),
-  away:formation('away',ball,t,b.id)
+  home:formation('home',ball,t,b.id,b),
+  away:formation('away',ball,t,b.id,b)
  };
  if(selected){
   const {actors,positions,progress}=scene;
