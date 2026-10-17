@@ -337,3 +337,42 @@
 .sporting-history{margin-top:8px}
 .sporting-lineup-host>.stack>.top{display:none}
 @media(max-width:680px){.sporting-hero{gap:13px}.sporting-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.sporting-tabs .btn{min-width:0;white-space:normal;font-size:11px}.sporting-player-data{grid-template-columns:1fr 1fr}.sporting-market-actions .btn{flex:1 1 145px}.sporting-candidate .controls{width:100%}.sporting-candidate .controls>.btn{flex:1 1 95px}.sporting-selector{width:100%}}
+
+
+/* Noveria 6.2 · Buzón del entrenador, estilo carrera */
+.inbox-nav-badge{font:900 10px Arial,sans-serif;color:#142337;background:#ffda78;border-radius:99px;padding:3px 6px;min-width:18px;display:inline-flex;align-items:center;justify-content:center;margin-left:6px}
+.inbox-banner{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:20px 23px;border:1px solid #557495;border-radius:18px;background:linear-gradient(120deg,#203752,#202742 65%,#393147);flex-wrap:wrap}
+.inbox-banner h2{margin:8px 0;font-size:clamp(20px,3vw,27px);color:#fff0cb}
+.inbox-banner p{font-size:12px;color:#b7cce3;margin:5px 0}
+.inbox-total{display:flex;align-items:center;justify-content:center;border-radius:14px;padding:13px;font:900 19px Arial,sans-serif;background:#32415d;border:1px solid #748ba5;color:#ffdc87}
+.inbox-tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.inbox-layout{display:grid;grid-template-columns:minmax(250px,.84fr) minmax(0,1.4fr);align-items:start;gap:15px}
+.inbox-mails{min-width:0;max-height:735px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;border-radius:13px}
+.inbox-mail{width:100%;text-align:left;display:flex;gap:13px;align-items:start;min-height:92px;padding:15px 14px;border-radius:12px;border:1px solid #364961;background:#182338;color:#eff5fd;cursor:pointer;transition:background .2s,border .2s,transform .2s}
+.inbox-mail:hover{background:#263953;border-color:#748ba5;transform:translateY(-1px)}
+.inbox-unread{border-left:4px solid #ffcb67;background:#26304a}
+.inbox-icon{font-size:20px;min-width:26px}
+.inbox-copy{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+.inbox-copy strong{font-size:13px;color:#f4dca7}
+.inbox-copy b{font-size:13px;line-height:1.36}
+.inbox-copy small{font-size:11px;color:#aebfd4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inbox-copy em{font-style:normal;font-size:10px;color:#96b8cb}
+.inbox-reader{min-width:0;padding:clamp(16px,3vw,27px);border:1px solid #526582;position:relative;overflow-wrap:anywhere}
+.inbox-reader h2{font-size:clamp(20px,3vw,29px);line-height:1.2;margin:13px 0;color:#ffdf9b}
+.inbox-reader h3{margin:22px 0 10px;font-size:15px}
+.inbox-sender{display:flex;flex-direction:column;gap:4px;border-bottom:1px solid #4b6076;padding:0 0 16px;font-size:13px}
+.inbox-sender small{font-size:11px;color:#9ab3cf}
+.inbox-message-body{font-size:14px;line-height:1.9;color:#e0e9f4;margin:22px 0;white-space:pre-wrap}
+.inbox-responses{display:flex;flex-direction:column;gap:10px}
+.inbox-reply{width:100%;text-align:left;display:flex;align-items:center;gap:13px;padding:13px 14px;background:#20304a;border:1px solid #526a8c;border-radius:12px;color:#ecf4ff;cursor:pointer;transition:background .2s,transform .2s}
+.inbox-reply:hover{background:#314b6d;border-color:#d9b977;transform:translateX(3px)}
+.inbox-reply>span:last-child{display:flex;flex-direction:column;gap:5px}
+.inbox-reply strong{font-size:13px}
+.inbox-reply small{font-size:11px;line-height:1.4;color:#b9cce3}
+.inbox-num{display:grid;place-items:center;border-radius:9px;min-width:32px;height:32px;background:#b99352;color:#131e30;font-weight:900}
+.inbox-done{padding:16px;border-radius:12px;border:1px solid #55765e;background:#1b3c38;color:#d7f7e6}
+.inbox-done p{font-size:12px;line-height:1.7;margin:8px 0}
+.inbox-empty{padding:20px;text-align:center;border:1px dashed #526982;color:#b8cbe0;border-radius:11px;font-size:13px}
+.inbox-popup{cursor:pointer;border:1px solid #ffdd98;background:linear-gradient(115deg,#21374e,#254553);color:#fff3cc;text-align:left;max-width:min(420px,calc(100vw - 40px))}
+@media(max-width:760px){.inbox-layout{grid-template-columns:1fr}.inbox-mails{max-height:365px}.inbox-tabs .btn{font-size:11px;padding:9px}.inbox-reply:hover{transform:none}.inbox-banner{padding:16px}}
+@media(prefers-reduced-motion:reduce){.inbox-mail,.inbox-reply{transition:none}}
