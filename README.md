@@ -1,3 +1,30 @@
+# Noveria Football Universe 6.0 · Modo carrera realista y sencillo 🎮⚽
+
+La revisión general de Noveria 6.0 integra **condición física, química del once, ventajas tácticas, cuatro climas ficticios, planes de entrenamiento y objetivos de la directiva** sin perder el estilo original de resultados y periódicos. También reforzamos la utilidad del editor de alineación y su banca.
+
+📋 **[Las 52 mejoras y revisiones, numeradas](./NOVERIA_60_52_MEJORAS.md)**. El listado diferencia novedades reales, elementos mejorados y funciones preexistentes que comprobamos.
+
+## Pasos para empezar
+
+1. **Exportá tu partida JSON** desde Palmarés y partida antes de cambiar de versión.
+2. Abrí **Alineación y banca** para elegir titulares, suplentes, capitán, táctica, **plan de entrenamiento** o **rotar por cansancio**.
+3. Entrá al **Calendario maestro** para ver la previa del siguiente partido: rival, clima simulado, físico, química y bajas.
+4. Jugá en 2D o simulá la fecha. Ahora los futbolistas se fatigan por los minutos disputados y descansan según los días entre jornadas, la enfermería y el entrenamiento.
+5. En **Mi carrera DT**, revisá los diez objetivos y la puntuación del proyecto. Los avances se calculan por edición de Apertura o Clausura.
+6. Los marcadores y periódicos **siguen apareciendo directamente, sin «Revelar resultado»**.
+
+## Compatibilidad y calidad
+
+- Se han mantenido **Apertura 2026 → Clausura 2027 → Apertura 2027** y la tabla anual conjunta, sin recalcular partidos ya jugados.
+- Se preservan los 78 resultados históricos iniciales del Apertura 2026.
+- Las partidas anteriores inicializan el físico en 90 y el ritmo competitivo en 65 de manera compatible.
+- Verificamos por simulación tres ediciones completas con sus nueve federaciones y copas.
+- La prueba adicional del nuevo motor está en `tests-realism-60.mjs`; el script `npm test` incluye esta prueba.
+- No cambia la estructura de Joshua Cloud ni las credenciales existentes. Se actualizó la caché offline a `noveria-offline-v27`.
+- La revisión de código y la simulación no sustituyen probarlo en tu dispositivo; antes de jugar, recargá la web sin borrar los datos del sitio.
+
+---
+
 # Noveria 5.16 · Live 2D más natural y Modo DT mejorado ⚽📺
 
 **Actualización publicada en la rama main, compatible con partidas anteriores.** Se conservan calendarios, alineaciones, banca, torneos, títulos, resultados históricos y los datos de Joshua Cloud.
