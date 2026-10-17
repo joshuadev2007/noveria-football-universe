@@ -2,6 +2,7 @@ import {TEAMS,FIXTURES,FOREIGN_COUNTRIES} from './data.js';
 import {cyclePhase,cycleKey,cycleName,cycleNext,cycleIsAnnualFinal,annualMatches} from './season-cycle.js';
 import {seniorYouthDevelopment,advanceYouthOffers,teamOverall} from './youth-scouting.js';
 import {matchLineup,lineupStrength} from './lineup.js';
+import {preCareerMatch,afterCareerMatch} from './career-realism.js';
 import {leaguePlayoffSeeds,leaguePlayoffPairs,leaguePlayoffReseed,leaguePlayoffFinal} from './league-playoffs.js';
 
 export const STORAGE_KEY='noveria-universe-save-v1';
@@ -45,10 +46,11 @@ export function simulateMatch(s,match,options={}){
   const r=seeded('match-'+match.id+'-'+s.seed);
   const selectedH=matchLineup(home),selectedA=matchLineup(away);
   const startersH=selectedH.starters,startersA=selectedA.starters;
-  const hRating=rate(home,selectedH),aRating=rate(away,selectedA);
+  const preparation=preCareerMatch(s,match,home,away,selectedH,selectedA);
+  const hRating=rate(home,selectedH)+preparation.homePower,aRating=rate(away,selectedA)+preparation.awayPower;
   const attackBonus=t=>t.tactic==='Presión alta'?.13:t.tactic==='Contraataque'?.08:t.tactic==='Posesión'?.10:0;
-  const expH=within(1.22+(hRating-aRating)*.068+.18+attackBonus(home)+(home.morale-70)*.003,.24,3.65);
-  const expA=within(1.18+(aRating-hRating)*.068+attackBonus(away)+(away.morale-70)*.003,.24,3.65);
+  const expH=within(1.22+(hRating-aRating)*.068+.18+attackBonus(home)+(home.morale-70)*.003+preparation.homeGoal,.24,3.65);
+  const expA=within(1.18+(aRating-hRating)*.068+attackBonus(away)+(away.morale-70)*.003+preparation.awayGoal,.24,3.65);
   let sh=poisson(expH,r),sa=poisson(expA,r);
   const events=[];
   for(const t of [home,away])for(const p of t.players)if((p.outGames||0)>0)p.outGames--;
@@ -100,6 +102,7 @@ export function simulateMatch(s,match,options={}){
   if(!options.silent&&r()<.23){match.referee.varChecks++;events.push({min:Math.min(90,18+Math.floor(r()*68)),type:'var',side:r()<.5?'home':'away',p1Name:'Revisión VAR sin alterar el resultado'});events.sort((a,b)=>a.min-b.min);}
   const relation=(home.rivalryRecords[away.name]||{games:0,w:0,d:0,l:0,gf:0,gc:0});relation.games++;relation.gf+=sh;relation.gc+=sa;if(sh>sa)relation.w++;else if(sh<sa)relation.l++;else relation.d++;home.rivalryRecords[away.name]=relation;
   const reverse=(away.rivalryRecords[home.name]||{games:0,w:0,d:0,l:0,gf:0,gc:0});reverse.games++;reverse.gf+=sa;reverse.gc+=sh;if(sa>sh)reverse.w++;else if(sa<sh)reverse.l++;else reverse.d++;away.rivalryRecords[home.name]=reverse;
+  afterCareerMatch(s,match,preparation);
   seniorYouthDevelopment(s,match);
   advanceYouthOffers(s,match);
   if(!options.silent)addNews(s,match.competition,match.headline,match.summary,match.id);
