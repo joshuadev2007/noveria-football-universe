@@ -154,9 +154,12 @@ export function careerRecoverAfterDate(s,calendarEvent,playedMatches=[]){
  const medical=t=>Math.max(1,Number(t.facility?.medical||1));
  for(const team of Object.values(s.teams||{})){
   const used=active.has(team.name);const training=trainingPlan(team);
-  const recovered=(used?4:11)+(training==='Recuperación'?4:training==='Intensivo'?-2:0);
+  const last=Date.parse(s.careerDates.lastDate||'');const date=Date.parse(calendarEvent.date||'');
+  const days=Number.isFinite(date)&&Number.isFinite(last)?clamp(Math.round((date-last)/86400000),1,12):4;
+  const recovered=(used?Math.round(2+days*1.55):Math.round(3+days*2.0))+(training==='Recuperación'?4:training==='Intensivo'?-2:0);
   for(const p of team.players||[]){ensureCareerPlayer(p);p.fitness=clamp(p.fitness+recovered+medical(team)*1.3,8,100);if(training==='Intensivo')p.sharpness=clamp(p.sharpness+2,15,100);else if(training==='Recuperación')p.sharpness=clamp(p.sharpness-1,15,100);}
  }
+ if(calendarEvent.date)s.careerDates.lastDate=calendarEvent.date;
  s.careerDates.ids.push(calendarEvent.id);if(s.careerDates.ids.length>130)s.careerDates.ids.shift();
  return true;
 }
