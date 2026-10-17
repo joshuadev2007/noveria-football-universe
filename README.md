@@ -1,3 +1,20 @@
+# Noveria 6.1 · Gerencia deportiva completa de tu club 🧑‍💼⚽
+
+**Acceso:** Menú lateral → **🧑‍💼 Gerencia deportiva**, también desde **Directivas y DT**.
+
+1. **Elegí el club:** en el selector «Club que querés gestionar», elegí cualquiera de los clubes y pulsá «Asumir gerencia». Esto activa el modo DT para ese equipo y sincroniza sus operaciones de mercado y alineación.
+2. **Plantilla y contratos:** todas las fichas muestran OVR, potencial, edad, salario, duración, valor y rol de convocatoria. Podés **renovar contratos (salario y años)** con costo de firma, **poner jugadores en venta**, **pasarlos al once o la banca** y **rescindirlos**, si el mercado está abierto y hay suficientes futbolistas.
+3. **Alineación y banca:** accedé al tablero táctico existente desde una pestaña del despacho: **11 titulares, 7 suplentes, reservas, capitán, formación, estilo, entrenamientos y rotación**. Estas decisiones se aplican al motor de los partidos y al Live 2D.
+4. **Fichajes:** buscá jugadores de otros países por nombre, club o posición. Podés **negociar con el vendedor**, **pagar cláusulas**, **pedir cesiones** y **contratar agentes libres** usando los flujos reales del Mercado 24. Se respetan presupuestos, ventana abierta y tamaños de plantillas. Las negociaciones pueden terminar en aceptación, contraoferta o rechazo.
+5. **Salidas:** un jugador transferible recibe ofertas de clubes realmente interesados, con fondos suficientes y plazas disponibles. Aceptar una oferta mueve al jugador entre plantillas y modifica ambos presupuestos. No se hacen ventas sin que vos confirmés.
+6. **Dirección del club:** consultá estructura, presupuesto, entrenador, director, objetivos y acceso a cantera, estadio, instalaciones y desarrollo. Podés **nombrar director deportivo** y **cambiar DT**. Los cambios quedan en la partida.
+
+**Reglas y compatibilidad:** no podés modificar operaciones de otro equipo sin cambiar de club. Se respetan mínimo 17 y máximo 30 jugadores para las operaciones aplicables, préstamos y presupuestos. El nuevo módulo `sporting-director.js` usa datos de la partida ya existente; su historial se guarda en `s.sportingOffice` y no necesita una base de datos nueva. No modifica partidos ni palmarés pasados.
+
+**Pruebas:** `node tests-sporting-office.mjs` comprueba gestión de club, banca, contratos, transferencias, fondos, agentes libres e integridad histórica.
+
+---
+
 # Noveria Football Universe 6.0 · Modo carrera realista y sencillo 🎮⚽
 
 La revisión general de Noveria 6.0 integra **condición física, química del once, ventajas tácticas, cuatro climas ficticios, planes de entrenamiento y objetivos de la directiva** sin perder el estilo original de resultados y periódicos. También reforzamos la utilidad del editor de alineación y su banca.
