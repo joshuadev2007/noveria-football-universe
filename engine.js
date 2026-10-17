@@ -1,6 +1,7 @@
 import {TEAMS,FIXTURES,FOREIGN_COUNTRIES} from './data.js';
 import {cyclePhase,cycleKey,cycleName,cycleNext,cycleIsAnnualFinal,annualMatches} from './season-cycle.js';
 import {seniorYouthDevelopment,advanceYouthOffers,teamOverall} from './youth-scouting.js';
+import {registerInjury} from './squad-care.js';
 import {matchLineup,lineupStrength} from './lineup.js';
 import {preCareerMatch,afterCareerMatch,careerOffseason} from './career-realism.js';
 import {leaguePlayoffSeeds,leaguePlayoffPairs,leaguePlayoffReseed,leaguePlayoffFinal} from './league-playoffs.js';
@@ -53,7 +54,7 @@ export function simulateMatch(s,match,options={}){
   const expA=within(1.18+(aRating-hRating)*.068+attackBonus(away)+(away.morale-70)*.003+preparation.awayGoal,.24,3.65);
   let sh=poisson(expH,r),sa=poisson(expA,r);
   const events=[];
-  for(const t of [home,away])for(const p of t.players)if((p.outGames||0)>0)p.outGames--;
+  for(const t of [home,away])for(const p of t.players){if((p.outGames||0)>0)p.outGames--;if((p.suspensionGames||0)>0)p.suspensionGames--;if(p.outGames===0&&p.medicalCase)delete p.medicalCase;}
   const addEvent=(min,type,side,p1=null,p2=null)=>events.push({min,type,side,p1:p1?.id??null,p1Name:p1?.name??null,p2:p2?.id??null,p2Name:p2?.name??null});
   for(const [count,side,team] of [[sh,'home',home],[sa,'away',away]]){
     for(let i=0;i<count;i++){const eleven=side==='home'?startersH:startersA;const scorer=weightedPlayer(team,r,eleven),assist=r()<.72?weightedPlayer(team,r,eleven):null;addEvent(3+Math.floor(r()*90),'goal',side,scorer,assist?.id!==scorer.id?assist:null);}
@@ -88,7 +89,7 @@ export function simulateMatch(s,match,options={}){
     const used=team===home?usedSubs.home:usedSubs.away;for(const id of used){const sub=team.players.find(p=>p.id===id);if(sub)sub.apps++;}
     const outcome=score>concede?3:score===concede?1:-3;team.morale=within(team.morale+outcome,20,99);team.board=within(team.board+Math.sign(outcome),10,100);
   }
-  for(const ev of events){const team=ev.side==='home'?home:away;const p=team.players.find(x=>x.id===ev.p1);const p2=team.players.find(x=>x.id===ev.p2);if(ev.type==='goal'){if(p)p.goals++;if(p2)p2.assists++;}else if(ev.type==='yellow'&&p)p.yellows++;else if(ev.type==='red'&&p)p.reds++;else if(ev.type==='injury'&&p){p.injuries++;p.outGames=Math.max(1,2+Math.floor(r()*4)-Math.floor((team.facility?.medical||1)/2));}}
+  for(const ev of events){const team=ev.side==='home'?home:away;const p=team.players.find(x=>x.id===ev.p1);const p2=team.players.find(x=>x.id===ev.p2);if(ev.type==='goal'){if(p)p.goals++;if(p2)p2.assists++;}else if(ev.type==='yellow'&&p)p.yellows++;else if(ev.type==='red'&&p){p.reds++;p.suspensionGames=Math.max(p.suspensionGames||0,2);}else if(ev.type==='injury'&&p){p.injuries++;p.outGames=Math.max(1,2+Math.floor(r()*4)-Math.floor((team.facility?.medical||1)/2));registerInjury(s,team.name,p,match,p.outGames);}}
   const big=Math.abs(sh-sa)>=3;
   const winner=sh>sa?home:sh<sa?away:null;
   match.headline=winner?(big?`¡Exhibición de ${winner.name}!`:`${winner.name} se lleva tres puntos`):`Reparto de puntos entre ${home.name} y ${away.name}`;
