@@ -1,3 +1,22 @@
+# Noveria 6.2 · Buzón del entrenador estilo modo carrera 📩⚽
+
+Solo se añadió el **apartado Mensajes del club**, en el menú principal y en **Más** del celular. Su contenido pertenece exclusivamente al **equipo que estás dirigiendo** en modo entrenador (Directivas y DT o Gerencia deportiva). No se mezclan mensajes de otros clubes, y el buzón anterior se conserva si cambiás de equipo.
+
+## Cómo funciona
+
+- Cuando asumís un club, recibís un primer correo de la directiva. Después llegan conversaciones nuevas al disputar fechas oficiales, sufrir lesiones o expulsiones, ganar o perder encuentros, cumplir plazos de contratos, registrar altas/bajas de jugadores o necesitar decisiones en el vestuario. Los correos se basan en datos existentes: no se inventan ofertas reales de clubes que no existan.
+- Cuando aparece un correo, salta una **notificación temporal de 5,2 segundos**, clicable para abrir el buzón. La barra lateral muestra cuántos quedan **sin leer**; en móvil también aparece el indicador en **Más**.
+- Cada mensaje contiene **exactamente cuatro opciones** de respuesta, con el impacto indicado antes de elegir. Las decisiones pueden modificar presupuesto, moral del plantel, confianza de la directiva, condición, forma, duración y salario del contrato, recuperación de lesiones o estado en la lista de transferibles.
+- Respondé una sola vez. La respuesta y sus efectos quedan registrados y no es posible cobrarlos o aplicarlos de nuevo. Podés filtrar **Todos, Por responder, Sin leer y Respondidos**, o marcar toda la correspondencia como leída.
+- Las promesas de minutos se comprueban en los **tres próximos partidos oficiales**; si el futbolista no fue titular, puede reclamarte. El estado se guarda entre sesiones.
+- Los correos aparecen únicamente después de eventos pertinentes o controles periódicos de una temporada. Se deduplican al guardar o recargar la web. Los partidos de cantera no se confunden con resultados del primer equipo.
+- Todas las conversaciones y elecciones se almacenan en la partida existente, bajo `clubInbox.boxes`. Se respaldan con la exportación JSON y con Joshua Cloud cuando está conectado. No se crean tablas en Supabase ni se cambia el sistema de inicio de sesión.
+- Al entrar en **Mensajes del club** sin dirigir ningún equipo, verás una indicación para elegir uno, no mensajes de un club ajeno.
+
+Pruebas añadidas: `node tests-club-inbox.mjs`.
+
+---
+
 # Noveria 6.1 · Gerencia deportiva completa de tu club 🧑‍💼⚽
 
 **Acceso:** Menú lateral → **🧑‍💼 Gerencia deportiva**, también desde **Directivas y DT**.
