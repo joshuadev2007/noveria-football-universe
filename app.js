@@ -28,26 +28,30 @@ const club=name=>s.teams[name];
 const rndLabel=k=>k===8||k===17?`Jornada ${k} · DOBLE`:k===9||k===18?`Jornada ${k} · CLÁSICOS`:`Jornada ${k}`;
 function crest(name,size=''){const t=club(name);if(!t)return '';const ch=(name.split(' ').filter(w=>!['de','del','la'].includes(w.toLowerCase())).map(w=>w[0]).slice(0,2).join('')||'FC');return `<span class="crest ${size}" style="background:linear-gradient(135deg,${E(t.primary)} 48%,${E(t.secondary)} 52%)" title="${E(name)}">${E(ch)}</span>`;}
 function toast(text){const d=document.createElement('div');d.className='toast';d.textContent=text;$('toasts').appendChild(d);setTimeout(()=>d.remove(),3400)}
-let liveTimer=null,liveLast=0,liveLastPaint=0,liveLastHUD=0,liveAudio=null,liveCrowd=null,liveLastSound=-1,liveLastSave=-1;
+let liveTimer=null,liveLast=0,liveLastPaint=0,liveLastHUD=0,liveAudio=null,liveCrowd=null,liveLastSound=-1,liveLastSave=-1,liveLastSaveWall=0,liveSlowFrames=0;
  function stopLive(){ui.playing=false;liveLast=0;stopLiveCrowd();if(liveTimer){cancelAnimationFrame(liveTimer);liveTimer=null;}if(s.broadcast)s.broadcast.paused=true;}
  function stopLiveCrowd(){try{if(liveCrowd){liveCrowd.stop();liveCrowd.disconnect();liveCrowd=null;}}catch{liveCrowd=null;}}
  function startLiveCrowd(){try{if(!s.broadcast?.sound||liveCrowd)return;const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;liveAudio=liveAudio||new Ctx();if(liveAudio.state==='suspended')liveAudio.resume().catch(()=>{});const size=Math.floor(liveAudio.sampleRate*.42),buf=liveAudio.createBuffer(1,size,liveAudio.sampleRate),data=buf.getChannelData(0);for(let i=0;i<size;i++)data[i]=(Math.random()*2-1)*(.55+.45*Math.sin(i/6000));const source=liveAudio.createBufferSource(),filter=liveAudio.createBiquadFilter(),gain=liveAudio.createGain();source.buffer=buf;source.loop=true;filter.type='lowpass';filter.frequency.value=540;gain.gain.value=.011;source.connect(filter).connect(gain).connect(liveAudio.destination);source.start();liveCrowd=source;}catch{}}
  function liveSfx(freq=440,duration=.1){try{if(!s.broadcast?.sound)return;const Context=window.AudioContext||window.webkitAudioContext;if(!Context)return;liveAudio=liveAudio||new Context();if(liveAudio.state==='suspended')liveAudio.resume().catch(()=>{});const o=liveAudio.createOscillator(),g=liveAudio.createGain();o.type='triangle';o.frequency.setValueAtTime(freq,liveAudio.currentTime);g.gain.setValueAtTime(.06,liveAudio.currentTime);g.gain.exponentialRampToValueAtTime(.0001,liveAudio.currentTime+duration);o.connect(g).connect(liveAudio.destination);o.start();o.stop(liveAudio.currentTime+duration)}catch{}}
  function startLiveFrame(){
  if(liveTimer)cancelAnimationFrame(liveTimer);
- liveLast=0;liveLastPaint=0;liveLastHUD=0;
+ liveLast=0;liveLastPaint=0;liveLastHUD=0;liveSlowFrames=0;
  const mobile=window.matchMedia?.('(max-width: 700px)')?.matches;
  // Auto evita tirones en portátiles viejas y móviles. Alta permite animaciones rápidas;
  // Fluidez recorta efectos y FPS sin tocar el tiempo, goles ni estadísticas.
  const quality=s.broadcast?.quality||'auto';
- const paintInterval=quality==='low'?48:quality==='high'?(mobile?32:22):(mobile?38:30);
- const hudInterval=240;
+ // Menos trabajo SVG en hardware modesto. La duración del partido es independiente de FPS.
+ const weakDevice=mobile||Number(navigator.deviceMemory||8)<=4||Number(navigator.hardwareConcurrency||8)<=4;
+ const basePaintInterval=quality==='low'?65:quality==='high'?(weakDevice?34:24):(weakDevice?48:34);
+ const hudInterval=360;
  function tick(now){
   const b=s.broadcast;
   if(ui.page!=='vivo'||!b||b.paused||b.finished){liveTimer=null;return;}
-  if(liveLast)b.elapsed=Math.min(b.duration,b.elapsed+Math.min(.15,(now-liveLast)/1000)*b.speed);
+  if(liveLast){const gap=now-liveLast;if(gap>110)liveSlowFrames=Math.min(45,liveSlowFrames+2);else liveSlowFrames=Math.max(0,liveSlowFrames-1);
+   b.elapsed=Math.min(b.duration,b.elapsed+Math.min(.22,gap/1000)*b.speed);}
   liveLast=now;
-  if(now-liveLastPaint>=paintInterval||b.elapsed>=b.duration){
+  const frameInterval=quality==='auto'&&liveSlowFrames>15?Math.max(65,basePaintInterval):basePaintInterval;
+  if(now-liveLastPaint>=frameInterval||b.elapsed>=b.duration){
    const hud=now-liveLastHUD>=hudInterval||b.elapsed>=b.duration;
    if(hud)liveLastHUD=now;
    liveLastPaint=now;
@@ -62,7 +66,8 @@ let liveTimer=null,liveLast=0,liveLastPaint=0,liveLastHUD=0,liveAudio=null,liveC
    }
   }
   // Guardar con menos frecuencia evita congelaciones en equipos modestos.
-  if(Math.floor(b.elapsed/30)!==liveLastSave){liveLastSave=Math.floor(b.elapsed/30);if(liveLastSave>0)save();}
+  const savePeriod=Math.floor(b.elapsed/60);
+  if(savePeriod!==liveLastSave){liveLastSave=savePeriod;if(savePeriod>0&&now-liveLastSaveWall>=22000){liveLastSaveWall=now;save();}}
   if(b.elapsed>=b.duration){finishLiveMatch();return;}
   liveTimer=requestAnimationFrame(tick);
  }
