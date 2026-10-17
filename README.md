@@ -1,3 +1,39 @@
+# Noveria 6.3 · Asesor táctico, enfermería y laboratorio de contratos 📋🏥📊
+
+Esta versión amplía las herramientas de dirección deportiva sin reiniciar la partida, modificar partidos disputados ni alterar campeones.
+
+## Alineaciones y rotaciones — sugerencias por escenario
+
+Abrí **📋 Alineación y banca**. Se conserva el editor completo de **11 titulares + 7 suplentes**, capitán, sistema y estilo táctico. Ahora encontrás botones directos: **Sugerir once y rotaciones**, **Rival superior**, **Rotaciones** y **Final**. El asesor utiliza el próximo rival y el estado de la plantilla para proponer un equipo, con atención al OVR, la formación, la condición física y las bajas. Primero aparece una **vista previa**; el XI solo cambia cuando pulsás «Aplicar sugerencia» y confirmás. También podés visitar **Enfermería** y **Análisis de plantilla** directamente.
+
+## Enfermería y recuperación
+
+Abrí **🏥 Enfermería y recuperación** desde el menú. El parte médico distingue:
+
+- **Lesión con diagnóstico:** registrada por un evento real de lesión en un partido nuevo. Se muestra el número de partidos de baja, el estado físico y el tratamiento disponible.
+- **Sanción o baja sin diagnóstico histórico:** no recibe tratamientos para evitar que pagar dinero borre tarjetas rojas o sanciones.
+- **Tratamiento médico:** cuesta según el nivel de instalaciones, mejora el físico y acorta la baja por lesión **1 partido**, o **hasta 2** si el nivel médico es 4 o 5. Cada lesión solo admite **un tratamiento**; queda registro de costo e intervención.
+- **Plan de recuperación:** activa el entrenamiento «Recuperación», ya integrado con el calendario, para recuperar condición física entre fechas sin saltar encuentros.
+
+La rehabilitación modifica exclusivamente futbolistas y fondos actuales. No reescribe actas ni resultados. Las lesiones diagnosticadas se conservan en el guardado y los diagnósticos antiguos ambiguos no se consideran lesiones demostradas.
+
+## Laboratorio de plantilla, informes y renovaciones
+
+En **📊 Análisis de plantilla** se puede consultar el plantel completo, filtrar por titulares, contratos cortos, promesas o bajas, buscar por nombre o posición y ordenar por OVR, forma, goles, partidos, salario o vencimiento. La tabla incluye:
+
+- OVR, potencial, edad y posición; titular, suplente o reserva
+- PJ, goles, asistencias, forma, condición física y ritmo
+- Salario mensual y años de contrato restantes
+- Evaluación orientativa («Prioridad renovar», «Evaluar renovación», «Desarrollar», etc.) y razones sustentadas en lo registrado
+- **Informe individual** con valor de mercado estimado, minutos y titularidades reconstruibles del acta, ratios goles y asistencias por 90, desglose por competición, lesiones y últimos encuentros
+- **Renovar** desde la tabla o la ficha cuando estás dirigiendo el club; usa el formulario y las validaciones presupuestarias existentes de Gerencia deportiva
+
+Los PJ/G/A del futbolista son sus acumulados disponibles. Los minutos y los desgloses por competición **solo se calculan para actas individuales conservadas**, sin inventar alineaciones de los resultados históricos.
+
+Prueba automática: `node tests-squad-care.mjs`. Antes de realizar renovaciones o tratamientos importantes, respaldá tu partida JSON desde **Palmarés y partida**.
+
+---
+
 # Noveria 6.2 · Buzón del entrenador estilo modo carrera 📩⚽
 
 Solo se añadió el **apartado Mensajes del club**, en el menú principal y en **Más** del celular. Su contenido pertenece exclusivamente al **equipo que estás dirigiendo** en modo entrenador (Directivas y DT o Gerencia deportiva). No se mezclan mensajes de otros clubes, y el buzón anterior se conserva si cambiás de equipo.
