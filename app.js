@@ -37,8 +37,11 @@ let liveTimer=null,liveLast=0,liveLastPaint=0,liveLastHUD=0,liveAudio=null,liveC
  if(liveTimer)cancelAnimationFrame(liveTimer);
  liveLast=0;liveLastPaint=0;liveLastHUD=0;
  const mobile=window.matchMedia?.('(max-width: 700px)')?.matches;
- const paintInterval=mobile?36:25; // ~28 fps en celular, ~40 en escritorio
- const hudInterval=180;
+ // Auto evita tirones en portátiles viejas y móviles. Alta permite animaciones rápidas;
+ // Fluidez recorta efectos y FPS sin tocar el tiempo, goles ni estadísticas.
+ const quality=s.broadcast?.quality||'auto';
+ const paintInterval=quality==='low'?48:quality==='high'?(mobile?32:22):(mobile?38:30);
+ const hudInterval=240;
  function tick(now){
   const b=s.broadcast;
   if(ui.page!=='vivo'||!b||b.paused||b.finished){liveTimer=null;return;}
@@ -59,7 +62,7 @@ let liveTimer=null,liveLast=0,liveLastPaint=0,liveLastHUD=0,liveAudio=null,liveC
    }
   }
   // Guardar con menos frecuencia evita congelaciones en equipos modestos.
-  if(Math.floor(b.elapsed/18)!==liveLastSave){liveLastSave=Math.floor(b.elapsed/18);if(liveLastSave>0)save();}
+  if(Math.floor(b.elapsed/30)!==liveLastSave){liveLastSave=Math.floor(b.elapsed/30);if(liveLastSave>0)save();}
   if(b.elapsed>=b.duration){finishLiveMatch();return;}
   liveTimer=requestAnimationFrame(tick);
  }
@@ -666,6 +669,7 @@ case 'live-match':{const id=el.dataset.id;if(s.broadcast&&!s.broadcast.finished&
  case 'live-toggle':{const b=s.broadcast;if(!b){toast('Primero elegí un encuentro');break;}if(b.finished){if(!b.replay){b.replay=true;b.paused=true;}b.elapsed=0;b.finished=false;liveLastSound=-1;}b.paused=!b.paused;ui.playing=!b.paused;render();if(!b.paused){liveSfx(500,.09);startLiveCrowd();startLiveFrame();}else{stopLive();save();}break;}
  case 'live-camera':{const b=s.broadcast;if(!b)break;b.camera=b.camera==='angle'?'close':b.camera==='close'?'top':'angle';const pitch=$('lv5-pitch');if(pitch)pitch.dataset.camera=b.camera;save();break;}
  case 'live-goal-replay':{const b=s.broadcast;if(!b)break;const ev=(b.preview.events||[]).filter(x=>x.type==='goal'&&x.min<=displayedMinute(b)).at(-1);if(!ev){toast('Todavía no hubo ningún gol para repetir');break;}stopLive();save();liveSfx(650,.3);modal('📺 REPETICIÓN DEL GOL · '+ev.min+'′',`<div class="lv5-goal-replay"><div class="eyebrow">NOVERIA LIVE · CÁMARA LENTA</div><h2>⚽ ¡GOOOOOOOOOL!</h2><div class="lv5-goal-art"><span class="lv5-goal-ball">⚽</span><span class="lv5-goal-net">🥅</span></div><h3>${E(ev.p1Name||'Gol del equipo')}</h3><p>${E(ev.side==='home'?b.preview.home:b.preview.away)} · ${ev.min}′</p><p class="muted small">Repetición visual de la jugada registrada.</p></div>`);break;}
+ case 'live-quality':{const b=s.broadcast;if(!b)break;b.quality=b.quality==='auto'?'low':b.quality==='low'?'high':'auto';const name=b.quality==='low'?'Fluidez':b.quality==='high'?'Alta':'Auto';const label=$('lv5-quality');if(label)label.textContent=name;const wrap=$('lv5-pitch');if(wrap)wrap.dataset.quality=b.quality;save();if(!b.paused)startLiveFrame();toast('⚙️ Calidad de transmisión: '+name);break;}
  case 'live-speed':{const b=s.broadcast;if(!b)break;b.speed=b.speed===1?2:b.speed===2?4:1;const e=$('lv5-speed');if(e)e.textContent='x'+b.speed;save();break;}
  case 'live-sound':{const b=s.broadcast;if(!b)break;b.sound=!b.sound;const e=$('lv5-sound');if(e)e.textContent=b.sound?'🔊 Sonido':'🔇 Silencio';if(b.sound){liveSfx(560,.1);if(!b.paused)startLiveCrowd();}else stopLiveCrowd();save();break;}
  case 'live-reset':{const b=s.broadcast;if(!b||(!b.replay&&!b.finished))break;stopLive();b.elapsed=0;b.finished=false;b.paused=true;b.replay=true;ui.liveMinute=0;liveLastSound=-1;save();render();break;}
