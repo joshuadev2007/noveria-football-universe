@@ -278,3 +278,28 @@
 .academy-standing-row>span:nth-child(3){text-align:right;color:#bed1e5}
 .academy-standing-row>strong{text-align:right;color:#e3d19c}
 @media(max-width:590px){.academy-standing-row{grid-template-columns:22px minmax(90px,1fr) 43px 55px;gap:5px;padding:8px 6px;font-size:11px}.academy-scout-card .controls{width:100%}.academy-scout-card .controls .btn{flex:1 1 95px}}
+
+
+/* NOVERIA 6.0 · EA FC lite: carrera, condición, objetivos y preparación */
+.career-advice{display:flex;flex-direction:column;gap:9px;border-color:#506a82;background:linear-gradient(135deg,#1c3044,#171f35)}
+.career-advice .h2,.career-objectives .h2{margin-bottom:4px}
+.career-advice-list{display:flex;flex-direction:column;gap:6px}
+.career-advice-list p,.career-advice p{color:#c8d6e7;font-size:12px;line-height:1.55;margin:0}
+.career-tip{padding:12px;border:1px solid #718568;background:rgba(35,94,67,.16);color:#dfefdf;border-radius:12px;font-size:12px;line-height:1.5;margin-top:10px}
+.career-training-select{display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin:15px 0 0;padding:13px;border-radius:13px;background:#17273c;border:1px solid #465878}
+.career-training-select>.field{min-width:230px;max-width:340px;flex:1 1 220px}
+.career-training-select>p{flex:2 1 270px;line-height:1.6}
+.career-objectives{display:flex;flex-direction:column;gap:18px;border:1px solid #8a724d;background:linear-gradient(135deg,#182c42,#161e32)}
+.career-objective-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(215px,100%),1fr));gap:10px}
+.career-objective{border:1px solid #435471;background:#15243a;border-radius:11px;padding:11px 13px}
+.career-objective .between{align-items:center;gap:10px;margin-bottom:10px}
+.career-objective strong{color:#e8eefa;font-size:12px}
+.career-objective b{white-space:nowrap;color:#e4ce9b;font-size:11px}
+.career-objective-progress{height:7px;border-radius:20px;overflow:hidden;background:#2a3b57}
+.career-objective-progress>span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#35b5a0,#e5d17b);transition:width .2s ease}
+.career-match-preview{border:1px solid #7d6f50;background:linear-gradient(135deg,#1c314a,#1a2132)}
+.career-match-preview>.between{align-items:start;gap:12px;flex-wrap:wrap}
+.career-match-preview .grid{margin-top:10px}
+.career-match-preview .notice{margin-top:10px}
+@media(max-width:650px){.career-objective-grid{grid-template-columns:1fr}.career-objective{padding:12px}.career-training-select{padding:12px}.career-match-preview .grid{grid-template-columns:repeat(2,minmax(0,1fr))}.career-match-preview>.between>.btn{width:100%}}
+@media(prefers-reduced-motion:reduce){.career-objective-progress>span{transition:none}}
