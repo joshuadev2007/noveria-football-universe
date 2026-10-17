@@ -9,7 +9,7 @@ const basePlayer=p=>({apps:asNum(p.apps),goals:asNum(p.goals),assists:asNum(p.as
  red:asNum(p.reds),injuries:asNum(p.injuries),ovr:asNum(p.ovr),pot:asNum(p.pot),
  fitness:Number.isFinite(Number(p.fitness))?asNum(p.fitness):90,
  sharpness:Number.isFinite(Number(p.sharpness))?asNum(p.sharpness):65,
- salary:asNum(p.salary),contractYears:asNum(p.contractYears)||1});
+ salary:asNum(p.salary),contractYears:Number.isInteger(Number(p.contractYears))&&Number(p.contractYears)>0?Number(p.contractYears):null});
 export const MEDICAL_CARE_COST=level=>+(Math.max(.045,.19-.018*Math.max(1,asNum(level)))).toFixed(3);
 export function registerInjury(s,teamName,player,match,days){
  if(!player||!match?.id)return null;
@@ -102,6 +102,7 @@ export function squadAnalysis(s,clubName,matches=[]){
   const upside=v.pot-v.ovr;
   let label,reason,weight;
   if(p.loanParent){label='Cedido';reason='No pertenece al club: la renovación la gestiona su equipo de origen.';weight=0;}
+  else if(term===null){label='Contrato sin dato';reason='No consta la duración del contrato en esta partida. Revisá el sueldo y fijá una renovación solo si te interesa conservarlo.';weight=2;}
   else if(term<=1&&games>=7&&(form>=6.7||v.ovr>=72)){label='Prioridad renovar';reason='Contrato corto, '+games+' PJ y forma '+form.toFixed(1)+'.';weight=5;}
   else if(term<=1&&age>=32&&games<6){label='Revisar continuidad';reason='Contrato corto, edad '+age+' y pocos partidos registrados.';weight=3;}
   else if(term<=1){label='Evaluar renovación';reason='Queda un año o menos. Compará salario, minutos y potencial antes de firmar.';weight=4;}
@@ -119,6 +120,6 @@ export function squadAnalysis(s,clubName,matches=[]){
  return {club:clubName,rows,gameCount:uniq.size,goals:rows.reduce((n,p)=>n+p.goals,0),
    assists:rows.reduce((n,p)=>n+p.assists,0),
    payroll:rows.reduce((n,p)=>n+p.salary,0),
-   expiring:rows.filter(r=>r.contractYears<=1&&!r.loan).length,
+   expiring:rows.filter(r=>r.contractYears!==null&&r.contractYears<=1&&!r.loan).length,
    injured:rows.filter(r=>r.roundsOut>0).length};
 }
