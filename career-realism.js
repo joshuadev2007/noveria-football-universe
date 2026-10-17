@@ -121,8 +121,8 @@ export function afterCareerMatch(s,m,pregame){
   // Apuestas disciplinarias acumuladas: suspensión cada cinco amarillas.
   for(const e of (m.events||[]).filter(e=>e.side===side&&(e.type==='yellow'||e.type==='red'))){
    const p=pool.find(p=>String(p.id)===String(e.p1));if(!p)continue;ensureCareerPlayer(p);
-   if(e.type==='yellow'){p.disciplinePoints++;if(p.disciplinePoints>=5){p.disciplinePoints=0;p.outGames=Math.max(p.outGames||0,2);changes.push({club:team.name,type:'suspension',name:p.name});}}
-   if(e.type==='red'){p.outGames=Math.max(p.outGames||0,2);p.disciplinePoints=0;changes.push({club:team.name,type:'red',name:p.name});}
+   if(e.type==='yellow'){p.disciplinePoints++;if(p.disciplinePoints>=5){p.disciplinePoints=0;p.outGames=Math.max(p.outGames||0,2);p.suspensionGames=Math.max(p.suspensionGames||0,2);changes.push({club:team.name,type:'suspension',name:p.name});}}
+   if(e.type==='red'){p.outGames=Math.max(p.outGames||0,2);p.suspensionGames=Math.max(p.suspensionGames||0,2);p.disciplinePoints=0;changes.push({club:team.name,type:'red',name:p.name});}
   }
   const c=team.careerStats??={played:0,wins:0,draws:0,losses:0,cleanSheets:0,goals:0,against:0,streak:0,attendance:0};
   const season=team.careerSeason?.key===key(s)?team.careerSeason:(team.careerSeason={key:key(s),played:0,wins:0,draws:0,losses:0,goals:0,against:0,cleanSheets:0,leaguePoints:0,cupWins:0});
