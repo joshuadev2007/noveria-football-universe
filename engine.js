@@ -71,7 +71,8 @@ export function simulateMatch(s,match,options={}){
     if(out&&incoming){addEvent(min,'sub',side,out,incoming);usedSubs[side].add(incoming.id);outgoing.splice(outgoing.indexOf(out),1);}
    }
   }
-  if(r()<.14){const side=r()<.5?'home':'away';addEvent(25+Math.floor(r()*60),'injury',side,pick((side==='home'?startersH:startersA).filter(p=>p.pos!=='POR'),r));}
+  const injuryRisk=within(.10+(100-Math.min(preparation.fitnessH,preparation.fitnessA))*.0037,.08,.38);
+  if(r()<injuryRisk){const homeWeight=Math.max(1,100-preparation.fitnessH),awayWeight=Math.max(1,100-preparation.fitnessA);const side=r()<homeWeight/(homeWeight+awayWeight)?'home':'away';addEvent(25+Math.floor(r()*60),'injury',side,pick((side==='home'?startersH:startersA).filter(p=>p.pos!=='POR'),r));}
   events.sort((a,b)=>a.min-b.min|| (a.type==='goal'?-1:1));
   const shotsH=Math.max(sh+1,Math.floor(6+r()*11+sh)),shotsA=Math.max(sa+1,Math.floor(5+r()*10+sa));
   let poss=within(Math.round(50+(hRating-aRating)*.4+(r()-.5)*23),30,70);
