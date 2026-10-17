@@ -376,3 +376,31 @@
 .inbox-popup{cursor:pointer;border:1px solid #ffdd98;background:linear-gradient(115deg,#21374e,#254553);color:#fff3cc;text-align:left;max-width:min(420px,calc(100vw - 40px))}
 @media(max-width:760px){.inbox-layout{grid-template-columns:1fr}.inbox-mails{max-height:365px}.inbox-tabs .btn{font-size:11px;padding:9px}.inbox-reply:hover{transform:none}.inbox-banner{padding:16px}}
 @media(prefers-reduced-motion:reduce){.inbox-mail,.inbox-reply{transition:none}}
+
+
+/* Noveria 6.2.1 · Asesor táctico opcional de alineaciones */
+.lineup-advisor-panel{display:flex;flex-direction:column;gap:17px;border:1px solid #8b7a4d;background:linear-gradient(135deg,#1d2942,#142137 70%);overflow:hidden}
+.lineup-advisor-panel>.between{gap:13px;align-items:center;flex-wrap:wrap}
+.lineup-advisor-panel .eyebrow{color:#e5c784;letter-spacing:.13em;font-size:10px}
+.lineup-advisor-panel .h2{margin:4px 0 0;font-size:clamp(18px,2vw,25px);color:#f5d99e}
+.lineup-advisor-panel .field{width:min(520px,100%)}
+.lineup-advisor-panel .field select{min-height:43px}
+.lineup-advisor-context{padding:12px 14px;background:#1b3346;border:1px solid #406078;border-radius:12px;color:#c9dcea;font-size:13px;line-height:1.5}
+.lineup-advisor-context strong{color:#fff}
+.lineup-advisor-reasons{padding:14px;background:rgba(8,23,40,.45);border:1px solid #334c66;border-radius:13px}
+.lineup-advisor-reasons h3{font-size:14px;color:#f2d8a0;margin:0 0 10px}
+.lineup-advisor-reasons p{margin:8px 0;font-size:12px;line-height:1.65;color:#ccdbeb}
+.lineup-advisor-reasons .lineup-advisor-warning{color:#f6cba1}
+.lineup-advisor-column{padding:13px;border:1px solid #39536c;background:#14243b;border-radius:13px;min-width:0}
+.lineup-advisor-column h3{font-size:14px;margin:2px 0 12px;color:#f3dcab}
+.lineup-advisor-row{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid #33445d;min-width:0}
+.lineup-advisor-row>.advisor-position{flex:none;min-width:41px;text-align:center;font-size:10px;padding:6px 4px;font-weight:800;color:#b5e9d2;background:#1d4b42;border-radius:7px}
+.lineup-advisor-row>div{display:flex;flex-direction:column;min-width:0;gap:3px}
+.lineup-advisor-row strong{color:#f6f7fd;font-size:12px;overflow-wrap:anywhere}
+.lineup-advisor-row small{font-size:10px;color:#b3c8dd;line-height:1.5}
+.lineup-advisor-sub{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid #324660;font-size:12px}
+.lineup-advisor-sub>span{color:#eef2fa}.lineup-advisor-sub b{color:#bed4e6;font-size:11px}
+.lineup-advisor-sub small{font-size:10px;color:#a2b4cd}
+.lineup-advisor-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #425775}
+.lineup-advisor-actions p{margin:0 auto 0 0;flex:1 1 240px;line-height:1.6}
+@media(max-width:640px){.lineup-advisor-panel{padding:13px;gap:13px}.lineup-advisor-panel .grid.two{grid-template-columns:1fr}.lineup-advisor-panel .grid.three{grid-template-columns:1fr}.lineup-advisor-panel .lineup-advisor-actions>.btn{flex:1 1 100%}}
