@@ -303,3 +303,37 @@
 .career-match-preview .notice{margin-top:10px}
 @media(max-width:650px){.career-objective-grid{grid-template-columns:1fr}.career-objective{padding:12px}.career-training-select{padding:12px}.career-match-preview .grid{grid-template-columns:repeat(2,minmax(0,1fr))}.career-match-preview>.between>.btn{width:100%}}
 @media(prefers-reduced-motion:reduce){.career-objective-progress>span{transition:none}}
+
+
+/* Noveria 6.1 · Gerencia deportiva unificada (PC + móvil) */
+.sporting-hero{border:1px solid #a17a42;border-radius:20px;padding:clamp(16px,3vw,26px);background:linear-gradient(125deg,#182942,#29233e 80%);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.sporting-heading{display:flex;align-items:center;gap:16px;flex:1 1 320px;min-width:0}
+.sporting-heading h2{font-size:clamp(21px,3vw,32px);margin:5px 0 7px;overflow-wrap:anywhere}
+.sporting-heading p{margin:0;color:#bacde3;font-size:12px}
+.sporting-selector{display:flex;flex-direction:column;gap:8px;width:min(370px,100%)}
+.sporting-selector select{width:100%;max-width:100%;border-radius:10px;padding:11px;background:#16263c;color:#f4f6ff;border:1px solid #68809f;min-height:44px}
+.sporting-market-actions,.sporting-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sporting-tabs{border:1px solid #394c68;background:#101c31;border-radius:15px;padding:10px}
+.sporting-tabs .btn{flex:1 1 155px;min-height:42px}
+.sporting-player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(355px,100%),1fr));gap:12px;margin-top:17px}
+.sporting-player-card,.sporting-sale{border:1px solid #3e5773;border-radius:14px;background:linear-gradient(145deg,#1a2941,#151e31);padding:15px;min-width:0}
+.sporting-player-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.sporting-player-head>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.sporting-player-head strong{font-size:14px;overflow-wrap:anywhere}
+.sporting-player-head span{font-size:11px;color:#9fb8ce}
+.sporting-player-ovr{font-size:24px;color:#e6c782}
+.sporting-player-data{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.sporting-player-data span{font-size:11px;color:#bacce2}
+.sporting-player-data b{color:#fff}
+.sporting-player-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;align-items:center}
+.sporting-player-actions .btn{font-size:11px;flex:1 1 auto}
+.sporting-candidates{display:grid;gap:9px;margin-top:14px}
+.sporting-candidate,.sporting-offer,.sporting-history{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #40546d;background:#17263a;border-radius:12px;padding:12px;flex-wrap:wrap}
+.sporting-candidate>div:first-child,.sporting-offer>div:first-child{display:flex;flex-direction:column;gap:5px;min-width:175px;flex:1 1 230px}
+.sporting-candidate span,.sporting-offer span,.sporting-history span{font-size:11px;color:#b1c2d8;line-height:1.5}
+.sporting-candidate .controls{gap:6px;justify-content:flex-start}
+.sporting-sale{margin-top:12px}
+.sporting-sale .sporting-offer{margin-top:9px;background:#173b34;border-color:#376d5b}
+.sporting-history{margin-top:8px}
+.sporting-lineup-host>.stack>.top{display:none}
+@media(max-width:680px){.sporting-hero{gap:13px}.sporting-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.sporting-tabs .btn{min-width:0;white-space:normal;font-size:11px}.sporting-player-data{grid-template-columns:1fr 1fr}.sporting-market-actions .btn{flex:1 1 145px}.sporting-candidate .controls{width:100%}.sporting-candidate .controls>.btn{flex:1 1 95px}.sporting-selector{width:100%}}
