@@ -40,22 +40,22 @@ export function renderAnalysisPage(s,ui,{E,button,head,stat,marketValuation,line
  const report=squadAnalysis(s,name,fixtures),roles=lineupState(t);
  const q=safe(ui.analysisQuery).trim().toLocaleLowerCase('es');
  const filtered=report.rows.filter(x=>!q||(x.name+' '+x.position+' '+x.label).toLocaleLowerCase('es').includes(q))
- .filter(x=>ui.analysisFilter==='todos'||(ui.analysisFilter==='contratos'&&x.contractYears<=1)||(ui.analysisFilter==='bajas'&&x.roundsOut>0)||
+ .filter(x=>ui.analysisFilter==='todos'||(ui.analysisFilter==='contratos'&&x.contractYears!==null&&x.contractYears<=1)||(ui.analysisFilter==='bajas'&&x.roundsOut>0)||
   (ui.analysisFilter==='promesas'&&x.age<=23&&x.upside>=8)||(ui.analysisFilter==='titulares'&&roles.starters.includes(x.id)));
  const sort=ui.analysisSort||'prioridad';
  filtered.sort((a,b)=>sort==='ovr'?b.ovr-a.ovr:sort==='goles'?b.goals-a.goals:sort==='forma'?b.form-a.form:
-  sort==='contrato'?a.contractYears-b.contractYears:sort==='pj'?b.apps-a.apps:
+  sort==='contrato'?(a.contractYears??999)-(b.contractYears??999):sort==='pj'?b.apps-a.apps:
   sort==='salario'?b.salary-a.salary:b.weight-a.weight||b.ovr-a.ovr);
  const pos=id=>roles.starters.includes(id)?'Titular':roles.bench.includes(id)?'Banca':'Reserva';
  const show=p=>`<tr><td class="care-player-name"><strong>${E(p.name)}</strong><small>${E(pos(p.id))} · ${p.age} años</small></td>
- <td>${E(p.position)}</td><td class="bold">${p.ovr}</td><td>${p.pot}</td><td>${p.apps}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.form.toFixed(1)}</td><td>${p.fitness}%</td><td>${p.contractYears} a.</td><td>${p.salary} mil</td>
+ <td>${E(p.position)}</td><td class="bold">${p.ovr}</td><td>${p.pot}</td><td>${p.apps}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.form.toFixed(1)}</td><td>${p.fitness}%</td><td>${p.contractYears===null?'—':p.contractYears+' a.'}</td><td>${p.salary} mil</td>
  <td><span class="tag ${p.label==='Prioridad renovar'?'goldtag':''}">${E(p.label)}</span></td>
  <td>${button('📈 Informe','stats-player',`data-id="${E(p.id)}"`,'btn sm')}${!p.loan&&s.mode==='manager'&&s.managedClub===name?button('✍ Renovar','sporting-renew',`data-id="${E(p.id)}"`,'btn primary sm'):''}</td></tr>`;
- const risk=report.rows.filter(x=>x.contractYears<=1&&!x.loan).slice(0,5);
+ const risk=report.rows.filter(x=>x.contractYears!==null&&x.contractYears<=1&&!x.loan).slice(0,5);
  const elite=[...report.rows].sort((a,b)=>b.goals+b.assists-a.goals-a.assists||b.ovr-a.ovr).slice(0,3);
  return `<div class="stack">${head('📊 Laboratorio de plantilla y contratos','Analizá rendimiento, minutos, forma, valor de mercado y vencimientos antes de renovar.')}
  <div class="care-hero"><div><span class="eyebrow">OBSERVATORIO DE FUTBOLISTAS</span><h2>${E(name)}</h2><p>${E(s.edition||'Apertura')} ${s.season} · Comparación de contrato, potencial y rendimiento</p></div>${clubChoice(s,name,'analysisClubSelect',E)}</div>
- <div class="grid four">${stat('Plantilla',report.rows.length,'Futbolistas profesionales')}${stat('Por vencer',report.expiring,'≤ 1 año de contrato')}${stat('Nómina mensual',report.payroll.toLocaleString('es-CR')+' mil','VLR por mes')}${stat('Actas consultadas',report.gameCount,'Incluye archivo disponible')}</div>
+ <div class="grid four">${stat('Plantilla',report.rows.length,'Futbolistas profesionales')}${stat('Por vencer',report.expiring,'Contratos con ≤ 1 año documentado')}${stat('Nómina mensual',report.payroll.toLocaleString('es-CR')+' mil','VLR por mes')}${stat('Actas consultadas',report.gameCount,'Incluye archivo disponible')}</div>
  <div class="grid two"><section class="card"><h2 class="h2">✍ Prioridades de contrato</h2>${risk.length?risk.map(p=>`<div class="care-insight"><strong>${E(p.name)} · ${E(p.label)}</strong><span>${E(p.reason)} · Salario ${p.salary} mil</span></div>`).join(''):'<p class="muted small">No hay contratos con un año o menos registrados.</p>'}</section>
  <section class="card"><h2 class="h2">⚽ Aportes destacados</h2>${elite.map(p=>`<div class="care-insight"><strong>${E(p.name)}</strong><span>${p.goals} goles · ${p.assists} asistencias · ${p.apps} PJ · OVR ${p.ovr}</span></div>`).join('')}
  <p class="muted small">La valoración es una sugerencia deportiva, no una predicción ni una renovación automática.</p></section></div>
@@ -80,7 +80,7 @@ export function renderPlayerInsight(s,clubName,pid,helpers){
    <div class="card stat"><div class="label">PJ · Goles · Asis.</div><div class="big">${p.apps} · ${p.goals} · ${p.assists}</div></div>
    <div class="card stat"><div class="label">Forma / Físico</div><div class="big">${p.form.toFixed(1)} / ${p.fitness}%</div></div>
   </div>
-  <h3>📑 Contrato y valor</h3><p><b>${p.contractYears} años</b> restantes · <b>${p.salary} mil VLR/mes</b> · Valor estimado <b>${valuation.toFixed(2)} M VLR</b>.</p>
+  <h3>📑 Contrato y valor</h3><p><b>${p.contractYears===null?'Duración no registrada':p.contractYears+' años'}</b> restantes o pendientes de verificar · <b>${p.salary} mil VLR/mes</b> · Valor estimado <b>${valuation.toFixed(2)} M VLR</b>.</p>
   <p><b>Informe:</b> ${E(p.label)}. ${E(p.reason)}</p>
   <h3>🎯 Rendimiento y disponibilidad</h3>
   <p>Minutos constatados: <b>${p.minuteCount}</b> · Titularidades en actas: <b>${p.starts}</b> · G/90: <b>${p.gPer90??'Sin datos'}</b> · A/90: <b>${p.aPer90??'Sin datos'}</b>.</p>
