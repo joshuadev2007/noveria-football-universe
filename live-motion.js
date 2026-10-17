@@ -41,23 +41,54 @@ function formation(side,ball,seconds,tag){
   return {x:clamp(x,keeper?48:78,keeper?912:882),y:clamp(y,keeper?201:49,keeper?339:491)};
  });
 }
+const eventCache=new WeakMap();
+function cachedEvents(b){
+ const preview=b.preview,source=preview?.events||[];
+ const old=eventCache.get(preview);
+ if(old&&old.source===source&&old.length===source.length)return old.entries;
+ const entries=source.filter(e=>activity.has(e.type)&&Number.isFinite(Number(e.min))).map((e,i)=>({e,i,time:eventTime(e)})).sort((a,b)=>a.time-b.time||a.i-b.i);
+ eventCache.set(preview,{source,length:source.length,entries});
+ return entries;
+}
 function chooseEvent(b,t){
- const entries=(b.preview?.events||[]).filter(e=>activity.has(e.type)&&Number.isFinite(Number(e.min))).map((e,i)=>({e,i,time:eventTime(e)}));
- const relevant=entries.filter(x=>t>=x.time-4.8&&t<=x.time+1);
- relevant.sort((a,b)=>Math.abs(t-a.time)-Math.abs(t-b.time)||marker(a.e,a.e.type)-marker(b.e,b.e.type)||a.i-b.i);
- return relevant[0]||null;
+ const entries=cachedEvents(b);
+ let chosen=null,dist=Infinity;
+ for(const entry of entries){
+  if(entry.time<t-1)continue;
+  if(entry.time>t+4.8)break;
+  if(t<entry.time-4.8||t>entry.time+1)continue;
+  const delta=Math.abs(t-entry.time);
+  if(delta<dist){chosen=entry;dist=delta;}
+ }
+ return chosen;
+}
+
+function possessionNodes(b,index){
+ const key=b.id+'|sequence-'+index,home=rnd(key+'pos')>.48,side=home?'home':'away',dir=home?1:-1;
+ const width=home?1:-1,base=480+(rnd(key+'start')-.5)*155;
+ const lane=clamp(110+rnd(key+'lane')*330,105,435);
+ const p=[{x:clamp(base,220,740),y:lane},{x:clamp(base+dir*(72+rnd(key+'advance')*38),190,780),y:clamp(lane+(rnd(key+'y2')-.5)*108,72,468)},
+  {x:clamp(base+dir*(145+rnd(key+'more')*52),162,820),y:clamp(lane+(rnd(key+'y3')-.5)*118,70,470)},
+  {x:clamp(base+dir*(180+rnd(key+'finish')*66),105,855),y:clamp(lane+(rnd(key+'y4')-.5)*125,70,470)}];
+ const actors=[5+hash(key+'a')%3,8+hash(key+'b')%3,5+hash(key+'c')%3,8+hash(key+'d')%3];
+ return {side,p,actors,key};
 }
 function possessionMotion(b,seconds){
- const key=b.id+'|'+Math.floor(seconds/6.4);
- const home=rnd(key+'pos')>.48,side=home?'home':'away',base=hash(key+'lane');
- const progress=(seconds%6.4)/6.4;
- const left=home?285:675,right=home?580:380;
- const lane=105+(base%330);
- const drift=lerp(left,right,progress);
- const y=clamp(lane+Math.sin(progress*5+base)*29,69,471);
- return {side,ball:{x:drift,y,arc:0},label:progress<.55?'Conducción':'Circulación de pelota',
-  actor:5+(base%6),phase:'control',moment:null};
+ const span=6.4,index=Math.floor(seconds/span),segment=possessionNodes(b,index);
+ const phase=(seconds-index*span)/span;
+ const section=Math.min(2,Math.floor(phase*3)),progress=(phase*3)-section;
+ let ball=xy(segment.p[section],segment.p[section+1],ease(progress));
+ // Cambio de posesión continuo: se aproxima desde donde terminó la jugada anterior.
+ if(index>0&&phase<.12){
+  const prev=possessionNodes(b,index-1);
+  ball=xy(prev.p[3],ball,ease(phase/.12));
+ }
+ const actor=segment.actors[section],nextActor=segment.actors[section+1];
+ return {side:segment.side,ball:{...ball,arc:Math.sin(Math.PI*progress)*((progress>.04&&progress<.96)?4.5:0)},
+  label:progress<.18?'Pase entre líneas':'Ataque en construcción',
+  actor,receiver:nextActor,receiverPos:segment.p[section+1],phase:'control',moment:null};
 }
+
 function eventMotion(b,t,selected){
  const {e,time}=selected,side=sideOf(e),home=side==='home',direction=home?1:-1;
  const number=e.min||0,key=b.id+'|'+e.type+'|'+number+'|'+selected.i;
@@ -140,7 +171,8 @@ export function motionFrame(b){
  }else{
   // Conducción visible: una bolita real acompaña la pelota.
   const j=scene.actor;
-  const p=players[side][j];p.x=clamp(ball.x-(side==='home'?13:-13),75,885);p.y=ball.y+9;
+  const p=players[side][j];p.x=clamp(ball.x-(side==='home'?11:-11),75,885);p.y=ball.y+6;
+  const target=players[side][scene.receiver];if(target&&scene.receiver!==j){target.x=lerp(target.x,scene.receiverPos.x,.68);target.y=lerp(target.y,scene.receiverPos.y,.68);}
   const back=side==='home'?'away':'home';
   const n=1+(hash(b.id+String(Math.floor(t/6.4)))%4);
   players[back][n].x=lerp(players[back][n].x,ball.x,.38);
