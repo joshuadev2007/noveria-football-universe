@@ -1,3 +1,38 @@
+# Noveria 5.16 · Live 2D más natural y Modo DT mejorado ⚽📺
+
+**Actualización publicada en la rama main, compatible con partidas anteriores.** Se conservan calendarios, alineaciones, banca, torneos, títulos, resultados históricos y los datos de Joshua Cloud.
+
+## Más realismo en la transmisión
+
+- La pelota pasa de la circulación normal a las ocasiones importantes de forma más gradual. Se reducen los saltos repentinos entre pases y remates.
+- El defensor que presiona es ahora **el que está más cerca de la pelota**, tanto al conducir como durante las ocasiones.
+- **Suavizado de fotogramas** de los 22 jugadores y el balón: los movimientos ya no dependen exclusivamente de cuándo el navegador alcanza a pintar cada cuadro. Los goles respetan su portería y la animación no modifica el resultado.
+- La representación sigue siendo una **reconstrucción visual ilustrativa** del acta, no una física simulada completa.
+
+## Menos tirones en PC y móvil
+
+- El FPS de dibujo y la actualización del marcador son adaptables al dispositivo. El tiempo oficial de partido transcurre independientemente de los FPS.
+- **Calidad → Fluidez** desactiva filtros y sombras costosos. En móvil se limitan los efectos aunque se mantenga el modo automático.
+- Se redujo la frecuencia de algunas actualizaciones del HUD y del guardado periódico, que podían causar pequeños parones.
+- Si el navegador no puede mantener la velocidad de dibujo, el modo **Auto** prioriza la estabilidad del reloj y el renderizado. Cambiar a **Alta** fuerza más fotogramas cuando el dispositivo puede soportarlos.
+- Al abandonar la pestaña en mitad del partido, la transmisión se pausa automáticamente y se guarda la partida, tal como antes.
+
+## Modo DT: dirigir el encuentro
+
+1. Entrá a **🔴 Centro de partido en vivo 2D**, elegí un partido oficial habilitado y pulsá **🎩 Dirigir** al equipo local o visitante. Si ya estás en carrera y tu club juega, los controles del DT pueden aparecer directamente.
+2. Antes del pitazo inicial, pulsá **📋 Preparar el XI y banca** para editar formación, titulares, siete suplentes y capitán. Volvé a Live 2D para jugar.
+3. Durante el encuentro, elegí las **órdenes tácticas** o pulsá **⏸ Pausa táctica** para decidir un cambio sin correr el cronómetro.
+4. Elegí quién sale y qué suplente entra; el juego limita las sustituciones a la banca convocada y a un máximo de cinco.
+5. El **asistente táctico** ofrece consejos contextuales basados solo en los goles ya ocurridos, el minuto y los cambios realizados. No consulta acontecimientos futuros.
+
+**Pruebas:** `node tests-live-fluid.mjs` comprueba que se dibujen los 22 futbolistas, la pelota vaya al arco correcto, el motor visual no altere el acta y el Modo DT registre una sustitución válida.
+
+### Consejos de rendimiento
+
+En una laptop con hardware limitado, empezá en **⚙️ Fluidez**, usá la cámara **Superior** y dejá desactivados programas pesados en segundo plano. El resultado oficial será el mismo sin importar los FPS o el modo de calidad.
+
+---
+
 # Noveria 5.15 · Modo carrera avanzado: rendimiento, OVR y cantera viva ⚽🌱
 
 ### 1. Simulador que tiene en cuenta la calidad del equipo
