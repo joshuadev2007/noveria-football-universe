@@ -62,7 +62,11 @@ function minutesPlayed(match,side,pid){
 export function squadAnalysis(s,clubName,matches=[]){
  const t=s.teams?.[clubName];if(!t)throw Error('Club desconocido');
  const fixtures=matches.filter(m=>m?.played&&(m.home===clubName||m.away===clubName));
- const uniq=new Map(fixtures.map(m=>[id(m.id),m]));
+ const uniq=new Map();
+ for(const m of fixtures){const k=id(m.id),old=uniq.get(k);
+  if(!old||(m.lineups?.home?.length||0)+(m.lineups?.away?.length||0)+(m.events?.length||0)>
+           (old.lineups?.home?.length||0)+(old.lineups?.away?.length||0)+(old.events?.length||0))uniq.set(k,m);
+ }
  const stats=new Map((t.players||[]).map(p=>[id(p.id),{minutes:0,appearances:0,starts:0,gameGoals:0,gameAssists:0,
   gamesByCompetition:{},lastMatches:[],cards:0,cleanSheets:0}]));
  for(const m of uniq.values()){
