@@ -121,3 +121,26 @@ export function lineupStrength(team,selected=matchLineup(team)){
  }
  return selected.starters.length?total/selected.starters.length:0;
 }
+
+
+/** Once alternativo por fatiga, sin sacrificar puestos clave.
+ * No cambia el orden de players ni reescribe actas históricas.
+ */
+export function rotateLineup(s,name){
+ const t=requireClub(s,name),L=lineupState(t),pool=[...t.players],picked=[],roles=L.roles;
+ const wellness=p=>{
+  const fitness=Number.isFinite(Number(p.fitness))?Number(p.fitness):90;
+  const sharpness=Number.isFinite(Number(p.sharpness))?Number(p.sharpness):65;
+  return Math.max(5,Math.min(100,fitness))*.22+Math.max(15,Math.min(100,sharpness))*.055;
+ };
+ for(const role of roles){
+  pool.sort((a,b)=>{
+   const score=p=>Number(p.ovr||50)*roleAffinity(role,p.pos)+wellness(p)-(eligible(p)?0:80);
+   return score(b)-score(a)||String(a.id).localeCompare(String(b.id));
+  });
+  picked.push(pool.shift());
+ }
+ const bench=pool.sort((a,b)=>(eligible(b)?0:-70)+Number(b.ovr||50)+wellness(b)-(eligible(a)?0:-70)-Number(a.ovr||50)-wellness(a)).slice(0,BENCH_SIZE);
+ const captain=picked.includes(t.players.find(p=>sid(p.id)===L.captain))?L.captain:sid(picked.find(p=>p.pos!=='POR')?.id||picked[0].id);
+ return commit(t,{...L,starters:picked.map(p=>sid(p.id)),bench:bench.map(p=>sid(p.id)),captain});
+}
