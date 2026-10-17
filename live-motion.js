@@ -24,15 +24,27 @@ const indexes=(b,side,ev)=>{
  const first=mid===6?5:6;
  return {first,mid,finish};
 };
+const templatePositions={
+ '4-3-3':[[65,270],[230,88],[235,200],[230,345],[235,452],[393,133],[402,270],[393,407],[560,130],[570,270],[560,409]],
+ '4-4-2':[[65,270],[230,88],[235,200],[230,345],[235,452],[410,92],[412,211],[412,337],[410,451],[605,205],[605,340]],
+ '4-2-3-1':[[65,270],[230,88],[235,200],[230,345],[235,452],[355,198],[355,342],[528,110],[528,270],[528,429],[660,270]],
+ '3-5-2':[[65,270],[225,128],[230,270],[225,412],[410,65],[395,164],[408,270],[395,377],[410,472],[608,202],[608,338]],
+ '5-3-2':[[65,270],[230,65],[235,164],[235,270],[235,377],[230,474],[412,130],[412,270],[412,408],[606,204],[606,336]]
+};
+const formationCache=new WeakMap();
 function formation(side,ball,seconds,tag,b){
- const home=side==='home',baseX=[65,230,235,230,235,393,402,393,560,570,560];
- const baseY=[270,88,200,345,452,133,270,407,130,270,409];
+ const home=side==='home',formationName=b.preview?.coachAtKickoff?.[side+'Formation']||'4-3-3';
+ const base=templatePositions[formationName]||templatePositions['4-3-3'];
+ let data=formationCache.get(b);
+ if(!data){data={};formationCache.set(b,data);}
+ if(!data[side]||data[side].formation!==formationName)data[side]={formation:formationName,wiggle:base.map((_,i)=>hash(tag+side+i)%23)};
+ const wiggle=data[side].wiggle;
  return Array.from({length:11},(_,i)=>{
-  const keeper=i===0,role=i<=4?1:i<=7?2:3;
-  let x=home?baseX[i]:960-baseX[i],y=baseY[i];
+  const keeper=i===0,role=base[i][0]<280?1:base[i][0]<520?2:3;
+  let x=home?base[i][0]:960-base[i][0],y=base[i][1];
   const minute=seconds>120?90+(seconds-120)*1.5:seconds*.75;
-  const orders=(b.decisions||[]).filter(d=>d.kind==='tactic'&&d.side===side&&Number(d.minute)<=minute);
-  const tactic=orders.at(-1)?.tactic||b.startTactics?.[side]||'Equilibrado';
+  let tactic=b.startTactics?.[side]||'Equilibrado';
+  for(const d of b.decisions||[])if(d.kind==='tactic'&&d.side===side&&Number(d.minute)<=minute)tactic=d.tactic;
   const shift={'Presión alta':48,'A todo ataque':61,'Contraataque':6,'Posesión':18,'Equilibrado':0,'Bloque bajo':-52,'Perder tiempo':-32}[tactic]||0;
   if(!keeper)x+=(home?1:-1)*shift*(role===3?1:role===2?.86:.63);
   // El bloque acompaña la pelota y los defensores cierran líneas de pase.
@@ -41,7 +53,7 @@ function formation(side,ball,seconds,tag,b){
   x+=keeper?direction*(ball.x>(home?480:0)&&ball.x<(home?960:480)?7:0):advance*(role===3?1.2:role===2?1.0:.66);
   const rowShift=clamp((ball.y-270)*.1,-25,25);
   y+=keeper?clamp((ball.y-270)*.13,-38,38):rowShift*(role===1?.55:1);
-  if(!keeper){const step=seconds*2.1+hash(tag+side+i)%23;
+  if(!keeper){const step=seconds*2.1+wiggle[i];
    x+=Math.sin(step*.63+i)*3.5;y+=Math.cos(step*.47+i*1.31)*3.6;}
   return {x:clamp(x,keeper?48:78,keeper?912:882),y:clamp(y,keeper?201:49,keeper?339:491)};
  });
@@ -158,11 +170,12 @@ export function motionFrame(b){
   const defending=players[back];
   // Receptores se ofrecen, pasadores apoyan, finalizador pisa el área.
   const snap=(i,target)=>{if(attacking[i])attacking[i]={...target};};
-  snap(actors.first,positions[0]);
-  snap(actors.mid,positions[1]);
-  snap(actors.finish,progress>.56?positions[3]:positions[2]);
-  if(progress>.26&&progress<.53)snap(actors.mid,positions[1]);
-  if(progress>=.53)snap(actors.finish,progress>.77?positions[3]:positions[2]);
+  const carry={x:ball.x+(side==='home'?-12:12),y:ball.y+6};
+  // El portador realmente acompaña el balón; sus compañeros se desmarcan.
+  snap(actors.first,progress<.26?carry:positions[0]);
+  snap(actors.mid,progress>=.26&&progress<.53?carry:positions[1]);
+  snap(actors.finish,progress>=.53&&progress<.77?carry:progress>.77?positions[3]:positions[2]);
+
   // Marcador más cercano presiona al portador, resto mantiene el bloque.
   const press=1+(hash(b.id+String(scene.event.min))%4);
   const p=defending[press];
