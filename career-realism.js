@@ -123,9 +123,13 @@ export function afterCareerMatch(s,m,pregame){
    if(e.type==='red'){p.outGames=Math.max(p.outGames||0,2);p.disciplinePoints=0;changes.push({club:team.name,type:'red',name:p.name});}
   }
   const c=team.careerStats??={played:0,wins:0,draws:0,losses:0,cleanSheets:0,goals:0,against:0,streak:0,attendance:0};
-  c.played++;if(won)c.wins++;else if(lost)c.losses++;else c.draws++;
+  const season=team.careerSeason?.key===key(s)?team.careerSeason:(team.careerSeason={key:key(s),played:0,wins:0,draws:0,losses:0,goals:0,against:0,cleanSheets:0,leaguePoints:0,cupWins:0});
+  c.played++;season.played++;if(won){c.wins++;season.wins++;}else if(lost){c.losses++;season.losses++;}else{c.draws++;season.draws++;}
+  if(['LSV','LPV'].includes(m.competition))season.leaguePoints+=won?3:lost?0:1;
+  else if(won)season.cupWins++;
   const scored=side==='home'?homeGoals:awayGoals,conceded=side==='home'?awayGoals:homeGoals;
-  c.goals+=scored;c.against+=conceded;if(!conceded)c.cleanSheets++;
+  c.goals+=scored;c.against+=conceded;season.goals+=scored;season.against+=conceded;
+  if(!conceded){c.cleanSheets++;season.cleanSheets++;}
   c.streak=won?Math.max(1,c.streak+1):lost?Math.min(-1,c.streak-1):0;
   c.attendance=team.supporters?.attendance||c.attendance;
   if(c.streak>=4&&c.streak%4===0){team.morale=clamp(team.morale+2,10,99);changes.push({club:team.name,type:'streak',value:c.streak});}
@@ -163,10 +167,10 @@ const SCORE_MAP={
 export const CAREER_OBJECTIVE_TYPES=Object.keys(SCORE_MAP);
 export function careerObjectives(s,name){
  const t=s.teams[name];if(!t)return [];
- const stat=t.careerStats||{};
+ const stat=t.careerSeason?.key===key(s)?t.careerSeason:{};
  const players=t.players||[];
  const academy=(t.youth||[]).length;
- const pts=Number(stat.wins||0)*3+Number(stat.draws||0);
+ const pts=Number(stat.leaguePoints||0);
  const fitness=careerTeamFitness(t);
  const metrics={
  win:Number(stat.wins||0),youth:players.filter(p=>p.academyGraduate).length+Math.floor(academy/4),
@@ -197,4 +201,19 @@ export function careerTeamReport(s,name){
  ...(t.morale<48?['El ánimo del vestuario está bajo: conviene estabilizar el equipo.']:[])];
  if(!advice.length)advice.push('Plantel preparado. Buscá mantener esta racha y rotar cuando sea necesario.');
  return {fitness:fit,chemistry:chem,tired,lowForm,suspended,alternatives:options,advice,grade:careerGrade(s,name)};
+}
+
+
+/** Fin de edición: conservar estadísticas históricas, recuperar físico durante pretemporada
+ * y limpiar métricas de la siguiente edición (sin borrar logros ni trofeos).
+ */
+export function careerOffseason(s){
+ for(const team of Object.values(s.teams||{})){
+  for(const p of team.players||[]){
+   ensureCareerPlayer(p);
+   p.fitness=clamp(p.fitness+25,8,100);
+   p.sharpness=clamp(p.sharpness-8,15,100);
+  }
+ }
+ return true;
 }
