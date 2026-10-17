@@ -404,3 +404,41 @@
 .lineup-advisor-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #425775}
 .lineup-advisor-actions p{margin:0 auto 0 0;flex:1 1 240px;line-height:1.6}
 @media(max-width:640px){.lineup-advisor-panel{padding:13px;gap:13px}.lineup-advisor-panel .grid.two{grid-template-columns:1fr}.lineup-advisor-panel .grid.three{grid-template-columns:1fr}.lineup-advisor-panel .lineup-advisor-actions>.btn{flex:1 1 100%}}
+
+
+/* Noveria 6.3 · enfermería y laboratorio de plantilla */
+.care-hero{padding:clamp(16px,3vw,27px);border:1px solid #4c6d82;border-radius:16px;background:linear-gradient(120deg,#1b3446,#1b253e 80%);display:flex;align-items:end;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.care-hero h2{font-size:clamp(23px,3vw,33px);color:#f5d69c;margin:8px 0}
+.care-hero p{color:#c1d3e2;font-size:13px}
+.care-hero .field{min-width:260px;max-width:380px;flex:1}
+.care-patients{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(270px,100%),1fr));gap:12px;margin-top:12px}
+.care-patient{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:13px;background:linear-gradient(130deg,#1c2a43,#1a3440);border:1px solid #527184}
+.care-patient h3{margin:5px 0;font-size:17px;color:#eef5ff}
+.care-patient p{margin:3px 0;line-height:1.55}
+.care-patient .between{align-items:start;flex-wrap:wrap}
+.care-patient .tag{max-width:100%;white-space:normal}
+.care-patient .btn{align-self:flex-start;margin-top:auto}
+.care-gauge{width:100%;height:9px;border-radius:999px;overflow:hidden;background:#23304a}
+.care-gauge>span{display:block;height:100%;background:linear-gradient(90deg,#b3915b,#70cfaa);border-radius:999px}
+.care-log,.care-insight{display:flex;flex-direction:column;gap:5px;padding:11px 4px;border-bottom:1px solid #3d5166}
+.care-log strong,.care-insight strong{font-size:13px;color:#ecf2ff}
+.care-log span,.care-insight span{font-size:12px;color:#becddd;line-height:1.5}
+.care-filters{display:grid;grid-template-columns:minmax(180px,2fr) repeat(2,minmax(140px,1fr));align-items:end;gap:12px;margin:14px 0}
+.care-filters .field{min-width:0}
+.care-table-wrap{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.care-table{min-width:1160px;border-collapse:collapse}
+.care-table th{font-size:11px;white-space:nowrap}
+.care-table td{font-size:12px;padding:10px 8px;vertical-align:middle}
+.care-table .tag{font-size:10px;white-space:nowrap}
+.care-table td:last-child{min-width:185px;white-space:nowrap}
+.care-table td:last-child .btn{margin-right:4px;margin-bottom:4px}
+.care-player-name{text-align:left;min-width:152px}
+.care-player-name strong{display:block;font-size:12px}
+.care-player-name small{font-size:10px;color:#bac8d9}
+.care-player-profile h2{font-size:22px;margin:0 0 7px}
+.care-player-profile h3{font-size:16px;margin:18px 0 7px;color:#efd6a7}
+.care-player-profile .card.stat{min-width:0}
+.care-player-profile .card.stat .big{font-size:clamp(15px,2vw,22px)}
+.care-player-profile p{line-height:1.6}
+@media(max-width:700px){.care-filters{grid-template-columns:1fr}.care-hero .field{min-width:0;width:100%}.care-player-profile .grid.three{grid-template-columns:1fr}.care-patient{padding:13px}}
+@media print{.care-hero,.care-patient,.care-insight{print-color-adjust:exact}}
