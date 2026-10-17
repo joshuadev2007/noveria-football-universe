@@ -51,7 +51,10 @@ const pitchCache=new WeakMap();
 function liveNode(root,id){
  let map=pitchCache.get(root);
  if(!map){map=new Map();pitchCache.set(root,map);}
- if(!map.has(id))map.set(id,root.getElementById?root.getElementById(id):document.getElementById(id));
+ // El SVG solo contiene jugadores y balón. Marcador, reloj, controles
+ // y narración están fuera del SVG: buscarlos desde root los dejaba en null.
+ // Usar document también funciona para los elementos dentro del SVG.
+ if(!map.has(id))map.set(id,document.getElementById(id));
  return map.get(id);
 }
 export function frameUpdate(b,{hud=true,state=null}={}){
