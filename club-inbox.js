@@ -70,11 +70,11 @@ function fixtureMessage(s,club,m){
  if(reds.length){const ev=reds[0],p=getPlayer(s.teams[club],ev.p1);
   if(p)out.push({key:'red-'+m.id+'-'+p.id,category:'disciplina',from:s.teams[club].director||'Dirección deportiva',role:'Dirección deportiva',playerId:p.id,matchId:m.id,
    subject:'Expulsión y disciplina: '+p.name,body:p.name+' vio tarjeta roja ante '+against+' al '+ev.min+'′. La sanción sigue vigente según el motor del juego. ¿Cómo querés gestionar la situación en el vestuario?',
-   options:[choice('private','Conversación privada','+3 moral · +3 disciplina individual'),choice('warn','Advertencia formal','+3 confianza · -2 moral'),choice('support','Respaldar públicamente','+4 moral · -2 confianza'),choice('fine','Aplicar sanción interna','+4 confianza · -4 moral · -2 forma del jugador')]});
+   options:[choice('private','Conversación privada','+3 moral · +3 forma individual'),choice('warn','Advertencia formal','+3 confianza · -2 moral'),choice('support','Respaldar públicamente','+4 moral · -2 confianza'),choice('fine','Aplicar sanción interna','+4 confianza · -4 moral · -2 forma del jugador')]});
  }
  if(hero&&top[1]>=2){out.push({key:'star-'+m.id+'-'+hero.id,category:'jugador',from:hero.name,role:'Futbolista del primer equipo',playerId:hero.id,matchId:m.id,
  subject:'Mi actuación ante '+against,body:'Míster, estoy contento por mis '+top[1]+' goles contra '+against+'. Quiero seguir aportando, pero también saber qué esperás de mí en los próximos encuentros.',
- options:[choice('praise','Felicitar y reconocer el trabajo','+4 moral · +3 confianza individual'),choice('team','Recordar el esfuerzo colectivo','+3 moral del grupo · +2 confianza'),choice('demand','Pedir consistencia y exigencia','+3 forma individual · -1 moral'),choice('reward','Aprobar una prima deportiva','-0,060 M VLR · +5 moral · +3 forma individual')]});
+ options:[choice('praise','Felicitar y reconocer el trabajo','+4 moral · +3 forma individual'),choice('team','Recordar el esfuerzo colectivo','+3 moral del grupo · +2 confianza'),choice('demand','Pedir consistencia y exigencia','+3 forma individual · -1 moral'),choice('reward','Aprobar una prima deportiva','-0,060 M VLR · +5 moral · +3 forma individual')]});
  }
  if(gf<ga)out.push({key:'loss-'+m.id,category:'directiva',from:s.teams[club].director||'Director deportivo',role:'Dirección deportiva',matchId:m.id,
  subject:'Después de la derrota ante '+against,body:club+' perdió '+gf+'–'+ga+' ante '+against+'. Necesitamos una decisión para mejorar el próximo partido sin perder la calma dentro del vestuario.',
