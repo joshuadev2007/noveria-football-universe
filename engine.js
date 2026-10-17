@@ -2,7 +2,7 @@ import {TEAMS,FIXTURES,FOREIGN_COUNTRIES} from './data.js';
 import {cyclePhase,cycleKey,cycleName,cycleNext,cycleIsAnnualFinal,annualMatches} from './season-cycle.js';
 import {seniorYouthDevelopment,advanceYouthOffers,teamOverall} from './youth-scouting.js';
 import {matchLineup,lineupStrength} from './lineup.js';
-import {preCareerMatch,afterCareerMatch} from './career-realism.js';
+import {preCareerMatch,afterCareerMatch,careerOffseason} from './career-realism.js';
 import {leaguePlayoffSeeds,leaguePlayoffPairs,leaguePlayoffReseed,leaguePlayoffFinal} from './league-playoffs.js';
 
 export const STORAGE_KEY='noveria-universe-save-v1';
@@ -456,6 +456,7 @@ export function startNextSeason(s){
   if(t.division==='LSV')t.budget=+(t.budget+1.4).toFixed(3);
   else if(t.division==='LPV')t.budget=+(t.budget+.8).toFixed(3);
  }
+ careerOffseason(s);
  s.season=next.season;s.edition=next.edition;
  s.fixtures=FIXTURES.map(f=>({id:f.id+'-'+newKey,competition:f.competition,group:f.group,round:f.round,slot:f.slot,seq:f.seq,
   home:s.slotMap[f.home],away:s.slotMap[f.away],scoreH:null,scoreA:null,played:false,legacy:false}));
