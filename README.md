@@ -1,3 +1,19 @@
+# Noveria 6.4 · 🔥 Grandes previas de partidos importantes
+
+**Apartado nuevo: 🔥 Grandes previas.** Se muestra en la barra lateral (y en «Más» en el móvil), con acceso adicional desde **📅 Calendario maestro** y desde **🔥 Previa** junto a los próximos partidos destacados.
+
+- **Portada deportiva** dedicada a los próximos grandes partidos que tengan los dos clubes confirmados: clásicos con antecedentes registrados, duelos de candidatos, cruces internacionales, octavos, cuartos, semifinales, finales y Recopas.
+- **Filtro geográfico:** todas las federaciones o cualquiera de los nueve países de Arcalis. Los duelos internacionales aparecen si participa un club del país seleccionado, aunque juegue de visitante.
+- **Artículo exclusivo antes del partido:** importancia de la cita, estadio, rival, técnicos, estilo táctico, las últimas cinco actuaciones registradas de cada equipo, balance cara a cara, figuras por nivel, bajas disponibles y una posible alineación basada en el once del plantel (no es alineación oficial confirmada).
+- **Sin spoilers:** no se inventa ni revela el futuro marcador. Las previas solo corresponden a partidos pendientes; una vez terminado, el encuentro sale de Grandes previas.
+- **Calendario respetado:** un partido puede tener previa cuando ya está programado, pero únicamente se puede jugar cuando llegue su fecha oficial. La portada distingue entre «Habilitado en el calendario» y «Próximamente».
+- Si aún no hay clásicos o eliminatorias confirmados, la sección puede mostrar el próximo duelo conocido del club que dirigís. Si tampoco existe, pide avanzar fechas del calendario.
+- **Sin cambios de juego o guardado:** las previas son de solo lectura. No cambian fichajes, plantillas, resultados, campeones, alineaciones guardadas ni fechas.
+
+Test automatizado: `node tests-big-match-preview.mjs`.
+
+---
+
 # Noveria 6.3.3 · Estadísticas de torneos, por separado 📊🏆
 
 Nueva sección **📊 Estadísticas de torneos** en el menú principal de PC y en **Más** del menú móvil.
