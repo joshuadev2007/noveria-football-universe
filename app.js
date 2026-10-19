@@ -14,7 +14,7 @@ import {COUNTRIES,ensureInternational,simulateInternationalStep,internationalArc
 import {pressMatchFocus} from './press-room.js';
 import {inboxClub,getClubBox,unreadClubMessages,syncClubInbox,markClubInboxRead,answerClubInbox} from './club-inbox.js';
 import {renderClubInbox} from './club-inbox-ui.js';
-import {FORMATIONS,FORMATION_OPTIONS,lineupState,chooseLineup,selectFormation,selectCaptain,optimizeLineup,resetLineup,lineupStrength,matchLineup,rotateLineup} from './lineup.js';
+import {FORMATIONS,FORMATION_OPTIONS,roleAffinity,lineupState,chooseLineup,selectFormation,selectCaptain,optimizeLineup,resetLineup,lineupStrength,matchLineup,rotateLineup} from './lineup.js';
 import {applyLineupScenario} from './lineup-advisor.js';
 import {renderLineupAdvice} from './lineup-advisor-ui.js';
 import {activeMedicalCases,treatInjury,squadAnalysis} from './squad-care.js';
@@ -311,6 +311,53 @@ function kitsPage(){let t=club(ui.team),ix=ui.shirt;return `<div class="stack">$
 <div class="grid two"><div class="kit-large">${kitSVG(t,ix)}<div class="muted small">Vista previa del uniforme seleccionado</div></div><div class="card"><h2 class="h2">Personalización</h2><form id="kitForm" class="form"><div class="grid two"><label class="field"><span>Color principal</span><input type="color" name="p" value="${E(t.kits[ix].p)}"></label><label class="field"><span>Color secundario</span><input type="color" name="s" value="${E(t.kits[ix].s)}"></label></div><label class="field"><span>Patrón</span><select name="pattern">${[['stripes','Rayas verticales'],['hoops','Franjas horizontales'],['diagonal','Banda diagonal'],['half','Mitades'],['plain','Liso']].map(([v,l])=>`<option value="${v}" ${t.kits[ix].pattern===v?'selected':''}>${l}</option>`).join('')}</select></label><label class="field"><span>Patrocinador ficticio</span><input class="input" name="sponsor" value="${E(t.kits[ix].sponsor)}" maxlength="18"></label><button class="btn primary" type="submit">Guardar uniforme</button></form><p class="muted small">Los diseños se guardan con tu partida y se pueden modificar las veces que quieras.</p></div></div></div>`;}
 const LINEUP_COORDS={"4-3-3":[[50,90],[80,71],[60,75],[40,75],[20,71],[50,54],[33,45],[67,44],[81,23],[50,17],[19,23]],"4-4-2":[[50,90],[80,71],[60,75],[40,75],[20,71],[81,45],[60,47],[40,47],[19,45],[40,20],[60,20]],"4-2-3-1":[[50,90],[80,71],[60,75],[40,75],[20,71],[41,55],[59,55],[81,35],[50,34],[19,35],[50,16]],"3-5-2":[[50,90],[74,71],[50,75],[26,71],[81,52],[60,54],[49,49],[40,34],[19,52],[40,18],[60,18]],"5-3-2":[[50,90],[87,65],[70,74],[50,75],[30,74],[13,65],[35,43],[50,49],[65,43],[40,18],[60,18]]};
 function lineupTeamName(){return s.mode==='manager'?(s.managedClub||ui.team):(s.teams[ui.lineupClub]?ui.lineupClub:(s.managedClub||ui.team));}
+/** Elección táctil de futbolistas: se intercambian IDs, nunca se duplica un jugador.
+ * Titulares y banca se toman de la plantilla guardada del club actual.
+ */
+function lineupPicker(area,index){
+ const name=lineupTeamName(),team=club(name),L=lineupState(team),ids=L[area];
+ if(!Array.isArray(ids)||!Number.isInteger(index)||index<0||index>=ids.length)throw Error('Puesto de alineación inválido');
+ const role=area==='starters'?FORMATIONS[L.formation][index]:'SUP';
+ const current=team.players.find(p=>String(p.id)===String(ids[index]));
+ if(!current)throw Error('Jugador actual no encontrado');
+ const all=new Map(team.players.map(p=>[String(p.id),p]));
+ const groups=[
+  ['🪑 En la banca',L.bench,'bench'],['👟 Reservas disponibles',L.reserves,'reserves'],['⚽ Otros titulares',L.starters,'starters']
+ ];
+ const card=(id,source)=>{
+  const p=all.get(String(id));if(!p)return '';
+  const same=String(p.id)===String(current.id),injured=Number(p.outGames||0)>0;
+  const affinity=role==='SUP'?1:roleAffinity(role,p.pos);
+  const fitness=Math.max(0,Math.min(100,Math.round(Number(p.fitness??90))));
+  const compatible=role==='SUP'?'Convocado':affinity>=.99?'Posición ideal':affinity>=.8?'Compatible':affinity>0?'Posición adaptada':'Fuera de puesto';
+  return `<button type="button" class="lineup-swap-option ${same?'current':''} ${injured?'injured':''}" data-action="lineup-swap" data-area="${E(area)}" data-index="${index}" data-id="${E(p.id)}" ${same?'disabled':''} aria-label="${E('Cambiar '+current.name+' por '+p.name)}">
+   <span class="lineup-picker-kit" style="--lp-primary:${E(team.primary)};--lp-second:${E(team.secondary)}">${E(p.number||'—')}</span>
+   <span class="lineup-swap-info"><b>${E(p.name)}</b><small>${E(p.pos)} · ${E(compatible)} · Físico ${fitness}%${injured?' · ⚠ Baja':''}</small></span>
+   <span class="lineup-swap-rating"><b>${Number(p.ovr)||0}</b><small>OVR</small></span>
+   <span class="lineup-swap-action">${same?'ACTUAL':'CAMBIAR'}</span>
+  </button>`;
+ };
+ const sorted=(ids)=>ids.slice().sort((a,b)=>{
+  const one=all.get(String(a)),two=all.get(String(b));if(!one||!two)return 0;
+  const fitness=p=>Math.max(0,Math.min(100,Number(p.fitness??90)));
+  const rating=p=>(Number(p.ovr)||0)*(role==='SUP'?1:roleAffinity(role,p.pos))+(fitness(p)-70)*.05-(Number(p.outGames||0)>0?65:0);
+  return rating(two)-rating(one)||String(one.name).localeCompare(String(two.name),'es');
+ });
+ const sections=groups.map(([title,ids,source])=>{
+  const others=sorted(ids).filter(id=>String(id)!==String(current.id));
+  return others.length?`<section class="lineup-pick-group"><h3>${title} · ${others.length}</h3><div class="lineup-swap-grid">${others.map(id=>card(id,source)).join('')}</div></section>`:'';
+ }).join('');
+ modal('⚽ Elegir futbolista · '+(area==='starters'?role:'Banca '+(index+1)),`
+  <div class="lineup-picker-content">
+   <div class="lineup-picker-active"><span class="lineup-picker-kit" style="--lp-primary:${E(team.primary)};--lp-second:${E(team.secondary)}">${E(current.number||'—')}</span>
+    <div><span class="eyebrow">ESTÁS EDITANDO · ${area==='starters'?'TITULAR '+(index+1)+' · '+E(role):'SUPLENTE '+(index+1)}</span>
+     <h3>${E(current.name)}</h3><p class="muted small">OVR ${current.ovr} · ${E(current.pos)} · Formación ${E(L.formation)}</p>
+    </div></div>
+   <p class="lineup-picker-instructions">Elegí un futbolista para intercambiarlo con ${E(current.name)}. Podés utilizar titulares, suplentes o reservas. Los cambios se guardan y se aplican al próximo partido.</p>
+   ${sections}
+  </div>`);
+}
+
 function lineupPage(){
  const name=lineupTeamName(),t=club(name);if(!t)return '<div class="card">No se encontró el plantel.</div>';
  const L=lineupState(t),roleList=FORMATIONS[L.formation],roster=new Map(t.players.map(p=>[String(p.id),p]));
@@ -322,10 +369,10 @@ function lineupPage(){
  const chips=(ids,area)=>ids.map((id,i)=>{const p=roster.get(id);if(!p)return '';const role=area==='starters'?roleList[i]:'SUP';const mismatch=area==='starters'&&role!=='POR'&&p.pos!=='POR'&&p.pos!==role;
  return `<div class="lineup-player-row ${ui.lineupSlot===i&&area==='starters'?'on':''}">
   <div class="lineup-role">${E(role)}</div><div class="lineup-player-meta"><b>${E(p.name)}${cap(id)}</b><span>#${E(p.number||'—')} · ${E(p.pos)} · ${p.age} años · OVR <strong>${p.ovr}</strong> / POT ${p.pot} · Físico <b>${Math.round(ensureCareerPlayer(p).fitness)}%</b> · Ritmo ${Math.round(p.sharpness)}%${p.development?.games?` · Forma ${Number(p.development.form||6.5).toFixed(1)} · ${p.development.games} PJ de desarrollo`:''}${mismatch?' · Posición adaptada':''}${Number(p.outGames||0)>0?' · ⚠ BAJA':''}</span></div>
-  ${selector(area,i,id)}</div>`;}).join('');
+  ${selector(area,i,id)}${button('🔄 Cambiar','lineup-pick',`data-area="${E(area)}" data-index="${i}"`,'btn sm lineup-row-change')}</div>`;}).join('');
  const coords=LINEUP_COORDS[L.formation];
  const pitch=L.starters.map((id,i)=>{const p=roster.get(id);if(!p)return '';const [x,y]=coords[i];
- return `<button type="button" class="lineup-pitch-player ${ui.lineupSlot===i?'selected':''} ${Number(p.outGames||0)>0?'unavailable':''}" style="left:${x}%;top:${y}%" data-action="lineup-focus" data-index="${i}" title="${E(p.name)} · ${E(roleList[i])} · OVR ${p.ovr}">
+ return `<button type="button" class="lineup-pitch-player ${ui.lineupSlot===i?'selected':''} ${Number(p.outGames||0)>0?'unavailable':''}" style="left:${x}%;top:${y}%" data-action="lineup-pick" data-area="starters" data-index="${i}" title="${E(p.name)} · ${E(roleList[i])} · OVR ${p.ovr}">
   <span class="lineup-pitch-shirt" style="--lp-primary:${E(t.primary)};--lp-second:${E(t.secondary)}">${E(p.number||i+1)}</span>
   <span class="lineup-pitch-name">${E(p.name.split(' ').slice(-1)[0])}${L.captain===id?' Ⓒ':''}</span>
   <span class="lineup-pitch-ovr">${E(roleList[i])} · ${p.ovr}</span></button>`;}).join('');
@@ -346,7 +393,7 @@ function lineupPage(){
  <div class="lineup-layout">
  <section class="card lineup-field-card"><div class="between"><h2 class="h2">⚽ Formación ${E(L.formation)}</h2><span class="tag">LOCAL · 11 TITULARES</span></div>
  <div class="lineup-pitch" role="group" aria-label="Formación de once jugadores en cancha"><div class="lineup-pitch-line line-middle"></div><div class="lineup-center-circle"></div><div class="lineup-box top"></div><div class="lineup-box bottom"></div>${pitch}</div>
- <p class="muted small">Tocá a un futbolista en la cancha para localizar su puesto y modificarlo en el listado.</p></section>
+ <p class="muted small">👆 Tocá una camiseta y elegí directamente al reemplazo entre titulares, banca y reservas.</p></section>
  <section class="card lineup-roster"><div class="between"><h2 class="h2">✅ Once titular</h2><span class="tag">11/11</span></div><p class="muted small">Cada lista permite sustituir ese puesto por cualquier jugador del plantel.</p><div class="lineup-rows">${chips(L.starters,'starters')}</div></section></div>
  <section class="card"><div class="between"><div><h2 class="h2">🪑 Banca de suplentes</h2><p class="muted small">Solo estos jugadores estarán disponibles para los cambios durante Live 2D.</p></div><span class="tag">${L.bench.length}/7 SUPLENTES</span></div>
  <div class="lineup-rows bench">${chips(L.bench,'bench')}</div></section>
@@ -798,6 +845,8 @@ case 'lineup-advice-apply':try{
  save();ui.lineupAdviceOpen=false;render();
  toast('✅ Once y banca aplicados · Formación '+suggestion.formation);
  }catch(err){toast('⚠ '+err.message);}break;
+case 'lineup-pick':try{const area=el.dataset.area||'starters',index=Number(el.dataset.index);ui.lineupSlot=area==='starters'?index:ui.lineupSlot;lineupPicker(area,index);}catch(err){toast('⚠ '+err.message)}break;
+case 'lineup-swap':try{const name=lineupTeamName(),area=el.dataset.area,index=Number(el.dataset.index);chooseLineup(s,name,area,index,el.dataset.id);save();close();render();toast('✅ Cambio de alineación guardado para '+name)}catch(err){toast('⚠ '+err.message)}break;
 case 'lineup-focus':ui.lineupSlot=Math.max(0,Math.min(10,Number(el.dataset.index)||0));render();break;
 case 'lineup-optimize':try{optimizeLineup(s,lineupTeamName());save();render();toast('🧠 Once y suplentes optimizados por OVR y posición');}catch(err){toast('⚠ '+err.message)}break;
 case 'lineup-rotate':try{rotateLineup(s,lineupTeamName());save();render();toast('🔄 Once optimizado para recuperar condición física y mantener el nivel');}catch(err){toast('⚠ '+err.message)}break;
