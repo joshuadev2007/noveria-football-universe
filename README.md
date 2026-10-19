@@ -1,3 +1,20 @@
+# Noveria 6.3.1 · Revisión y mejoras de rendimiento ⚡
+
+Actualización enfocada **solo en fluidez, uso de memoria y guardados seguros**. No modifica resultados, calendarios, campeones, reglas ni el esquema de Joshua Cloud.
+
+- **Pantallas y menús:** se conserva el menú lateral y la navegación al actualizar las páginas, en vez de recrear toda la interfaz. Se mantiene la barra lateral y el desplazamiento en ella.
+- **Mercado de fichajes:** se reutiliza el catálogo calculado, los precios y el texto de búsqueda hasta que cambia la partida o el comprador. Los filtros y el orden siguen iguales.
+- **Live 2D:** en el selector de partidos, la disponibilidad de cada encuentro se calcula una sola vez antes de ordenar y mostrar los 70 resultados visibles. Se mantienen la simulación, la duración del partido y los goles.
+- **Calendario y periódicos:** se reutilizan las referencias de partidos durante la simulación de una fecha y se conserva el listado cacheado en pantallas de consulta. Las crónicas y los marcadores no cambian.
+- **Guardados:** el JSON del guardado local se reutiliza para preparar IndexedDB sin repetir un clon estructurado completo. Si se solicitan varios guardados seguidos, IndexedDB escribe solamente la instantánea más reciente; cada guardado sigue actualizando el almacenamiento local inmediatamente. La nube conserva su sincronización separada.
+- **Listas largas:** las tarjetas de clubes, resultados, noticias y academia alejadas de la pantalla aprovechan `content-visibility:auto` en navegadores compatibles para reducir trabajo de maquetación.
+- **Imágenes:** el Service Worker `noveria-offline-v31` sirve imágenes locales desde caché tras la primera carga. El HTML, CSS y JavaScript siguen comprobando la red para no ocultar actualizaciones.
+- **Regresiones:** `node tests-performance.mjs` forma parte del comando `npm test`. Verifica shell persistente, búsquedas cacheadas, disponibilidad de Live 2D y coalescencia de guardados.
+
+**Recomendación:** respaldá la partida en JSON, esperá a que se publique GitHub Pages y recargá normalmente. No borres los datos del sitio: ahí se guardan los avances locales. El rendimiento exacto depende también del navegador, la memoria disponible y el tamaño de los archivos históricos de cada partida.
+
+---
+
 # Noveria 6.3 · Asesor táctico, enfermería y laboratorio de contratos 📋🏥📊
 
 Esta versión amplía las herramientas de dirección deportiva sin reiniciar la partida, modificar partidos disputados ni alterar campeones.
