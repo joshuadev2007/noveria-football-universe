@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {freshState,played} from './engine.js';
 import {ensureContinent} from './continent.js';
 import {fixtureSources} from './live2d.js';
-import {calendarMatchReady} from './calendar.js';
+import {calendarMatchReady,ensureCalendar} from './calendar.js';
 import {bigMatchImportance,previewEntries,bigMatchDossier} from './big-match-preview.js';
 import {COUNTRIES} from './international.js';
 
@@ -12,6 +12,7 @@ const fixture=s.fixtures.find(x=>!played(x));assert.ok(fixture);
 fixture.group='final'; // Caso controlado: probar que se detecta un cruce decisivo sin jugarlo.
 const entry=fixtureSources(s).find(x=>x.m===fixture);
 assert.ok(entry);
+ensureCalendar(s); // Preparar el calendario antes de comprobar la inmutabilidad de las previas.
 const original=JSON.stringify(s);
 const importance=bigMatchImportance(s,entry);
 assert.ok(importance.score>=105,'Una final debe recibir cobertura especial');
