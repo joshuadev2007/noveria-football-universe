@@ -442,3 +442,16 @@
 .care-player-profile p{line-height:1.6}
 @media(max-width:700px){.care-filters{grid-template-columns:1fr}.care-hero .field{min-width:0;width:100%}.care-player-profile .grid.three{grid-template-columns:1fr}.care-patient{padding:13px}}
 @media print{.care-hero,.care-patient,.care-insight{print-color-adjust:exact}}
+
+
+/* Noveria 6.3.1 · Menor costo de maquetación para catálogos extensos.
+   El navegador calcula las tarjetas alejadas de la pantalla al acercarse a ellas. */
+@supports (content-visibility:auto){
+ .clubgrid>.clubcard{content-visibility:auto;contain-intrinsic-size:auto 190px}
+ .resultgrid>.resultcard{content-visibility:auto;contain-intrinsic-size:auto 250px}
+ .articles>.article{content-visibility:auto;contain-intrinsic-size:auto 215px}
+ .academy-scout-grid>.academy-prospect,.academy-scout-grid>.academy-scout-card{
+  content-visibility:auto;contain-intrinsic-size:auto 310px
+ }
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
