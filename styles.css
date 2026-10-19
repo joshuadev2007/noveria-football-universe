@@ -455,3 +455,33 @@
  }
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+
+/* Noveria 6.3.2 · Selector táctico de camisetas (once, banca y reservas) */
+.lineup-row-change{grid-column:2;justify-self:end;padding:6px 11px;font-size:11px}
+.lineup-pitch-player{touch-action:manipulation;transition:background .13s,box-shadow .13s,transform .13s;box-shadow:0 2px 11px #081e1a70}
+.lineup-pitch-player:hover{transform:translate(-50%,-53%) scale(1.035)}
+.lineup-pitch-player:focus-visible{outline:3px solid #fff3ab;outline-offset:3px}
+.lineup-pitch-player.selected{background:#103c41c5}
+.lineup-picker-content{display:flex;flex-direction:column;gap:13px;padding-bottom:10px;color:#eef4fd}
+.lineup-picker-active{display:flex;gap:14px;align-items:center;padding:15px;border-radius:15px;border:1px solid #6a7595;background:linear-gradient(123deg,#18344b,#18223a 85%)}
+.lineup-picker-active h3{margin:5px 0 3px;font-size:clamp(17px,2.5vw,22px)}
+.lineup-picker-active p{margin:0}
+.lineup-picker-kit{flex:0 0 43px;height:45px;border:2px solid #ffffff95;border-radius:12px 12px 6px 6px;background:linear-gradient(120deg,var(--lp-primary) 53%,var(--lp-second) 54%);color:white;text-shadow:0 2px 4px #08131dcc;display:grid;place-items:center;font-weight:900;font-size:17px;box-shadow:0 5px 12px #0007}
+.lineup-picker-instructions{color:#bfcfe1;font-size:12px;line-height:1.65;background:#15273e;padding:10px 13px;border-left:3px solid #cfa963;border-radius:8px;margin:0}
+.lineup-pick-group h3{font-size:13px;letter-spacing:.03em;color:#f0d8aa;margin:5px 0 10px}
+.lineup-swap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(270px,100%),1fr));gap:8px}
+.lineup-swap-option{border:1px solid #465b76;border-radius:12px;background:#192b43;color:#f5f8ff;min-width:0;display:flex;align-items:center;gap:10px;text-align:left;padding:10px;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+.lineup-swap-option:hover{background:#233b58;border-color:#edcd89;transform:translateY(-1px)}
+.lineup-swap-option:focus-visible{outline:2px solid #eaca88;outline-offset:2px}
+.lineup-swap-option:disabled{opacity:.55;cursor:default}
+.lineup-swap-option.injured{border-style:dashed}
+.lineup-swap-option .lineup-picker-kit{flex-basis:35px;height:38px;font-size:13px;border-radius:8px}
+.lineup-swap-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.lineup-swap-info b{font-size:12px;white-space:normal;overflow-wrap:anywhere}
+.lineup-swap-info small{color:#aac3db;font-size:10px;line-height:1.4}
+.lineup-swap-rating{display:flex;flex-direction:column;align-items:center;gap:1px}
+.lineup-swap-rating b{color:#f1d794;font-size:18px}
+.lineup-swap-rating small{color:#aac3db;font-size:9px}
+.lineup-swap-action{font-weight:900;font-size:9px;color:#f4dfb4}
+@media(max-width:600px){.lineup-pick-group h3{margin-top:8px}.lineup-swap-grid{grid-template-columns:1fr}.lineup-picker-active{padding:11px}.lineup-swap-option{min-height:60px;padding:9px}.lineup-row-change{justify-self:stretch}}
