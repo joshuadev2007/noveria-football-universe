@@ -1,10 +1,10 @@
 {
   "name": "noveria-football-universe",
-  "version": "6.3.2",
+  "version": "6.3.3",
   "private": true,
   "type": "module",
   "description": "Simulador de fútbol ficticio de Noveria - edición 2026",
   "scripts": {
-    "test": "node tests.mjs && node tests-upgrade.mjs && node tests-market.mjs && node tests-seasons.mjs && node tests-save.mjs && node tests-continent.mjs && node tests-extra-market.mjs && node tests-ui-v4.mjs && node tests-press.mjs && node tests-editorial.mjs && node tests-cycle.mjs && node tests-results-country.mjs && node tests-youth-scouting.mjs && node tests-lineup.mjs && node tests-round-standings.mjs && node tests-postseason-8.mjs && node tests-career-515.mjs && node tests-live-fluid.mjs && node tests-live-score.mjs && node tests-realism-60.mjs && node tests-sporting-office.mjs && node tests-club-inbox.mjs && node tests-squad-care.mjs && node tests-performance.mjs && node tests-lineup-visual.mjs"
+    "test": "node tests.mjs && node tests-upgrade.mjs && node tests-market.mjs && node tests-seasons.mjs && node tests-save.mjs && node tests-continent.mjs && node tests-extra-market.mjs && node tests-ui-v4.mjs && node tests-press.mjs && node tests-editorial.mjs && node tests-cycle.mjs && node tests-results-country.mjs && node tests-youth-scouting.mjs && node tests-lineup.mjs && node tests-round-standings.mjs && node tests-postseason-8.mjs && node tests-career-515.mjs && node tests-live-fluid.mjs && node tests-live-score.mjs && node tests-realism-60.mjs && node tests-sporting-office.mjs && node tests-club-inbox.mjs && node tests-squad-care.mjs && node tests-performance.mjs && node tests-lineup-visual.mjs && node tests-tournament-stats.mjs"
   }
 }
