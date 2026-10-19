@@ -721,7 +721,8 @@ function playMasterDate({batch=false}={}){
    }
   }
   calendarRecord(s,e,matches);
-  const gamesToday=[...matches,...fixtureSources(s).map(x=>x.m).filter(m=>m.calendarEvent===e.id&&played(m))];
+  const sourcesToday=fixtureSources(s);
+  const gamesToday=[...matches,...sourcesToday.map(x=>x.m).filter(m=>m.calendarEvent===e.id&&played(m))];
   careerRecoverAfterDate(s,e,gamesToday);
   const scoutsDone=advanceYouthScouting(s,e.id);
   if(scoutsDone.some(m=>m.club===ui.team))toast('🌍 ¡El ojeador regresó con nuevos talentos! Abrí Cantera para ver su informe.');
@@ -729,7 +730,7 @@ function playMasterDate({batch=false}={}){
   for(const match of matches)if(match?.id&&played(match)){s.ecosystem.pressFocus[match.home]=match.id;s.ecosystem.pressFocus[match.away]=match.id;}
   updateClubInbox({eventId:e.id,matches:gamesToday});
   const next=calendarCurrent(s);
-  const archiveIds=new Set(fixtureSources(s).map(x=>String(x.m.id)));
+  const archiveIds=new Set(sourcesToday.map(x=>String(x.m.id)));
   const published=matches.filter(m=>m?.id&&played(m)&&archiveIds.has(String(m.id)));
   // El periódico de la fecha destaca grandes actuaciones, nunca inventa resultados.
   const newsworthy=[...published].sort((a,b)=>
