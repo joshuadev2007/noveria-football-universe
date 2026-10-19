@@ -56,12 +56,15 @@ export function previewEntries(s,{limit=18,country='Todos',club=null}={}){
  return ranked.slice(0,limit);
 }
 function allPlayed(s){
- const current=fixtureSources(s).map(x=>x.m);
- for(const a of s.archive||[])current.push(...(a.fixtures||[]),...(a.cup?.fixtures||[]),...(a.postseason?.fixtures||[]));
- for(const w of Object.values(s.world||{}))for(const a of w.archive||[])current.push(...(a.fixtures||[]),...(a.cup?.fixtures||[]),...(a.postseason?.fixtures||[]));
- for(const a of s.international?.archive||[])for(const c of [a.champions,a.horizonte])current.push(...(c?.fixtures||[]));
+ // Archivos primero (del más antiguo al más reciente), partidas actuales al final.
+ // Evita presentar como 'racha reciente' encuentros de ediciones pasadas.
+ const chronological=[];
+ for(const a of [...(s.archive||[])].reverse())chronological.push(...(a.fixtures||[]),...(a.cup?.fixtures||[]),...(a.postseason?.fixtures||[]));
+ for(const country of Object.values(s.world||{}))for(const a of [...(country.archive||[])].reverse())chronological.push(...(a.fixtures||[]),...(a.cup?.fixtures||[]),...(a.postseason?.fixtures||[]));
+ for(const a of [...(s.international?.archive||[])].reverse())for(const c of [a.champions,a.horizonte])chronological.push(...(c?.fixtures||[]));
+ chronological.push(...fixtureSources(s).filter(x=>x.kind!=='archive').map(x=>x.m));
  const unique=new Map();
- for(const m of current)if(played(m)&&m.id&&!unique.has(m.id))unique.set(m.id,m);
+ for(const m of chronological)if(played(m)&&m.id)unique.set(String(m.id),m);
  return [...unique.values()];
 }
 const perspective=(m,name)=>({match:m,opponent:m.home===name?m.away:m.home,scored:m.home===name?m.scoreH:m.scoreA,conceded:m.home===name?m.scoreA:m.scoreH,result:(m.home===name?m.scoreH:m.scoreA)>(m.home===name?m.scoreA:m.scoreH)?'G':(m.home===name?m.scoreH:m.scoreA)<(m.home===name?m.scoreA:m.scoreH)?'P':'E'});
