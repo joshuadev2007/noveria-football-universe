@@ -242,6 +242,88 @@ function saveResultsCountry(value){
  save();render();
 }
 
+function bigMatchPage(){
+ const country=['Todos',...COUNTRIES].includes(ui.previewCountry)?ui.previewCountry:'Todos';
+ const featured=previewEntries(s,{country,limit:60});
+ const yours=s.managedClub||ui.team;
+ let entries=featured;
+ let fallback=false;
+ if(!entries.length){
+  const next=fixtureSources(s).filter(x=>!played(x.m)&&x.m?.home&&x.m?.away
+   &&s.teams[x.m.home]&&s.teams[x.m.away]
+   &&(country==='Todos'||[s.teams[x.m.home].country,s.teams[x.m.away].country].includes(country))
+   &&(x.m.home===yours||x.m.away===yours));
+  const pending=next.find(x=>calendarMatchReady(s,x))||next.sort((a,b)=>Number(a.m.round||0)-Number(b.m.round||0))[0];
+  if(pending){entries=[{...pending,importance:bigMatchImportance(s,pending),due:calendarMatchReady(s,pending)}];fallback=true;}
+ }
+ const primary=entries[0],focus=primary?bigMatchDossier(s,primary):null;
+ const badge=d=>d.importance.label||'⚽ PREVIA DEL PARTIDO';
+ const due=d=>d.due?`<span class="bmp-due">🟢 HABILITADO EN EL CALENDARIO</span>`:'<span class="bmp-later">⏳ PRÓXIMAMENTE</span>';
+ const card=entry=>{
+  const d=bigMatchDossier(s,entry);if(!d)return '';
+  return `<article class="bmp-card">
+   <div class="between"><span class="bmp-label">${E(badge(d))}</span>${due(d)}</div>
+   <div class="bmp-card-teams"><div>${crest(d.home.name)}<strong>${E(d.home.name)}</strong></div><span class="bmp-vs">VS</span><div>${crest(d.away.name)}<strong>${E(d.away.name)}</strong></div></div>
+   <p class="bmp-comp">${E(d.competition)} · ${E(d.venue)}${d.city?' · '+E(d.city):''}</p>
+   <p class="bmp-teaser">${E(d.importance.reason)}</p>
+   ${button('📰 LEER PREVIA COMPLETA','big-match-open',`data-id="${E(d.id)}"`,'btn primary')}
+   </article>`;
+ };
+ return `<div class="stack bmp-page">${head('🔥 Grandes previas de Arcalis','Clásicos, finales y partidos decisivos antes del pitazo inicial. Sin revelar resultados, sin simular fechas.',button('📅 Volver al calendario','nav','data-target="calendario"','btn'))}
+  <section class="bmp-hero">
+   <div><span class="bmp-kicker">EL HERALDO DE NOVERIA · EDICIÓN PREPARTIDO</span><h2>LA HISTORIA SE<br><em>JUEGA MAÑANA.</em></h2>
+   <p>Rivalidades, figuras, historial, forma reciente y lo que estará en juego. Todo basado en la partida que estás jugando.</p>
+   </div><div class="bmp-hero-symbol">⚽</div>
+  </section>
+  <div class="card bmp-filter"><label class="field"><span>🌍 ¿De qué país querés leer las previas?</span>
+  <select id="previewCountrySelect" aria-label="País de las grandes previas">${['Todos',...COUNTRIES].map(c=>`<option value="${E(c)}" ${c===country?'selected':''}>${E(c==='Todos'?'🌎 TODA ARCALIS':c)}</option>`).join('')}</select></label>
+  <span class="muted small">${featured.length} enfrentamientos destacados identificados · Solo encuentros pendientes y confirmados</span></div>
+  ${focus?`<section class="bmp-feature">
+    <div class="between"><span class="bmp-label">${E(badge(focus))}</span>${due(focus)}</div>
+    <span class="bmp-edition">📰 PORTADA ESPECIAL · ${E(focus.competition.toUpperCase())}</span>
+    <h2>${E(focus.headline)}</h2>
+    <div class="bmp-feature-teams"><div>${crest(focus.home.name,'large')}<strong>${E(focus.home.name)}</strong></div><span>VS</span><div>${crest(focus.away.name,'large')}<strong>${E(focus.away.name)}</strong></div></div>
+    <p>${E(focus.story[0])}</p>
+    <div class="controls">${button('📰 ABRIR LA GRAN PREVIA','big-match-open',`data-id="${E(focus.id)}"`,'btn primary')}${button('📅 Consultar la fecha','nav','data-target="calendario"','btn')}</div>
+  </section>`:''}
+  ${fallback?'<div class="notice">Todavía no hay clásicos o eliminatorias importantes confirmadas para ese país. Te mostramos el próximo partido conocido de tu club para que igualmente tengas una previa.</div>':''}
+  ${entries.length>1?`<section class="bmp-collection"><div class="between"><h2 class="h2">🔥 Próximos partidazos</h2><span class="tag">${entries.length-1} previas más</span></div><div class="bmp-grid">${entries.slice(1).map(card).join('')}</div></section>`:''}
+  ${!entries.length?`<section class="card bmp-empty"><h2>📅 Aún no hay cruces importantes confirmados</h2><p>Las semifinales, finales y algunos partidos de Copa de Campeones se programan cuando avanzan las rondas. Jugá las fechas oficiales y volvé a consultar: las previas aparecerán automáticamente.</p>${button('Ir al calendario','nav','data-target="calendario"','btn primary')}</section>`:''}
+ </div>`;
+}
+function openBigMatch(id){
+ const entry=fixtureSources(s).find(x=>String(x.m?.id)===String(id)&&!played(x.m));
+ if(!entry){toast('La previa ya no está disponible: el partido se disputó o todavía no tiene rivales confirmados.');return;}
+ const d=bigMatchDossier(s,entry);if(!d){toast('No fue posible preparar esta previa.');return;}
+ const form=n=>n.form.matches.length?`<div class="bmp-form">${n.form.matches.map(r=>`<span class="bmp-form-${r.result==='G'?'win':r.result==='E'?'draw':'loss'}" title="${E(r.opponent)} · ${r.scored}–${r.conceded}">${r.result}</span>`).join('')}</div>`:'<span class="muted small">Sin resultados recientes</span>';
+ const stars=n=>n.stars.length?n.stars.map(p=>`<div class="bmp-player"><span>⭐ ${E(p.name)}</span><b>${E(p.position)} · OVR ${Number(p.ovr||0)}</b></div>`).join(''):'<p class="muted small">No hay jugadores disponibles en el informe.</p>';
+ const abs=n=>n.absences.length?`<p class="bmp-warning">🚑 Bajas registradas: ${E(n.absences.join(', '))}</p>`:'<p class="bmp-ready">✓ Sin bajas registradas en el informe</p>';
+ const probable=n=>n.formation.starters.length?n.formation.starters.map(p=>`<span class="bmp-lineup-person">${E(p.number??'·')} · ${E(p.name)} <small>${E(p.pos||'')}</small></span>`).join(''):'<span class="muted small">Once pendiente de confirmación</span>';
+ const side=n=>`<div class="bmp-club-analysis">
+  <div class="bmp-club-head">${crest(n.name,'large')}<div><h3>${E(n.name)}</h3><span>${E(n.coach||'Cuerpo técnico por confirmar')}</span></div></div>
+  <div class="bmp-detail-row"><b>Últimos cinco</b>${form(n)}</div>
+  <div class="bmp-detail-row"><b>Estilo</b><span>${E(n.tactic||'Por definir')}</span></div>
+  <h4>Jugadores a seguir</h4>${stars(n)}
+  ${abs(n)}
+  <h4>Once previsto · ${E(n.formation.formation)}</h4><p class="muted small">Proyección basada en la plantilla actual, no alineación confirmada.</p>
+  <div class="bmp-lineup-grid">${probable(n)}</div>
+ </div>`;
+ const h2h=d.h2h;
+ const history=h2h.count?`<div class="bmp-history-stats"><div><strong>${h2h.homeWins}</strong><span>Victorias ${E(d.home.name)}</span></div><div><strong>${h2h.draws}</strong><span>Empates</span></div><div><strong>${h2h.awayWins}</strong><span>Victorias ${E(d.away.name)}</span></div></div>`:
+ '<p class="muted small">No se registran enfrentamientos previos entre estos clubes.</p>';
+ const latest=h2h.latest?`<p class="muted small">Último enfrentamiento registrado: ${E(h2h.latest.home)} ${h2h.latest.scoreH}–${h2h.latest.scoreA} ${E(h2h.latest.away)}.</p>`:'';
+ modal('📰 El Heraldo de Noveria · Gran previa',`<div class="bmp-article">
+  <div class="bmp-masthead">EL HERALDO DE NOVERIA <small>EDICIÓN PREPARTIDO · ${E(cycleName(s))}</small></div>
+  <div class="bmp-article-meta">🔥 ${E(d.importance.label)} · ${E(d.competition)} · ${E(d.venue)}${d.city?', '+E(d.city):''}</div>
+  <h1>${E(d.headline)}</h1><p class="bmp-article-lead">${E(d.importance.reason)}. Aún no hay resultado: el encuentro está pendiente.</p>
+  <div class="bmp-article-vs"><div>${crest(d.home.name,'large')}<b>${E(d.home.name)}</b></div><strong>VS</strong><div>${crest(d.away.name,'large')}<b>${E(d.away.name)}</b></div></div>
+  <div class="bmp-article-text">${d.story.map(t=>`<p>${E(t)}</p>`).join('')}</div>
+  <h2>📊 Cara a cara</h2>${history}${latest}
+  <h2>🔍 Las claves tácticas y las figuras</h2><div class="bmp-dual">${side(d.home)}${side(d.away)}</div>
+  <div class="bmp-article-footer">🗓️ ${E(d.keyInfo)}. Los datos se actualizarán conforme avance la partida. No se predice ni inventa el resultado.</div>
+  <div class="controls noPrint">${button('📅 Ver calendario oficial','big-match-calendar','','btn primary')}${button('🖨️ Imprimir previa','print','','btn')}</div>
+ </div>`);
+}
 function calendarPage(){
  const e=calendarCurrent(s),next=calendarUpcoming(s,18),fixtures=masterFixtures(e),history=(s.calendar?.history||[]).slice(-8).reverse();
  const date=e?calendarDate(e):'Edición finalizada · '+cycleName(s);
