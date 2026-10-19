@@ -1,3 +1,23 @@
+# Noveria 6.3.3 · Estadísticas de torneos, por separado 📊🏆
+
+Nueva sección **📊 Estadísticas de torneos** en el menú principal de PC y en **Más** del menú móvil.
+
+El centro permite seleccionar:
+- **Edición:** Apertura 2026, Clausura 2027, Apertura 2027, etc. Las temporadas ya archivadas también se consultan sin mezclarlas con el torneo actual.
+- **País:** Veltrania y las otras federaciones; **Arcalis** agrupa sus dos copas continentales. Los torneos personalizados tienen su propia categoría.
+- **Torneo:** Primera, Liga de Plata, Copa Nacional, Fase final y Recopa; Copa de Campeones o Copa Horizonte cuando seleccionás Arcalis.
+- **Ranking:** ⚽ goleadores, 🎯 asistencias, ⭐ jugadores mejor valorados, 🛡️ mejores defensas, 🧤 vallas invictas por club, 🥅 arqueros imbatidos, 🔥 mejores ataques y 🟨 juego limpio.
+
+**Cómo se calculan:** cada tabla lee exclusivamente los marcadores y las actas guardadas para esa edición y competición. Los goles y asistencias se suman por jugador a partir de eventos reales. Las defensas ordenan goles recibidos por partido; las vallas invictas de los clubes incluyen las fechas históricas con marcador conocido, y las de los arqueros requieren identificación en la alineación guardada.
+
+**Índice de valoración:** como el motor no conserva calificaciones individuales de actuación para todos los encuentros, el ranking «Mejor valorados» usa un **índice estimado (3–10)** a partir de titularidades, goles, asistencias, tarjetas, resultados y defensas a cero. Aparece expresamente identificado como índice calculado; no se presenta como nota oficial del encuentro.
+
+**Transparencia histórica:** las jornadas iniciales de 2026 sin actas individuales cuentan para resultados de equipos, pero jamás reciben goleadores, asistencias ni arqueros inventados. El centro no modifica la partida ni recalcula campeones.
+
+**Prueba automatizada:** `node tests-tournament-stats.mjs`.
+
+---
+
 # Noveria 6.3.2 · Editor táctico visual de alineación y banca ⚽🪑
 
 A partir de la sección **📋 Alineación y banca** podés administrar tu plantel real con un sistema visual de camisetas inspirado en los editores tácticos de clubes:
