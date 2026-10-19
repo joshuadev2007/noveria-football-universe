@@ -1,3 +1,20 @@
+# Noveria 6.3.2 · Editor táctico visual de alineación y banca ⚽🪑
+
+A partir de la sección **📋 Alineación y banca** podés administrar tu plantel real con un sistema visual de camisetas inspirado en los editores tácticos de clubes:
+
+- **Tocá una camiseta en la cancha**: se abre directamente el selector de futbolistas para ese puesto. No hace falta buscar la fila correspondiente y desplazarse por toda la pantalla.
+- El selector agrupa **siete suplentes**, **reservas fuera de convocatoria** y **los otros titulares**, con nombre, dorsal, posición, OVR, compatibilidad de posición, estado físico y bajas.
+- Tocá **CAMBIAR** para intercambiar al jugador seleccionado con el del puesto actual. También hay un botón **🔄 Cambiar** en cada fila del once y en cada puesto de la banca.
+- No se duplican jugadores: el jugador que sale ocupa la plaza del que entra (once, banca o reserva).
+- Se mantienen las opciones existentes de **formación (4-3-3, 4-4-2, 4-2-3-1, 3-5-2, 5-3-2)**, táctica, capitán, rotaciones, sugerencias e instalaciones médicas.
+- **Los cambios se guardan automáticamente** en tu partida y se aplican al próximo partido simulado o transmitido por Live 2D; el motor utiliza ese once y esa banca para rendimiento, goleadores y sustituciones.
+- Adaptado para móvil, con tarjetas grandes que se pueden pulsar sin utilizar arrastrar y soltar. En modo entrenador solo se edita el club dirigido; en modo presidente se permite cambiar de club desde el selector ya disponible.
+- Conserva los campeones, resultados anteriores, el mercado, la cantera, el calendario y la integración con Joshua Cloud.
+
+Prueba adicional: `node tests-lineup-visual.mjs`. La edición usa los futbolistas ya existentes de cada club; no agrega jugadores ficticios.
+
+---
+
 # Noveria 6.3.1 · Revisión y mejoras de rendimiento ⚡
 
 Actualización enfocada **solo en fluidez, uso de memoria y guardados seguros**. No modifica resultados, calendarios, campeones, reglas ni el esquema de Joshua Cloud.
