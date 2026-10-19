@@ -9,6 +9,7 @@ export const SAVE_STORE='partidas';
 export const SAVE_META_SUFFIX='-meta-v4';
 let databasePromise=null;
 let writeQueue=Promise.resolve();
+let newestSaveVersion=0;
 
 function db(){
  if(typeof indexedDB==='undefined')return Promise.reject(Error('IndexedDB no está disponible'));
@@ -67,8 +68,14 @@ export function saveAll(state,storageKey){
   localOK=true;
  }catch{}
  // Capturamos instantánea; el estado mutable de la aplicación nunca entra directo al IDB.
- const snapshot=typeof structuredClone==='function'?structuredClone(state):JSON.parse(serial);
- const operation=()=>transactionRecord('actual',{slot:'actual',savedAt,state:snapshot,format:4})
+ // Reutilizar el JSON ya generado: evita clonar todo el universo otra vez.
+ const snapshot=JSON.parse(serial);
+ const version=++newestSaveVersion;
+ // Varias acciones consecutivas pueden crear instantáneas obsoletas.
+ // localStorage recibe la última inmediatamente; IndexedDB escribe sólo la nueva.
+ const operation=()=>version!==newestSaveVersion
+  ?Promise.resolve({savedAt,localOK,indexedOK:false,skipped:true})
+  :transactionRecord('actual',{slot:'actual',savedAt,state:snapshot,format:4})
   .then(()=>({savedAt,localOK,indexedOK:true}))
   .catch(error=>({savedAt,localOK,indexedOK:false,error:String(error)}));
  const promise=writeQueue.then(operation,operation);
