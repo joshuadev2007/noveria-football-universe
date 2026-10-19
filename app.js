@@ -100,7 +100,9 @@ function showSaveStatus(){
  document.querySelectorAll('[data-save-time]').forEach(element=>{element.textContent=readableSaveTime(saveStatus.savedAt)});
 }
 let pendingTitleCelebration=[];
+let marketCatalogCache=null;
 function save(){
+ marketCatalogCache=null;
  // Los cambios de plantel y fichajes generan correo sin depender de la pantalla abierta.
  updateClubInbox();
  // Revisa únicamente nuevos títulos; jamás vuelve a simular los encuentros.
@@ -397,9 +399,14 @@ function officePage(){const t=club(ui.team);return `<div class="stack">${head('D
 <div class="card"><h2 class="h2">📋 Dirección de alineaciones</h2><p class="muted small">Definí el once, los siete suplentes, el capitán y la formación desde la cancha táctica. Se aplica al motor de simulación y al Live 2D.</p>${button('📋 Abrir alineación y banca','nav','data-target="alineacion"','btn primary')}</div><div class="card"><h2 class="h2">💰 Despacho del mercado</h2><p class="muted small">Modo carrera con negociaciones, contraofertas, contratos y traspasos automáticos de todos los países.</p><div class="notice">${s.mode==='manager'?`Sos DT de ${E(s.managedClub)}. Solo podés fichar para tu equipo.`:'Como presidente de la federación podés gestionar cualquier club.'}</div><div style="margin-top:16px">${button('Ir al mercado de pases →','nav','data-target="mercado"','btn primary')}</div></div></div>`;}
 function marketBuyer(){return s.mode==='manager'?s.managedClub:ui.marketClub;}
 function marketBadge(status){return {accepted:'✔ FICHAJE',counter:'↪ CONTRAOFERTA',rejected:'✕ RECHAZADA',declined:'✕ DESCARTADA',expired:'⌛ CADUCADA'}[status]||status;}
+function marketCatalog(buyer){
+ if(marketCatalogCache?.state===s&&marketCatalogCache.buyer===buyer)return marketCatalogCache.rows;
+ const rows=Object.values(s.teams).flatMap(t=>t.name===buyer?[]:t.players.map(p=>({...p,team:t.name,price:marketValuation(p),searchKey:(p.name+' '+t.name+' '+p.nationality).toLowerCase()})));
+ marketCatalogCache={state:s,buyer,rows};return rows;
+}
 function marketPageBase(){ensureMarket(s);const m=s.market,buyer=marketBuyer(),buy=club(buyer),open=m.status==='open';
- const all=Object.values(s.teams).flatMap(t=>t.name===buyer?[]:t.players.map(p=>({...p,team:t.name,price:marketValuation(p)})));
- let rows=all.filter(p=>ui.marketPos==='TODAS'||p.pos===ui.marketPos).filter(p=>(p.name+' '+p.team+' '+p.nationality).toLowerCase().includes(ui.marketSearch.toLowerCase()));
+ const all=marketCatalog(buyer),term=ui.marketSearch.toLowerCase();
+ let rows=all.filter(p=>(ui.marketPos==='TODAS'||p.pos===ui.marketPos)&&(!term||p.searchKey.includes(term)));
  if(ui.marketAffordable!==false)rows=rows.filter(p=>buy.players.length<30&&s.teams[p.team]?.players?.length>17&&p.price*1.14<=Number(buy.budget||0));
  rows.sort(ui.marketSort==='cheap'?(a,b)=>a.price-b.price:ui.marketSort==='potential'?(a,b)=>b.pot-a.pot:(a,b)=>b.ovr-a.ovr);
  const watch=new Set(m.shortlist),watchPlayers=all.filter(p=>watch.has(p.id)),offers=m.offers.filter(x=>x.buyer===buyer),log=m.log.slice(0,36);
