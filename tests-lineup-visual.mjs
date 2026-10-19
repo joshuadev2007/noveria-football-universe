@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {freshState,simulateMatch} from './engine.js';
+import {FORMATIONS,lineupState,roleAffinity,chooseLineup,matchLineup} from './lineup.js';
+
+const app=readFileSync(new URL('./app.js',import.meta.url),'utf8');
+const css=readFileSync(new URL('./styles.css',import.meta.url),'utf8');
+const a=app.indexOf('function lineupPicker('),b=app.indexOf('\nfunction ',a+20);
+assert.ok(a>=0&&b>a,'El selector debe estar en la aplicación');
+const code=app.slice(a,b);
+const E=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+const s=freshState(),name='Unión Popular Aurena',t=s.teams[name],ui={lineupSlot:0};
+let opened=null;
+const open=new Function('s','club','lineupTeamName','lineupState','FORMATIONS','roleAffinity','E','modal',
+ code+'\nreturn lineupPicker;')(s,n=>s.teams[n],()=>name,lineupState,FORMATIONS,roleAffinity,E,(title,body)=>{opened={title,body}});
+const initial=lineupState(t);
+const keeper=initial.starters[0],reserve=initial.bench[2],outside=initial.reserves[1];
+open('starters',0);
+assert.match(opened.title,/POR/);
+assert.match(opened.body,/En la banca/);
+assert.match(opened.body,/Reservas disponibles/);
+assert.match(opened.body,/Otros titulares/);
+assert.ok(opened.body.includes('data-action="lineup-swap"'));
+assert.ok(opened.body.includes('data-area="starters" data-index="0"'));
+open('bench',3);
+assert.ok(opened.body.includes('data-area="bench" data-index="3"'));
+assert.throws(()=>open('bench',99),/inválido/);
+
+chooseLineup(s,name,'starters',0,reserve);
+assert.equal(lineupState(t).starters[0],reserve);
+assert.equal(lineupState(t).bench[2],keeper);
+chooseLineup(s,name,'bench',3,outside);
+assert.equal(lineupState(t).bench[3],outside);
+assert.equal(new Set([...lineupState(t).starters,...lineupState(t).bench,...lineupState(t).reserves]).size,t.players.length);
+const f=s.fixtures.find(m=>!m.played&&(m.home===name||m.away===name));
+const played=simulateMatch(s,f),side=played.home===name?'home':'away';
+assert.equal(played.lineups[side][0],reserve);
+assert.ok(played.bench[side].includes(outside));
+assert.ok(s.teams[name].lineup.starters.includes(reserve));
+assert.ok(app.includes('data-action="lineup-pick" data-area="starters"'),'Tocar la camiseta abre el selector');
+assert.ok(app.includes("case 'lineup-swap':"),'El botón de sustitución se procesa');
+assert.ok(css.includes('.lineup-swap-grid')&&css.includes('@media(max-width:600px)'),'Interfaz adaptable a móviles');
+const copy=JSON.parse(JSON.stringify(s));assert.equal(matchLineup(copy.teams[name]).starters[0].id,reserve);
+console.log('✅ Selector visual: 11 titulares, 7 suplentes, reservas y cambios directos');
+console.log('✅ Sin duplicados; once guardado, respetado por simulación y adaptable a celular');
