@@ -178,8 +178,8 @@ async function cloudConnect(){
 async function cloudApply(remote){
  if(!remote?.state||!isSaveValid(remote.state))throw Error('La partida remota no es válida');
  clearTimeout(cloudTimer);cloudState.dirty=false;
- s=ensureExtraMarket(ensureEcosystem(ensureContinent(ensureMarket(remote.state))));
- ui.round=Math.min(18,getLeagueNextRound(s));
+ s=ensureClubHeritage(ensureExtraMarket(ensureEcosystem(ensureContinent(ensureMarket(remote.state)))));
+ syncClubContext(s.managedClub||ui.team);ui.round=Math.min(18,getLeagueNextRound(s));
  await saveAll(s,STORAGE_KEY).promise;
  cloudState.revision=remote.revision;
  cloudMarkBaseline(remote.revision,s);
@@ -212,7 +212,8 @@ function cloudPage(){
 }
 
 function nav(p){if(p!=='vivo')stopLive();if(p==='buzon'){if(updateClubInbox({routine:true}).length)save();}ui.page=p;window.location.hash='#'+p;render();window.scrollTo({top:0,behavior:'smooth'});}
-function setActiveClub(name){if(!s.teams?.[name])return;Object.assign(ui,{team:name,club:name,lineupClub:name,careClub:name,analysisClub:name,sportingClub:name,marketClub:name});ui.youthScoutCountry=null;if(s.mode==='manager'){s.managedClub=name;ui.inboxItem=null;updateClubInbox({routine:true});save();}}
+function syncClubContext(name){if(!s.teams?.[name])return;Object.assign(ui,{team:name,club:name,lineupClub:name,careClub:name,analysisClub:name,sportingClub:name,marketClub:name});ui.youthScoutCountry=null;}
+function setActiveClub(name){if(!s.teams?.[name])return;syncClubContext(name);if(s.mode==='manager'){s.managedClub=name;ui.inboxItem=null;updateClubInbox({routine:true});save();}}
 function head(title,sub,actions=''){return `<div class="top"><div><div class="eyebrow">✦ Noveria · Football Universe</div><h1>${title}</h1><p>${sub}</p></div><div class="controls">${actions}</div></div>`;}
 const button=(name,action,extra='',cls='btn')=>`<button class="${cls}" data-action="${action}" ${extra}>${name}</button>`;
 function stat(label,value,detail=''){return `<div class="card stat"><div class="label">${label}</div><div class="big">${value}</div>${detail?`<div class="muted small">${detail}</div>`:''}</div>`;}
@@ -1091,7 +1092,7 @@ case 'youth-league':{try{const result=simulateYouthLeagueRound(s,club(ui.team).c
 case 'youth-friendly':try{const other=Object.keys(s.teams).filter(t=>t!==ui.team)[Math.floor(Math.random()*30)];const result=createYouthMatch(s,ui.team,other);save();toast('⚽ Sub-20: '+result.home+'-'+result.away);render()}catch(e){toast(e.message)}break;
 case 'facility-upgrade':try{const v=upgradeFacility(s,ui.team,el.dataset.facility);save();toast('🏟️ Mejora instalada · nivel '+v.level);render()}catch(e){toast(e.message)}break;
 case 'career-offers':careerOffers(s);save();render();break;
-case 'career-job':try{acceptCareerJob(s,el.dataset.club);ui.team=s.managedClub;ui.inboxItem=null;updateClubInbox({routine:true});save();toast('🧑‍💼 Nuevo club: '+s.managedClub);render()}catch(e){toast(e.message)}break;
+case 'career-job':try{acceptCareerJob(s,el.dataset.club);setActiveClub(s.managedClub);ui.inboxItem=null;updateClubInbox({routine:true});save();toast('🧑‍💼 Nuevo club: '+s.managedClub);render()}catch(e){toast(e.message)}break;
 case 'cloud-otp-change':{pendingLoginEmail='';emailCodeLastSent=0;render();break;}
 case 'cloud-otp-resend':{
  if(emailLoginBusy)break;
@@ -1178,7 +1179,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.add
 async function initializeNoveria(){
  try{
   const restored=await restoreSave(STORAGE_KEY,isSaveValid);
-  if(restored){s=ensureExtraMarket(ensureEcosystem(ensureContinent(ensureMarket(restored.state))));ui.round=Math.min(18,getLeagueNextRound(s));saveStatus={message:'✓ Partida recuperada',savedAt:restored.savedAt,ok:true};}
+  if(restored){s=ensureClubHeritage(ensureExtraMarket(ensureEcosystem(ensureContinent(ensureMarket(restored.state)))));syncClubContext(s.managedClub||ui.team);ui.round=Math.min(18,getLeagueNextRound(s));saveStatus={message:'✓ Partida recuperada',savedAt:restored.savedAt,ok:true};}
   else saveStatus={message:'Partida inicial · Jornada 7',savedAt:0,ok:true};
  }catch(error){console.warn('No se pudo recuperar el respaldo local',error);saveStatus={message:'Partida abierta · verificá tu respaldo',savedAt:0,ok:false}}
  let linkLoggedIn=false;
