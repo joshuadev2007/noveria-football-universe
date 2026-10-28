@@ -5,6 +5,7 @@ import {registerInjury} from './squad-care.js';
 import {matchLineup,lineupStrength} from './lineup.js';
 import {preCareerMatch,afterCareerMatch,careerOffseason} from './career-realism.js';
 import {leaguePlayoffSeeds,leaguePlayoffPairs,leaguePlayoffReseed,leaguePlayoffFinal} from './league-playoffs.js';
+import {ensureClubHeritage,recordPlayerMatch,recordPlayerEvent,closePlayerEdition,beginPlayerEdition,retireEligiblePlayers} from './club-heritage.js';
 
 export const STORAGE_KEY='noveria-universe-save-v1';
 export const FIRST_NAMES=['Mateo','Thiago','Damián','Emiliano','Bruno','Santiago','Noah','Iker','Adrián','Gael','Elian','Nicolás','Alexis','Kevin','Samuel','Héctor','Marco','Iván','Gabriel','Luca','Enzo','Erik','Lucas','Rafael','Daniel','Jesús','Oliver','Aaron','Raúl','Diego','Joel','Néstor','Emanuel','Ángel','Axel','Esteban','Julián','Leandro','Hugo','Luis','Pablo','Leonardo','Sergio','Matías','Darío','Jairo','Rubén','Ariel','Elías','Benjamín','Sebastián'];
@@ -85,11 +86,11 @@ export function simulateMatch(s,match,options={}){
   match.lineupDetails={home:startersH.map(p=>({name:p.name,number:p.number,pos:p.pos,form:p.form})),away:startersA.map(p=>({name:p.name,number:p.number,pos:p.pos,form:p.form}))};
   match.coachAtKickoff={home:home.coach,away:away.coach,homeFormation:selectedH.formation,awayFormation:selectedA.formation,homeTactic:home.tactic,awayTactic:away.tactic};
   for(const [side,team,score,concede] of [['home',home,sh,sa],['away',away,sa,sh]]){
-    const starters=team===home?startersH:startersA;for(const p of starters){p.apps++;p.form=+(within(6.1+(score-concede)*.24+(r()-.5)*2,4,9.9)).toFixed(1)}
-    const used=team===home?usedSubs.home:usedSubs.away;for(const id of used){const sub=team.players.find(p=>p.id===id);if(sub)sub.apps++;}
+    const starters=team===home?startersH:startersA;for(const p of starters){p.apps++;p.form=+(within(6.1+(score-concede)*.24+(r()-.5)*2,4,9.9)).toFixed(1);recordPlayerMatch(s,team.name,p,true)}
+    const used=team===home?usedSubs.home:usedSubs.away;for(const id of used){const sub=team.players.find(p=>p.id===id);if(sub){sub.apps++;recordPlayerMatch(s,team.name,sub,false)}}
     const outcome=score>concede?3:score===concede?1:-3;team.morale=within(team.morale+outcome,20,99);team.board=within(team.board+Math.sign(outcome),10,100);
   }
-  for(const ev of events){const team=ev.side==='home'?home:away;const p=team.players.find(x=>x.id===ev.p1);const p2=team.players.find(x=>x.id===ev.p2);if(ev.type==='goal'){if(p)p.goals++;if(p2)p2.assists++;}else if(ev.type==='yellow'&&p)p.yellows++;else if(ev.type==='red'&&p){p.reds++;p.suspensionGames=Math.max(p.suspensionGames||0,2);}else if(ev.type==='injury'&&p){p.injuries++;p.outGames=Math.max(1,2+Math.floor(r()*4)-Math.floor((team.facility?.medical||1)/2));registerInjury(s,team.name,p,match,p.outGames);}}
+  for(const ev of events){const team=ev.side==='home'?home:away;const p=team.players.find(x=>x.id===ev.p1);const p2=team.players.find(x=>x.id===ev.p2);if(ev.type==='goal'){if(p){p.goals++;recordPlayerEvent(s,team.name,p,'goal')}if(p2){p2.assists++;recordPlayerEvent(s,team.name,p2,'assist')}}else if(ev.type==='yellow'&&p){p.yellows++;recordPlayerEvent(s,team.name,p,'yellow')}else if(ev.type==='red'&&p){p.reds++;recordPlayerEvent(s,team.name,p,'red');p.suspensionGames=Math.max(p.suspensionGames||0,2);}else if(ev.type==='injury'&&p){p.injuries++;recordPlayerEvent(s,team.name,p,'injury');p.outGames=Math.max(1,2+Math.floor(r()*4)-Math.floor((team.facility?.medical||1)/2));registerInjury(s,team.name,p,match,p.outGames);}}
   const big=Math.abs(sh-sa)>=3;
   const winner=sh>sa?home:sh<sa?away:null;
   match.headline=winner?(big?`¡Exhibición de ${winner.name}!`:`${winner.name} se lleva tres puntos`):`Reparto de puntos entre ${home.name} y ${away.name}`;
@@ -435,12 +436,13 @@ export function recruitAcademyPlayer(s,name){
 // NUEVAS TEMPORADAS: calendario renovado, ascensos/descensos e historia intacta.
 export function startNextSeason(s){
  ensureMarket(s);if(s.postseason?.stage!=='finalizada')throw Error('Terminá la final y la Recopa antes de cambiar de torneo');
+ ensureClubHeritage(s);for(const[name,t]of Object.entries(s.teams||{}))for(const p of t.players||[])closePlayerEdition(s,name,p);
  if(s.market.status==='open')throw Error('Primero cerrá el mercado de pases antes del siguiente torneo');
  const complete=cycleIsAnnualFinal(s),old=s.season,next=cycleNext(s),newKey=next.season+'-'+next.edition;
  const fallenA=complete?standings(s,'A').at(-1).name:null,fallenB=complete?standings(s,'B').at(-1).name:null,
  promoted=complete?standings(s,'S').slice(0,2).map(r=>r.name):[];
  const oldArchive={season:s.season,edition:cyclePhase(s),key:cycleKey(s),fixtures:s.fixtures,cup:s.cup,
-  postseason:s.postseason,annual:standings(s,'annual').map(r=>({...r})),A:standings(s,'A'),B:standings(s,'B'),
+  postseason:s.postseason,honours:(s.honours||[]).filter(h=>String(h.season)===String(s.season)&&(!h.edition||h.edition===s.edition)),annual:standings(s,'annual').map(r=>({...r})),A:standings(s,'A'),B:standings(s,'B'),
   second:standings(s,'S'),relegated:complete?[fallenA,fallenB]:[],promoted:[...promoted],calendar:s.calendar||null};
  s.archive.unshift(oldArchive);
  if(complete){
@@ -459,8 +461,10 @@ export function startNextSeason(s){
   if(t.division==='LSV')t.budget=+(t.budget+1.4).toFixed(3);
   else if(t.division==='LPV')t.budget=+(t.budget+.8).toFixed(3);
  }
+ const retiredThisEdition=retireEligiblePlayers(s);
  careerOffseason(s);
  s.season=next.season;s.edition=next.edition;
+ for(const t of Object.values(s.teams||{}))for(const p of t.players||[])beginPlayerEdition(s,p);
  s.fixtures=FIXTURES.map(f=>({id:f.id+'-'+newKey,competition:f.competition,group:f.group,round:f.round,slot:f.slot,seq:f.seq,
   home:s.slotMap[f.home],away:s.slotMap[f.away],scoreH:null,scoreA:null,played:false,legacy:false}));
  s.cup=initialCup();s.cup.fixtures.forEach(f=>f.id+='-'+newKey);
