@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {freshState,startNextSeason} from './engine.js';
+import {ensureContinent} from './continent.js';
 import {ensureClubHeritage,recordPlayerMatch,recordPlayerEvent,retirePlayer,teamSeasonHistory,clubHonours,clubLegends,retiredPlayersForCountry,careerLeaders} from './club-heritage.js';
 
 const clubName='Unión Popular Aurena';
@@ -33,10 +34,11 @@ assert.ok(archived,'El retiro automático se ejecuta al avanzar de edición');
 assert.equal(archived.retirementAge,41,'La edad de retiro queda archivada');
 assert.ok(automatic.teams[clubName].players.length>=17,'La plantilla mantiene un mínimo funcional de futbolistas');
 
-const foreign=Object.values(automatic.teams).find(t=>t.country==='Varkosia');
+const international=ensureContinent(freshState());
+const foreign=Object.values(international.teams).find(t=>t.country==='Varkosia');
 assert.ok(foreign,'El universo incluye los países internacionales');
-const foreignHistory=teamSeasonHistory(automatic,foreign.name);
-assert.ok(foreignHistory.length,'El historial también consulta el archivo del país extranjero');
+const foreignHistory=teamSeasonHistory(international,foreign.name);
+assert.ok(foreignHistory.some(row=>row.matches>0),'El historial también consulta los partidos del país extranjero');
 console.log('✅ Historial temporada a temporada y palmarés de clubes');
 console.log('✅ Estadísticas individuales por club, leyendas y líderes históricos');
 console.log('✅ Retiro voluntario entre 37 y 41 y archivo permanente de carrera');
