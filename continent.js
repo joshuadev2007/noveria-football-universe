@@ -116,7 +116,7 @@ export function prepareCountriesNextSeason(s,newTag=null){
   const annual=cycleIsAnnualFinal(s);
   const down=annual?[countryStandings(s,c,'A').at(-1).name,countryStandings(s,c,'B').at(-1).name]:[];
   const up=annual?countryStandings(s,c,'S').slice(0,2).map(x=>x.name):[];
-  w.archive.unshift({season:s.season,edition:cyclePhase(s),key:cycleKey(s),fixtures:w.fixtures,
+  w.archive.unshift({season:s.season,edition:cyclePhase(s),key:cycleKey(s),fixtures:w.fixtures,slots:structuredClone(w.slots),
    cup:w.cup,postseason:w.postseason,champions:w.champions.filter(x=>x.key?.includes(cycleKey(s))),descended:down,ascended:up});
   if(annual)for(let i=0;i<2;i++){const group=i===0?'A':'B',j=w.slots[group].indexOf(down[i]),k=w.slots.S.indexOf(up[i]);
    if(j<0||k<0)throw Error('No se encontraron plazas de '+c);
