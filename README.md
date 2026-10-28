@@ -1,3 +1,19 @@
+# Noveria 6.5 · Historia de clubes, leyendas y retirados 🏛️
+
+## Archivo histórico del universo
+
+- Nuevo apartado **Historia y leyendas**: filtrá los 252 clubes por país, elegí una institución y consultá temporadas archivadas, clasificación, resultados, títulos, balance de partidos y la vitrina del club.
+- Las fichas de jugadores guardan estadísticas de carrera y un desglose por club: partidos, titularidades, goles, asistencias, tarjetas, lesiones y temporadas.
+- Las leyendas se identifican a partir de registros acumulados por institución: 80 partidos, 25 goles, 30 asistencias o cinco temporadas.
+- Los futbolistas pueden retirarse voluntariamente entre los **37 y 41 años** desde su ficha. Al cambiar de edición también se procesa el retiro automático según la edad de retiro asignada a cada jugador.
+- La ficha de cada retirado conserva su OVR final, edad, último club, estadísticas de carrera, trayectoria por club y temporadas. Los retirados siguen contando en los récords históricos.
+- Si un retiro deja una plantilla por debajo de 17 jugadores, el club incorpora una promesa disponible o genera un reemplazo joven para mantener el equipo funcional.
+- Al cambiar de club en los selectores de equipo, los apartados de gerencia, alineación, cantera, uniformes y análisis sincronizan el contexto para no seguir mostrando el equipo anterior.
+- Los resultados históricos existentes no se borran ni se vuelven a simular. La historia se reconstruye desde las temporadas archivadas de Veltrania y de los ocho países internacionales; no se inventan temporadas anteriores a la partida.
+- Pruebas automatizadas: `node tests-club-heritage.mjs`.
+
+---
+
 # Noveria 6.4 · 🔥 Grandes previas de partidos importantes
 
 **Apartado nuevo: 🔥 Grandes previas.** Se muestra en la barra lateral (y en «Más» en el móvil), con acceso adicional desde **📅 Calendario maestro** y desde **🔥 Previa** junto a los próximos partidos destacados.
