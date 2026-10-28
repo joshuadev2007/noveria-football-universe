@@ -87,12 +87,21 @@ function tableRows(matches,names){
 }
 function seasonPosition(entry,name,s){
  for(const[key,label]of[['A','Zona A'],['B','Zona B'],['second','Segunda'],['annual','Tabla anual']]){const rows=entry?.[key];if(!Array.isArray(rows))continue;const i=rows.findIndex(r=>r.name===name);if(i>=0)return{position:i+1,total:rows.length,label,points:rows[i].pts??0};}
- const team=s.teams?.[name];if(!team)return null;const league=(entry?.fixtures||[]).filter(m=>['LSV','LPV'].includes(m.competition));
- const names=Object.values(s.teams).filter(t=>team.division==='LPV'?t.division==='LPV':t.division==='LSV'&&t.group===team.group).map(t=>t.name);
- const rows=tableRows(league,names),i=rows.findIndex(r=>r.name===name);return i<0?null:{position:i+1,total:rows.length,label:team.division==='LPV'?'Segunda':'Zona '+team.group,points:rows[i].pts};
+ const team=s.teams?.[name];if(!team)return null;const country=entry?.country||team.country||'Veltrania';let group='';let names=[];
+ if(country!=='Veltrania'){
+  const slots=entry?.slots||s.world?.[country]?.slots||{};group=['A','B','S'].find(g=>(slots[g]||[]).includes(name))||'';
+  if(!group)group=(entry?.fixtures||[]).find(m=>(m.home===name||m.away===name)&&['A','B','S'].includes(m.group))?.group||'';
+  names=(slots[group]||[]).slice();if(!names.length&&group)names=[...new Set((entry?.fixtures||[]).filter(m=>m.group===group).flatMap(m=>[m.home,m.away]))];
+ }else{group=team.division==='LPV'?'S':team.group||'A';names=Object.values(s.teams).filter(t=>group==='S'?t.country==='Veltrania'&&t.division==='LPV':t.country==='Veltrania'&&t.division==='LSV'&&t.group===group).map(t=>t.name);}
+ const league=(entry?.fixtures||[]).filter(m=>['LSV','LPV'].includes(m.competition)&&(country==='Veltrania'||m.group===group));
+ if(!league.some(m=>played(m)&&(m.home===name||m.away===name)))return null;
+ if(!names.length)names=[...new Set(league.flatMap(m=>[m.home,m.away]))];
+ const rows=tableRows(league,names),i=rows.findIndex(r=>r.name===name);return i<0?null:{position:i+1,total:rows.length,label:group==='S'?'Segunda':'Zona '+group,points:rows[i].pts};
 }
 export function teamSeasonHistory(s,name){
- const archives=[...(s.archive||[])].map(a=>({...a,current:false}));archives.push({season:s.season,edition:s.edition||'Apertura',key:seasonKey(s),fixtures:s.fixtures||[],cup:s.cup,postseason:s.postseason,competitions:s.competitions||[],current:true});
+ const country=s.teams?.[name]?.country||'Veltrania',world=country!=='Veltrania'?s.world?.[country]:null;
+ const archives=[...(world?.archive||s.archive||[])].map(a=>({...a,current:false,country,slots:a.slots||null}));
+ archives.push({season:s.season,edition:s.edition||'Apertura',key:seasonKey(s),fixtures:world?.fixtures||s.fixtures||[],cup:world?.cup||s.cup,postseason:world?.postseason||s.postseason,competitions:s.competitions||[],current:true,country,slots:world?.slots||null});
  return archives.filter(a=>a.fixtures?.length||a.cup?.fixtures?.length||a.postseason?.fixtures?.length).map(a=>{
   const all=matchList(a).filter(m=>m.home===name||m.away===name),league=all.filter(m=>['LSV','LPV'].includes(m.competition)),cup=(a.cup?.fixtures||[]).filter(m=>(m.home===name||m.away===name)&&played(m));
   let w=0,d=0,l=0,gf=0,gc=0;for(const m of all){const h=m.home===name,forGoals=h?m.scoreH:m.scoreA,against=h?m.scoreA:m.scoreH;gf+=forGoals;gc+=against;if(forGoals>against)w++;else if(forGoals===against)d++;else l++;}
