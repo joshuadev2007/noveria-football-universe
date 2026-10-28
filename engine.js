@@ -436,8 +436,8 @@ export function recruitAcademyPlayer(s,name){
 // NUEVAS TEMPORADAS: calendario renovado, ascensos/descensos e historia intacta.
 export function startNextSeason(s){
  ensureMarket(s);if(s.postseason?.stage!=='finalizada')throw Error('Terminá la final y la Recopa antes de cambiar de torneo');
- ensureClubHeritage(s);for(const[name,t]of Object.entries(s.teams||{}))for(const p of t.players||[])closePlayerEdition(s,name,p);
  if(s.market.status==='open')throw Error('Primero cerrá el mercado de pases antes del siguiente torneo');
+ ensureClubHeritage(s);for(const[name,t]of Object.entries(s.teams||{}))for(const p of t.players||[])closePlayerEdition(s,name,p);
  const complete=cycleIsAnnualFinal(s),old=s.season,next=cycleNext(s),newKey=next.season+'-'+next.edition;
  const fallenA=complete?standings(s,'A').at(-1).name:null,fallenB=complete?standings(s,'B').at(-1).name:null,
  promoted=complete?standings(s,'S').slice(0,2).map(r=>r.name):[];
