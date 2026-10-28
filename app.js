@@ -212,7 +212,7 @@ function cloudPage(){
 }
 
 function nav(p){if(p!=='vivo')stopLive();if(p==='buzon'){if(updateClubInbox({routine:true}).length)save();}ui.page=p;window.location.hash='#'+p;render();window.scrollTo({top:0,behavior:'smooth'});}
-function syncClubContext(name){if(!s.teams?.[name])return;Object.assign(ui,{team:name,club:name,lineupClub:name,careClub:name,analysisClub:name,sportingClub:name,marketClub:name});ui.youthScoutCountry=null;}
+function syncClubContext(name){if(!s.teams?.[name])return;Object.assign(ui,{team:name,club:name,lineupClub:name,careClub:name,analysisClub:name,sportingClub:name,marketClub:name,historyTeam:name,historyCountry:s.teams[name].country||'Veltrania'});ui.youthScoutCountry=null;}
 function setActiveClub(name){if(!s.teams?.[name])return;syncClubContext(name);if(s.mode==='manager'){s.managedClub=name;ui.inboxItem=null;updateClubInbox({routine:true});save();}}
 function head(title,sub,actions=''){return `<div class="top"><div><div class="eyebrow">✦ Noveria · Football Universe</div><h1>${title}</h1><p>${sub}</p></div><div class="controls">${actions}</div></div>`;}
 const button=(name,action,extra='',cls='btn')=>`<button class="${cls}" data-action="${action}" ${extra}>${name}</button>`;
